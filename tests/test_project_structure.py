@@ -121,11 +121,21 @@ class ExplorerRouteTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status_code, 200)
         html = await response.get_data(as_text=True)
         self.assertIn("📍 Pfad:", html)
-        self.assertIn("static/explorer.css", html)
+        self.assertIn('<nav class="button-column" aria-label="Explorer-Menü">', html)
+        self.assertIn('<main class="data-column" aria-label="Dateien und Inhalt">', html)
+        self.assertIn("static/explorer.css?v=two-column-mobile-2", html)
         self.assertIn("static/explorer.js", html)
         self.assertNotIn("<style", html)
         self.assertNotIn("<script>", html)
         self.assertNotIn("style=", html)
+
+        edit_response = await client.get("/explorer?file=neu.py")
+        self.assertEqual(edit_response.status_code, 200)
+        edit_html = await edit_response.get_data(as_text=True)
+        self.assertIn('class="explorer-layout explorer-layout-editor"', edit_html)
+        self.assertIn('<nav class="button-column" aria-label="Explorer-Menü">', edit_html)
+        self.assertIn('<main class="data-column" aria-label="Dateien und Inhalt">', edit_html)
+        self.assertIn('class="explorer-editor"', edit_html)
 
         for asset in ("explorer.css", "explorer.js"):
             with self.subTest(asset=asset):

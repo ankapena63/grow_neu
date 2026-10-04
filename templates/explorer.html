@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Termux Explorer v2</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='explorer.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='explorer.css', v='two-column-mobile-2') }}">
 </head>
 <body class="explorer-page" data-current-path="{{ current_path }}">
 
@@ -20,9 +20,8 @@
 📍 Pfad: <code>{{ current_path }}</code>
 </div>
 
-<div class="explorer-layout">
-{% if not edit_file %}
-<div class="button-column">
+<div class="explorer-layout{% if edit_file %} explorer-layout-editor{% endif %}">
+<nav class="button-column" aria-label="Explorer-Menü">
 <a href="/explorer?path={{ parent_path | urlencode }}&selected=" class="nav-btn explorer-button-back">⬅ Zurück</a>
 <a href="/" class="nav-btn explorer-button-home">🏠 Start </a>
 <a href="/explorer?path={{ DATA_DIR | urlencode }}&selected=" class="nav-btn explorer-button-data">📂 data</a>
@@ -69,11 +68,27 @@
 <button type="submit" class="nav-btn explorer-button-grow">Erstellen</button>
 </form>
 </div>
+</nav>
 
+<main class="data-column" aria-label="Dateien und Inhalt">
+{% if edit_file %}
+<div class="editor-area">
+<form method="post" action="/explorer/save" class="editor-form">
+<input type="hidden" name="path" value="{{ current_path }}">
+<input type="hidden" name="filename" value="{{ edit_file }}">
+<div class="editor-toolbar">
+Datei:
+<b class="explorer-highlight">{{ edit_file }}</b>
+
+<button type="submit" class="nav-btn explorer-button-home">💾 Speichern</button>
+<a href="/explorer?path={{ current_path | urlencode }}" data-confirm-discard class="nav-btn explorer-button-close">
+❌ Schließen
+</a>
 </div>
-{% endif %}
-
-{% if not edit_file %}
+<textarea name="content" class="explorer-editor">{{ content }}</textarea>
+</form>
+</div>
+{% else %}
 <div class="sidebar">
 
 {% for item in items | sort(attribute='is_dir', reverse=True) %}
@@ -92,27 +107,7 @@
 {% endfor %}
 </div>
 {% endif %}
-
-<div class="editor-area{% if edit_file %} editor-area-full{% endif %}">
-{% if edit_file %}
-<form method="post" action="/explorer/save" class="editor-form">
-<input type="hidden" name="path" value="{{ current_path }}">
-<input type="hidden" name="filename" value="{{ edit_file }}">
-<div class="editor-toolbar">
-Datei:
-<b class="explorer-highlight">{{ edit_file }}</b>
-
-<button type="submit" class="nav-btn explorer-button-home">💾 Speichern</button>
-<a href="/explorer?path={{ current_path | urlencode }}" data-confirm-discard class="nav-btn explorer-button-close">
-❌ Schließen
-</a>
-</div>
-<textarea name="content" class="explorer-editor">{{ content }}</textarea>
-</form>
-{% else %}
-<p>Datei auswählen Editor.</p>
-{% endif %}
-</div>
+</main>
 </div>
 
 <div id="context-menu">
