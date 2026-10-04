@@ -73,6 +73,7 @@ class ProjectStructureTests(unittest.TestCase):
             "routes.roh": ("/roh", {"GET"}),
             "routes.server_sshd": ("/server_sshd", {"POST"}),
             "routes.shutdown_server": ("/shutdown", {"POST"}),
+            "routes.confirm_shutdown": ("/shutdown/confirm", {"POST"}),
             "routes.get_sol_cloud": ("/solax_cloud", {"GET"}),
             "routes.get_local": ("/solax_local", {"GET"}),
             "routes.stat": ("/stat", {"GET"}),
@@ -139,10 +140,17 @@ class ServerShutdownTests(unittest.IsolatedAsyncioTestCase):
         shutdown_event = app.extensions["server_shutdown_event"]
         client = app.test_client()
 
-        response = await client.post("/shutdown")
+        response = await client.post(
+            "/shutdown",
+            headers={"X-Shutdown-Handshake": "1"},
+        )
 
         self.assertEqual(response.status_code, 202)
         self.assertFalse(shutdown_event.is_set())
+        confirmation = await client.post("/shutdown/confirm")
+        self.assertEqual(confirmation.status_code, 202)
+        confirmation = await client.post("/shutdown/confirm")
+        self.assertEqual(confirmation.status_code, 202)
         await asyncio.wait_for(shutdown_event.wait(), timeout=2)
         self.assertTrue(shutdown_event.is_set())
 
@@ -155,6 +163,7 @@ class ServerShutdownTests(unittest.IsolatedAsyncioTestCase):
         html = await response.get_data(as_text=True)
         self.assertIn('id="shutdownForm"', html)
         self.assertIn('action="/shutdown"', html)
+        self.assertIn("window.confirm(", html)
         self.assertIn("Server beenden", html)
 
 

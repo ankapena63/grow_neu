@@ -63,22 +63,27 @@ document
 document
     .getElementById("shutdownForm")
     .addEventListener("submit", async (event) => {
-        event.preventDefault();
-        if (!window.confirm("Möchtest du den Server wirklich beenden?")) {
+        if (event.defaultPrevented) {
             return;
         }
-
+        event.preventDefault();
         const form = event.currentTarget;
         const button = form.querySelector("button[type='submit']");
         button.disabled = true;
 
         try {
-            const response = await fetch(form.action, { method: "POST" });
+            const response = await fetch(form.action, {
+                method: "POST",
+                headers: { "X-Shutdown-Handshake": "1" }
+            });
             const result = await response.json();
             if (!response.ok || !result.success) {
                 throw new Error(result.message || "Server konnte nicht beendet werden.");
             }
             button.textContent = "Server wird beendet …";
+            fetch("/shutdown/confirm", { method: "POST" }).catch((error) => {
+                console.error("Fehler beim Bestätigen der Server-Abschaltung:", error);
+            });
         } catch (error) {
             button.disabled = false;
             const message = error instanceof Error

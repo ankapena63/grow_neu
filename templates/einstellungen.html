@@ -307,7 +307,8 @@
     <section class="alert alert-warning mt-3" aria-labelledby="shutdownHeading">
       <h2 id="shutdownHeading" class="h6">Anwendung beenden</h2>
       <p class="mb-2">Beendet den Server für alle verbundenen Geräte. Zum erneuten Starten das Python-Skript wieder ausführen.</p>
-      <form id="shutdownForm" action="/shutdown" method="POST">
+      <form id="shutdownForm" action="/shutdown" method="POST"
+            onsubmit="return window.confirm('Möchtest du den Server wirklich beenden?')">
         <button type="submit" class="btn btn-danger">Server beenden</button>
       </form>
     </section>
