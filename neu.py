@@ -26,7 +26,6 @@ def create_app():
     register_lifecycle(app)
     return app
 
-###########################################
 app = create_app()
 
 
@@ -53,7 +52,6 @@ async def run_server() -> None:
         debug=False,
         shutdown_trigger=shutdown_event.wait,
     )
-##
 if __name__ == "__main__":
     asyncio.run(run_server())
     
