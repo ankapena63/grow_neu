@@ -26,29 +26,12 @@ async def shutdown_server():
     if shutdown_event is None:
         return jsonify({"success": False, "message": "Server-Abschaltung ist nicht verfügbar."}), 503
 
-    if request.headers.get("X-Shutdown-Handshake") != "1":
-        current_app.add_background_task(
-            _stop_server_after_response,
-            shutdown_event,
-            5,
-        )
-    return jsonify({
-        "success": True,
-        "message": "Die Server-Abschaltung wurde bestätigt.",
-    }), 202
-
-
-@routes.post("/shutdown/confirm")
-async def confirm_shutdown():
-    shutdown_event = current_app.extensions.get("server_shutdown_event")
-    if shutdown_event is None:
-        return jsonify({"success": False, "message": "Server-Abschaltung ist nicht verfügbar."}), 503
-
-    current_app.add_background_task(_stop_server_after_response, shutdown_event)
-    return jsonify({
-        "success": True,
-        "message": "Der Server wird beendet.",
-    }), 202
+    current_app.add_background_task(
+        _stop_server_after_response,
+        shutdown_event,
+        5,
+    )
+    return await render_template("shutdown.html"), 202
 
 
 @routes.route("/update_einstellung", methods=["POST"])

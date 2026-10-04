@@ -73,7 +73,6 @@ class ProjectStructureTests(unittest.TestCase):
             "routes.roh": ("/roh", {"GET"}),
             "routes.server_sshd": ("/server_sshd", {"POST"}),
             "routes.shutdown_server": ("/shutdown", {"POST"}),
-            "routes.confirm_shutdown": ("/shutdown/confirm", {"POST"}),
             "routes.get_sol_cloud": ("/solax_cloud", {"GET"}),
             "routes.get_local": ("/solax_local", {"GET"}),
             "routes.stat": ("/stat", {"GET"}),
@@ -135,23 +134,29 @@ class ExplorerRouteTests(unittest.IsolatedAsyncioTestCase):
 
 
 class ServerShutdownTests(unittest.IsolatedAsyncioTestCase):
+    async def test_browser_shutdown_form_receives_confirmation_page(self):
+        app = neu.create_app()
+        client = app.test_client()
+
+        for headers in ({}, {"X-Shutdown-Handshake": "1"}):
+            with self.subTest(headers=headers):
+                response = await client.post("/shutdown", headers=headers)
+
+                self.assertEqual(response.status_code, 202)
+                self.assertIn("text/html", response.content_type)
+                html = await response.get_data(as_text=True)
+                self.assertIn("Server wird beendet", html)
+                self.assertNotIn('"success"', html)
+
     async def test_shutdown_route_requests_graceful_server_shutdown(self):
         app = neu.create_app()
         shutdown_event = app.extensions["server_shutdown_event"]
         client = app.test_client()
 
-        response = await client.post(
-            "/shutdown",
-            headers={"X-Shutdown-Handshake": "1"},
-        )
+        response = await client.post("/shutdown")
 
         self.assertEqual(response.status_code, 202)
-        self.assertFalse(shutdown_event.is_set())
-        confirmation = await client.post("/shutdown/confirm")
-        self.assertEqual(confirmation.status_code, 202)
-        confirmation = await client.post("/shutdown/confirm")
-        self.assertEqual(confirmation.status_code, 202)
-        await asyncio.wait_for(shutdown_event.wait(), timeout=2)
+        await asyncio.wait_for(shutdown_event.wait(), timeout=6)
         self.assertTrue(shutdown_event.is_set())
 
     async def test_settings_page_has_confirmable_shutdown_button(self):
