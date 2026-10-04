@@ -82,7 +82,16 @@ document
             }
             button.textContent = "Server wird beendet …";
             fetch("/shutdown/confirm", { method: "POST" }).catch((error) => {
-                console.error("Fehler beim Bestätigen der Server-Abschaltung:", error);
+                const message = error instanceof Error
+                    ? error.message
+                    : String(error);
+                button.disabled = false;
+                button.textContent = "Server beenden";
+                showSettingsToast(
+                    `Server-Abschaltung konnte nicht ausgelöst werden: ${message}`,
+                    false,
+                    5000
+                );
             });
         } catch (error) {
             button.disabled = false;
