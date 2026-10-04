@@ -1,0 +1,114 @@
+<div class="card mb-1">
+<div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+    <strong>📈 Strom </strong>
+
+    <div class="dropdown">
+        <!-- Haupt-Button des Dropdowns -->
+        <button class="btn btn-sm dropdown-toggle {% if einstellungen.nur_nulleinspeisung %}strom-mode-zero{% else %}strom-mode-mixed{% endif %}" 
+                type="button" 
+                id="dropdownStromModus"
+                data-bs-toggle="dropdown" 
+                data-bs-auto-close="outside">
+            {% if einstellungen.nur_nulleinspeisung %} Nur 0-⬇️ {% else %} Gemischte ⬇️ {% endif %}
+        </button>
+
+<ul class="dropdown-menu p-3 shadow strom-settings-menu">
+    <!-- Nulleinspeisung Schalter -->
+    <li>
+        <div class="form-check form-switch d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" role="switch" id="switchNulleinspeisung" 
+                   {% if einstellungen.nur_nulleinspeisung %}checked{% endif %}
+                   onchange="toggleZusatzOptionen(this.checked)">
+            <label class="form-check-label ms-2 fw-bold" for="switchNulleinspeisung">Nulleinspeisung</label>
+        </div>
+    </li>
+    <!--  <li id="zusatzOptionen"> -->
+    <li id="zusatzOptionen" class="strom-extra-options{% if einstellungen.nur_nulleinspeisung %} d-none{% endif %}">
+
+
+<hr class="dropdown-divider">
+<div class="d-flex justify-content-between align-items-center px-0">
+    <h6 class="dropdown-header px-0 text-secondary mb-0">Alternative Modi Hilfe</h6>
+    
+    <!-- Korrigierter Hilfe-Button -->
+    <button class="btn btn-outline-info btn-sm rounded-pill py-0 px-2" 
+            type="button" 
+            data-bs-toggle="popover" 
+            data-bs-trigger="focus"
+            data-bs-placement="left"
+            data-bs-html="true"
+            title="💡 Modus-Erklärungen" 
+            data-bs-content="
+                <b>🍃 Sanft:</b> Schont den Akku beim Laden vom aktuellen SOC bis zum Max-SOC. Versucht den Akku zum Tagesende voll zu bekommen (ähnlich wie PPV, aber zeitgesteuert).<br>
+                <hr class='my-1'>
+                <b>⏳ Feste:</b> Erzwingt eine feste Entladung für eine bestimmte Zeit. Nur aktiv, wenn ein Zeitintervall eingegeben wurde.  Der Wert wird am Ende zum normalen 'dazu'-Wert addiert.<br>
+                <hr class='my-1'>
+                <b>🔆 PPV:</b> PV-geführtes Laden ab PPV-Start-SOC. Ladeleistung = PPV-Leistung minus geschätztem Hausverbrauch (siehe Einstellungen). Falls 'Hard Entladen' aktiv: ab Max-SOC minus 5%.<br>
+                <hr class='my-1'>
+                <b>🚀 Hard:</b> Maximale Entladung ab Max-SOC% bis Max-SOC minus 5%.<br>
+                <hr class='my-1'>
+                <b>🌙 Nacht:</b> Erzwingt nachts 0 Watt Einspeisung. Die Zeiten können in den Einstellungen geändert werden (versetzt zu Sonnenauf-/-untergang).">
+        Hilfe lesen ?
+    </button>
+</div>
+
+
+<script src="{{ url_for('static', filename='strom-popover.js') }}"></script>      
+        <!-- Sanft Modus -->
+        <div class="mt-2 form-check form-switch d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" role="switch" id="switchSanft" {% if einstellungen.akku_sanft %}checked{% endif %}>
+            <label class="form-check-label ms-2 w-100 d-flex justify-content-between align-items-center text-nowrap" for="switchSanft">
+                <span class="fw-bold">🍃 Sanft Laden</span>
+                <small class="text-muted ms-2">ab SOC({{daten.akku.soc}}%) bis {{einstellungen.max_soc}}%</small>
+            </label>
+        </div>
+
+
+        <!--  Feste -->
+        <div class="mt-2 form-check form-switch d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" role="switch" id="switchSanftZeit" {% if web.akku_sanft_zeit %}checked{% endif %}>
+            <label class="form-check-label ms-2 w-100 d-flex justify-content-between align-items-center text-nowrap" for="switchSanftZeit">
+                <span class="fw-bold">⏳ Feste entladung</span>
+                <small class="text-muted ms-2">{{einstellungen.dazu_sanft}}W für {{web.dazu_intervall}} Min</small>
+            </label>
+        </div>
+        <!-- PPV Modus -->
+        <div class="mt-2 form-check form-switch d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" role="switch" id="switchPPV" {% if einstellungen.akku_ppv %}checked{% endif %}>
+            <label class="form-check-label ms-2 w-100 d-flex justify-content-between align-items-center text-nowrap" for="switchPPV">
+                <span class="fw-bold">🔆 PPV - 🏠{{einstellungen.mittel_verbrauch}}W</span>
+                <small class="text-muted ms-2">Ladung ab {{einstellungen.ppv_soc_ab}}%</small>
+            </label>
+        </div>
+
+        <!-- Hard Modus -->
+        <div class="mt-2 form-check form-switch d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" role="switch" id="switchHart" {% if einstellungen.akku_entladen %}checked{% endif %}>
+            <label class="form-check-label ms-2 w-100 d-flex justify-content-between align-items-center text-nowrap" for="switchHart">
+                <span class="fw-bold">🚀 Hard entladen </span>
+                <small class="text-muted ms-2">{{einstellungen.max_limit}}W ab {{einstellungen.max_soc}}% bis {{einstellungen.max_soc - 5}}%</small>
+            </label>
+        </div>
+
+       <!-- Nacht Modus -->
+        <div class="mt-2 form-check form-switch d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" role="switch" id="switchNacht" {% if einstellungen.nacht_nur_0_schalter %}checked{% endif %}>
+            <label class="form-check-label ms-2 w-100 d-flex justify-content-between align-items-center text-nowrap" for="switchNacht">
+                <span class="fw-bold">🌙 Nachts  0 Watt</span>
+               <small class="text-muted ms-2">{{ web.startnacht }} → {{ web.endnacht }}</small>
+                           </label>
+        </div>
+
+    </li>
+    <li><hr class="dropdown-divider"></li>
+    <li class="text-center mt-2">
+        <button type="button" id="btnSpeichern" class="btn btn-warning btn-sm w-100 fw-bold">✅ Übernehmen</button>
+    </li>
+</ul>
+
+    </div>
+
+    <small>⏳ <span id="strom-zeit">--</span></small>
+</div>
+
+<script src="{{ url_for('static', filename='strom-speichern.js') }}"></script>

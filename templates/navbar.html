@@ -1,0 +1,109 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+  <div class="container-fluid position-relative">
+
+<!-- Linke Seite: Button -->
+<div class="d-flex align-items-center">
+    <a href="/einstellungen"
+       class="btn btn-primary btn-sm me-2 d-flex align-items-center dashboard-nav-button"
+       aria-label="Einstellungen bearbeiten"
+       title="Einstellungen bearbeiten">
+        🛠️🧰
+    </a>
+</div>
+<!-- Mitte: Tag -->
+<button
+    type="button"
+    class="btn border-0 bg-transparent p-0 position-absolute start-50 translate-middle-x"
+    data-bs-toggle="collapse"
+    data-bs-target="#collapseTag"
+    aria-controls="collapseTag"
+    aria-expanded="false"
+    aria-label="Tageswerte ein- oder ausblenden"
+    title="Tageswerte anzeigen"
+>
+    <span
+        class="badge bg-primary d-flex align-items-center gap-2 px-3 py-2 shadow-sm dashboard-day-badge">
+        <span>Tag</span>
+        <span
+            id="tag-tag"
+            class="badge bg-light text-dark dashboard-day-number"
+        ></span>
+        <span class="text-white">•</span>
+        <small class="text-white">
+            Ver. {{ version }}
+        </small>
+        <span class="dashboard-day-caret">▼</span>
+    </span>
+</button>
+
+    <!-- Toggler -->
+    <button class="navbar-toggler" type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Navigation ein- oder ausblenden">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Scrollbares Menü   -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link active" href="/">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link text-warning" href="/log">🛠️ System-Log</a></li>
+
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" type="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+            Auswertung
+          </button>
+          <ul class="dropdown-menu dropdown-menu-dark">
+            <li><a class="dropdown-item" href="/aktuell">Graf 48h</a></li>
+            <li><a class="dropdown-item" href="/dia">Diagramm</a></li>
+            <li><a class="dropdown-item" href="/tages">Tageswerte (JSON)</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" type="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+            Daten
+          </button>
+          <ul class="dropdown-menu dropdown-menu-dark">
+            <li><a class="dropdown-item" href="/explorer">Explorer</a></li>
+            <li><a class="dropdown-item" href="/api/daten">Daten (JSON)</a></li>
+            <li><a class="dropdown-item" href="/roh">Rohdaten (JSON)</a></li>
+            <li><a class="dropdown-item" href="/tageswerte">Tageswerte-Seite</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" type="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+            Geräte
+          </button>
+          <ul class="dropdown-menu dropdown-menu-dark">
+            <li><a class="dropdown-item" href="/status">Gerätestatus</a></li>
+            <li><a class="dropdown-item" href="/solax_cloud">Solax Cloud</a></li>
+            <li><a class="dropdown-item" href="/solax_local">Solax Lokal</a></li>
+            <li><a class="dropdown-item" href="/hms">HMS-8002T</a></li>
+            <li><a class="dropdown-item" href="/akku_cloud">Growatt Cloud</a></li>
+            <li><a class="dropdown-item" href="/strom">Strom SML</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" type="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+            Einstellungen
+          </button>
+          <ul class="dropdown-menu dropdown-menu-dark">
+            <li><a class="dropdown-item" href="/einstellungen">Einstellungen bearbeiten</a></li>
+            <li><a class="dropdown-item" href="/parameter">Einstelldaten (JSON)</a></li>
+            <li><a class="dropdown-item" href="/zugang">Zugangsdaten bearbeiten</a></li>
+            <li><a class="dropdown-item" href="/parameter_zugang">Zugangsdaten (JSON)</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

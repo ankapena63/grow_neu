@@ -1,0 +1,137 @@
+<!-- Akku Card -->
+<div class="card mb-1 border-warning">
+  <div class="card-header bg-warning text-dark p-2">
+      <div class="d-flex align-items-center justify-content-between text-nowrap akku-header" id="akkuHeader">
+          <strong class="me-1">
+              🔋♻️<span id="batteryCycles">--</span>
+              <span id="statusAkku">⚪ Growatt</span>
+              <span id="daten_von">--</span>
+              <span id="statusAkkuLogin">⚪ </span>
+          </strong>
+          <div class="small ms-auto">
+            <span id="status">--</span>
+           ⏳<span id="zeit-diff">--</span>S
+              ⏱️<span id="akku-zeit">--</span>
+          </div>
+      </div>
+  </div>
+  <!-- 2. Leistung / SOC Leiste (Weiße Fläche) -->
+<div class="wert-button"
+     onclick="zeigeGeraet('akku')">
+    <div class="d-flex justify-content-between text-center w-100 p-1">
+        <div class="flex-fill">🔆<br><span id="akku-ppv">--</span><small> W</small> </div>
+        <div class="flex-fill">⚡🔋<br><span id="akku-laden">--</span><small> W</small></div>
+        <div class="flex-fill">⚡🏠<br><span id="akku-pac">--</span><small> W</small></div>
+        <div class="flex-fill">🔋<br><span id="akku-soc" class="px-1 py-1 rounded">--</span><small>%</small></div>
+    </div>
+</div>
+
+<div class="akku-energy-summary">
+<span>Noch: <strong id="brauche_watt">--</strong> W.</span>
+<span>in: <strong id="stunden_bis_nacht2">--</strong> Std.</span>
+<span>pro Stunde: <strong id="pro_stunde">--</strong> W/h.</span>
+</div>
+
+  <!-- 3. Collapsible Content (Inhalt der einklappt) -->
+  <div class="card-body p-2" id="akkuContent">
+      <!-- Batterie 1 -->      
+      <div class="d-flex justify-content-between align-items-center mb-1 px-2">
+          <small id="battery1SerialNum">--</small>
+          <div>
+              <span id="battery1Temp" class="me-3">--</span>
+              <span id="soc1" class="soc-value">--</span>
+          </div>
+      </div>
+
+
+      <!-- Batterie 2 -->
+      <div class="d-flex justify-content-between align-items-center mb-1 px-2" id="battery2-block">
+          <small id="battery2SerialNum">--</small>
+          <div>
+              <span id="battery2Temp" class="me-3">--</span>
+              <span id="soc2" class="soc-value">--</span>
+          </div>
+      </div>
+<div class="d-flex w-100 text-center small mb-2">
+    <div class="flex-fill">🔆1⬇️ <span id="ppv1" class="fw-bold">--</span></div>
+    <div class="flex-fill">🔆2⬇️ <span id="ppv2" class="fw-bold">--</span></div>
+    <div class="flex-fill">🔆3⬇️ <span id="ppv3" class="fw-bold">--</span></div>
+</div>
+
+
+<!-- SOC Limits in einer Zeile (Groß) -->
+<div class="d-flex align-items-center w-100 mt-3 mb-1">
+    <span id="dischargeSocLimit"
+          class="soc-editable badge bg-danger bg-opacity-75 fs-6 py-2 px-2 shadow-sm flex-fill text-center">
+        ⬇️ --%
+    </span>
+ <strong class="me-2 fs-5 text-nowrap">🔋 Limits:</strong>
+    <span id="chargeSocLimit"
+          class="soc-editable badge bg-success bg-opacity-75 fs-6 py-2 px-2 ms-2 shadow-sm flex-fill text-center">
+        ⬆️ --%
+    </span>
+</div>
+  </div> <!-- Ende card-body -->
+</div> <!-- Ende card -->
+
+<a href="/tageswerte" class="tageswerte-link">
+    <div>
+        Tuya Dose:
+        <span id="statusTuya">⚪</span>
+        <span id="dose_relay_state" class="dose-relay-state">--</span>
+    </div>
+    <div><span id="dose_watt">--</span></div>
+    <div>Modus:<span id="dose_mode" class="dose-mode">--</span>
+    </div>
+</a>
+
+<script src="{{ url_for('static', filename='akku-details.js') }}"></script>
+
+<!-- Toast Center -->
+<div class="position-fixed top-50 start-50 translate-middle p-3 soc-toast-layer">
+  <div id="socToast"
+       class="toast align-items-center text-white bg-success border-0 shadow"
+       role="alert">
+    <div class="d-flex">
+      <div class="toast-body text-center fw-bold" id="socToastBody">
+        SOC gespeichert
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SOC Modal -->
+<div class="modal fade" id="socModal" tabindex="-1" aria-labelledby="socModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="socModalLabel">SOC Limit einstellen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-2 fw-bold" id="socModalLabelField"></div>
+
+        <input type="range" class="form-range w-100" id="socModalRange">
+
+        <div class="text-end">
+          <span id="socModalValue" class="fw-bold">--</span> %
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Zurück
+        </button>
+        <button type="button" class="btn btn-primary" id="socModalSave">
+          Speichern
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='akku-soc.js') }}"></script>

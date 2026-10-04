@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tageswerte</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-light text-dark" style="padding-top: 5px;">
+<div class="d-flex justify-content-center align-items-center mt-2 flex-wrap" style="gap:10px;">
+    <!-- Zur Hauptseite -->
+    <a href="/" style="
+        background:#c4460c;
+        color:white;
+        padding:15px 15px;
+        text-decoration:none;
+        border-radius:12px;
+        font-weight:bold;
+        font-size:1.1rem;
+        box-shadow:0 4px 8px rgba(0,0,0,0.3);
+        width: 45%;
+        text-align:center;
+    ">
+        ⬅️🏠 zu Hauptseite
+    </a>  
+
+</div>
+
+<!-- WENIG RAND LINKS/RECHTS -->
+<div class="container-fluid px-1 mt-2">
+<!-- /einstellungen -->
+<div style="display: flex; gap: 10px; width: 100%; margin-bottom: 15px;">
+    <a href="/einstellungen" style="background:#1976d2; color:white;
+          padding:25px 10px; text-decoration:none; border-radius:8px;
+          font-weight:bold; flex: 1; text-align: center;">
+          🛠️ Einstellungen
+    </a>
+    <a href="/explorer" style="background:#1976d2; color:white;
+          padding:25px 10px; text-decoration:none; border-radius:8px;
+          font-weight:bold; flex: 1; text-align: center;">
+          📁 Explorer
+    </a>
+    <a href="/zugang" style="background:#1976d2; color:white;
+          padding:25px 10px; text-decoration:none; border-radius:8px;
+          font-weight:bold; flex: 1; text-align: center;">
+         🛠️  Zugangs Daten
+    </a>
+</div>
+
+    <!-- 📘 Collapse 2: Absolut -->
+    <button class="btn btn-primary w-100 py-3 fs-4 fw-bold mb-2"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseAbsolut">
+        📦 Absolute Werte kWh
+    </button>
+    <div class="collapse" id="collapseAbsolut">
+        <div class="card shadow-sm border-primary mb-4">
+            <div class="card-body p-2 table-responsive">
+                {% if datei_daten0 %}
+                <table class="table table-striped table-bordered table-hover w-100">
+                    <thead class="table-primary">
+                        <tr>
+                            {% for header in headers %}
+                            <th class="text-center">{{ header }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for zeile in datei_daten0 %}
+                        <tr>
+                            {% for zelle in zeile %}
+                            <td class="text-center">{{ zelle }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>Keine gespeicherten Werte vorhanden.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'dose.html'  %}
+<!-- 🔵 Modernes CSS -->
+<style>
+:root {
+    --dash-blue: #0d6efd;
+}
+/* Tabellen-Header */
+.table-primary th {
+    background: var(--dash-blue) !important;
+    color: white !important;
+    font-weight: bold;
+    text-align: center;
+}
+/* Hover-Effekt */
+table.table tbody tr:hover {
+    background: rgba(13,110,253,0.1);
+}
+/* Tabellen volle Breite */
+table.table {
+    width: 100% !important;
+}
+/* Handy-Optimierung */
+@media (max-width: 576px) {
+
+    table.table td,
+    table.table th {
+        padding: 6px !important;
+        font-size: 0.85rem !important;
+        white-space: normal !important;
+        word-break: break-word;
+    }
+    .btn {
+        padding: 14px !important;
+        font-size: 1.3rem !important;
+    }
+}
+.card-body {
+     padding: 2px 1px !important;
+}
+
+table.table {
+    margin: 0 !important;
+}
+</style>
+</body>
+</html>

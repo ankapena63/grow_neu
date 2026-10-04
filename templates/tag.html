@@ -1,0 +1,88 @@
+<!-- Tag -->
+ <div
+    id="collapseTag"
+    class="collapse dashboard-tag-collapse"
+>
+    <div class="card border-danger shadow">
+
+        <div class="card-header bg-primary text-white">
+            <strong>
+                Heute {{ einstellungen.heute }}                
+                📅 Tag: {{ einstellungen.tag_0 }}
+
+            </strong>
+        </div>
+
+        <div class="card-body py-1 px-2">
+            <div class="row text-center fw-bold mb-1">
+                <div class="col">Quelle</div>
+                <div class="col">Tages</div>
+                <div class="col">Monat</div>
+                <div class="col">Jahr</div>
+                <div class="col">Live</div>
+            </div>
+            <div class="row text-center mb-0">
+                <div class="col">⏫Ernte</div>
+                <div class="col"><span id="tag-einspeise">--</span></div>
+                <div class="col">{{ monat_daten.einspeise|round(1) }}</div>
+                <div class="col">{{ jahr_daten.einspeise|round(1) }}</div>
+                <div class="col"><span id="strom-einspeise">--</span></div>
+            </div>
+
+            <div class="row text-center mb-0">
+                <div class="col">Gesamt</div>
+                <div class="col"><span id="tag-gesamt">--</span></div>
+                <div class="col">{{ monat_daten.gesamt|round(1) }}</div>
+                <div class="col">{{ jahr_daten.gesamt|round(1) }}</div>
+                <div class="col"><span id="strom-gesamt">--</span></div>
+            </div>
+
+            <div class="row text-center mb-0">
+                <div class="col">☀️HMS</div>
+                <div class="col"><span id="tag-hms">--</span></div>
+                <div class="col">{{ monat_daten.get("hms", 0)|round(1) }}</div>
+                <div class="col">{{ jahr_daten.get("hms", 0)|round(1) }}</div>
+                <div class="col"><span id="hms-gesamt_t">--</span></div>
+            </div>
+
+            <div class="row text-center mb-0">
+                <div class="col">Solax</div>
+                <div class="col"><span id="tag-solax">--</span></div>
+                <div class="col">{{ monat_daten.get("solax", 0)|round(1) }}</div>
+                <div class="col">{{ jahr_daten.get("solax", 0)|round(1) }}</div>
+                <div class="col"><span id="solax-gesamt_t">--</span></div>
+            </div>
+
+            <div class="row text-center mb-0">
+                <div class="col">🔋Akku</div>
+                <div class="col"><span id="tag-growatt">--</span></div>
+                <div class="col">{{ monat_daten.growatt|round(2) }}</div>
+                <div class="col">{{ jahr_daten.growatt|round(2) }}</div>
+                <div class="col"><span id="akku-gesamt_t">--</span></div>
+            </div>
+
+<div class="row text-center mb-0">
+    <div class="col">☀️➜🏠</div>
+    <div class="col">
+        <span id="tag-eigenverbrauch">--</span>
+    </div>
+    <div class="col">
+        {{ (monat_daten.get("solax", 0) + monat_daten.get("hms", 0) - monat_daten.get("einspeise", 0))|round(1) }}
+    </div>
+    <div class="col">
+        {{ (jahr_daten.get("solax", 0) + jahr_daten.get("hms", 0) - jahr_daten.get("einspeise", 0))|round(1) }}
+    </div>
+    <div class="col">
+        <span id="solar-eigenverbrauch">--</span>
+    </div>
+</div>
+
+            <div class="row text-center mb-1">
+                <div class="col">🌅 {{ web.sonnenaufgang }}</div>
+                <div class="col">🕰️ {{ web.tageslange }}</div>
+                <div class="col">🌇 {{ web.sonnenuntergang }}</div>
+            </div>
+
+        </div>
+    </div>
+</div>

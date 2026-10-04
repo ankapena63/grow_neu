@@ -1,0 +1,229 @@
+.dashboard-page {
+    padding-top: 60px;
+}
+
+.dashboard-nav-button,
+.dashboard-day-badge {
+    height: 38px;
+}
+
+.dashboard-day-badge {
+    font-size: 16px;
+}
+
+.dashboard-day-number {
+    font-size: 15px;
+}
+
+.dashboard-day-caret {
+    font-size: 12px;
+}
+
+.navbar-collapse {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.wert-button {
+    background: rgba(80, 90, 100, 0.05);
+    border: 1px solid rgba(60, 70, 80, 0.35);
+    border-radius: 15px;
+    padding: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wert-button:hover {
+    background: rgba(70, 80, 90, 0.55);
+}
+
+.wert-button:active {
+    background: rgba(60, 70, 80, 0.7);
+    transform: scale(0.98);
+}
+
+.zeit-knob {
+    width: 220px;
+    height: 220px;
+    margin: auto;
+    border-radius: 50%;
+    background: conic-gradient(
+        #198754 var(--knob-progress, 0deg),
+        #dcdcdc var(--knob-progress, 0deg)
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    box-shadow:
+        inset 0 0 15px rgba(0, 0, 0, 0.2),
+        0 0 10px rgba(0, 0, 0, 0.15);
+}
+
+.zeit-inner {
+    width: 160px;
+    height: 160px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.kochen-button {
+    cursor: pointer;
+    transition: 0.3s;
+    background: red;
+}
+
+.kochen-modal {
+    display: none;
+    position: fixed;
+    top: 10%;
+    left: 5%;
+    right: 5%;
+    background: #f8f9fa;
+    border: 2px solid #198754;
+    padding: 15px;
+    border-radius: 12px;
+    z-index: 9999;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+.kochen-time-value {
+    font-size: 48px;
+    line-height: 1;
+}
+
+.kochen-action-button {
+    width: 48%;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.strom-mode-zero {
+    background-color: #f3061e;
+    color: white;
+}
+
+.strom-mode-mixed {
+    background-color: #0eeb42;
+    color: #212529;
+}
+
+.strom-settings-menu {
+    min-width: 350px;
+}
+
+.strom-extra-options {
+    list-style: none;
+}
+
+.ssh-status {
+    border: 0;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.ssh-status-on {
+    background: #28a745;
+}
+
+.ssh-status-off {
+    background: #dc3545;
+}
+
+.strom-night-switch {
+    border: 0;
+    cursor: pointer;
+    min-width: 200px;
+    text-align: center;
+    font-family: inherit;
+}
+
+.ssh-status:focus-visible,
+.strom-night-switch:focus-visible {
+    outline: 3px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+.akku-header {
+    cursor: pointer;
+}
+
+.akku-energy-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    font-family: sans-serif;
+    background-color: rgba(0, 255, 0, 0.08);
+    border-radius: 8px;
+}
+
+.tageswerte-link {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    font-family: sans-serif;
+    background-color: rgba(206, 221, 117, 0.555);
+    border-radius: 8px;
+    padding: 4px;
+    font-weight: bold;
+    text-decoration: none;
+    color: inherit;
+}
+
+.dose-relay-state {
+    color: #007bff;
+}
+
+.dose-mode {
+    color: #28a745;
+}
+
+.soc-toast-layer {
+    z-index: 2000;
+}
+
+.dashboard-tag-collapse {
+    position: fixed;
+    top: 56px;
+    left: 5px;
+    right: 5px;
+    z-index: 1050;
+}
+
+.dashboard-footer-link {
+    height: 40px;
+}
+
+.dashboard-switch-box,
+.dashboard-switch-label {
+    cursor: pointer;
+}
+
+.kochen-button-active {
+    background: green;
+}
+
+.kochen-modal.is-open {
+    display: block;
+}
+
+.kochen-countdown {
+    font-size: 42px;
+    line-height: 1;
+}

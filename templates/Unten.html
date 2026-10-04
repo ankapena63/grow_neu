@@ -1,0 +1,50 @@
+<div class="d-flex gap-1">
+    <a href="/dia"
+       class="btn btn-primary btn-sm flex-fill dashboard-footer-link">
+        📊 Diagramm
+    </a>
+    <a href="/aktuell"
+       class="btn btn-primary btn-sm flex-fill dashboard-footer-link">
+        📈 Graf 48h
+    </a>
+</div>
+
+<div class="row g-1 mb-0 align-items-center">
+        <!-- Daten Explorer -->
+        <div class="col-3">
+            <a href="/tageswerte"
+               class="btn btn-primary w-100">
+                📊 Daten Explorer
+            </a>
+        </div>
+        <!-- Logging -->
+        <div class="col-3">
+            <a href="/log"
+               class="btn btn-secondary w-100">
+                🛠️ Logging
+            </a>
+        </div>
+        <!-- Status -->
+        <div class="col-3">
+            <a href="/stat"
+               class="btn btn-primary w-100">
+                📡 Status
+            </a>
+        </div>
+        <!-- 48h Speicherung -->
+<div class="col-3">
+    <div id="aktuellSwitchBox"
+         class="btn btn-danger w-100 dashboard-switch-box">
+        <input type="checkbox"
+               id="aktuellAktiv"
+               class="d-none"
+               {% if einstellungen.get('aktuell_aktiv', True) %}checked{% endif %}
+               onchange="toggleAktuellMitBestaetigung(this)">
+        <label for="aktuellAktiv"
+               id="aktuellSwitchText"
+               class="text-white fw-bold w-100 dashboard-switch-label">
+        </label>
+    </div>
+</div>
+
+    </div>

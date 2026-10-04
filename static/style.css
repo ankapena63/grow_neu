@@ -1,0 +1,196 @@
+/* ==============================
+   Body & Container
+============================== */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding-top: 30px;
+}
+
+.container {
+    max-width: 450px; /* optimal für Handy */
+    padding: 1rem;
+}
+
+/* ==============================
+   Überschriften
+============================== */
+h2 {
+    font-size: 1.5rem;
+}
+
+/* ==============================
+   Buttons
+============================== */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-primary, .btn-secondary {
+    width: 100%;
+    margin-top: 5px;
+}
+
+/* ==============================
+   Formulare / Inputs / Labels
+============================== */
+.form-label {
+    font-weight: 500;
+}
+
+input.form-control {
+    font-size: 1rem;
+}
+
+/* ==============================
+   Responsive / Mobile
+============================== */
+@media (max-width: 768px) {
+    .container, .container-fluid {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
+
+    .row.text-center, .row.justify-content-center {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .row.text-center > .col, .row.justify-content-center > .col, .row.justify-content-center > .col-auto {
+        padding-left: 1px !important;
+        padding-right: 1px !important;
+    }
+
+    .card {
+        margin-bottom: 2px;
+        padding: 0.25rem !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .form-control, .input-group-text {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+    }
+
+    .form-check {
+        margin-bottom: 0;
+    }
+
+    .row.mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+}
+
+/* ==============================
+   Dashboard / Strom / PPV / SOC
+============================== */
+.ppv-highlight {
+    background-color: #28a745; /* Bootstrap-Grün */
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.soc-editable {
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.soc-editable:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 8px rgba(0,0,0,0.3);
+    background-color: #f0f0f0;
+}
+
+/* Karten */
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.card-header {
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Strom/ Akku/ Solax/ HMS Spalten kompakter */
+.row.text-center .col {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+}
+
+/* Kleinere Schrift für kleine Werte */
+small {
+    font-size: 0.75rem;
+}
+
+/* ==============================
+   Nachtmodus / Tagmodus
+============================== */
+.bg-night {
+    background-color: #343a40 !important;
+    color: #ffffff !important;
+}
+
+.bg-day {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+}
+
+.bg-secondary {
+    background-color: #6c757d !important;
+    color: #fff !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.cursor-pointer:hover {
+    opacity: 0.85;
+}
+
+/* Statusfarben */
+.status-on {
+    color: #28a745;  /* grün */
+    font-weight: bold;
+}
+
+.status-off {
+    color: #dc3545;  /* rot */
+    font-weight: bold;
+}
+
+/* ==============================
+   Einstellungen / Access / Settings
+============================== */
+.settings-row {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.settings-select {
+    flex: 1 1 48%;
+    margin: 0.25rem 0;
+}
+
+.settings-input {
+    width: 80px;
+}
+
+.settings-row:hover {
+    background-color: #f8f9fa;
+}
+

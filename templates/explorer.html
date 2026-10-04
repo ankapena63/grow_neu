@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Termux Explorer v2</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='explorer.css') }}">
+</head>
+<body class="explorer-page" data-current-path="{{ current_path }}">
+
+<div class="explorer-selection">
+{% if selected_file %}
+✅ Ausgewählt: <b class="explorer-highlight">{{ selected_file }}</b>
+{% else %}
+❌ Keine Datei ausgewählt
+{% endif %}
+</div>
+
+<div class="path-bar">
+📍 Pfad: <code>{{ current_path }}</code>
+</div>
+
+<div class="explorer-layout">
+{% if not edit_file %}
+<div class="button-column">
+<a href="/explorer?path={{ parent_path | urlencode }}&selected=" class="nav-btn explorer-button-back">⬅ Zurück</a>
+<a href="/" class="nav-btn explorer-button-home">🏠 Start </a>
+<a href="/explorer?path={{ DATA_DIR | urlencode }}&selected=" class="nav-btn explorer-button-data">📂 data</a>
+<a href="/explorer?path={{ current_path | urlencode }}&selected={{ selected_file | urlencode }}" class="nav-btn explorer-button-refresh">🔄 Neu </a>
+<a href="/explorer?path={{ HOME_DIR | urlencode }}/storage/downloads/Grow/data&selected=" class="nav-btn explorer-button-grow">🌱 Grow</a>
+{% if selected_file %}
+<a href="/explorer?path={{ current_path | urlencode }}&file={{ selected_file | urlencode }}" class="nav-btn explorer-button-open">✏️ Öffnen</a>
+{% endif %}
+
+<form method="post" action="/explorer/create_zip">
+<input type="hidden" name="path" value="{{ current_path }}">
+<button type="submit" class="nav-btn explorer-button-zip">📦 ZIP</button>
+</form>
+<button type="button" class="nav-btn toggle-btn explorer-button-upload" data-target="upload-box" aria-controls="upload-box" aria-expanded="false">📤 Upload</button>
+<div id="upload-box" class="toggle-box toggle-box-hidden stop-click upload-box">
+<form method="POST" action="/explorer/upload" enctype="multipart/form-data" class="stop-click">
+<input type="hidden" name="path" value="{{ current_path }}">
+<input type="file" id="upload-file" name="file" class="explorer-file-input" required>
+<label for="upload-file" class="upload-file-label">
+📁 Auswählen
+</label>
+<div id="selected-file-name" class="selected-file-name">
+❌ Keine Datei ausgewählt
+</div>
+<button type="submit" class="nav-btn explorer-button-upload upload-submit">⬆ Hochladen</button>
+</form>
+</div>
+<button type="button" class="nav-btn toggle-btn explorer-button-home" data-target="newfile-box" aria-controls="newfile-box" aria-expanded="false">➕ Datei</button>
+
+<div id="newfile-box" class="toggle-box toggle-box-hidden">
+<form method="post" action="/explorer/new_file">
+<input type="hidden" name="path" value="{{ current_path }}">
+<input type="text" name="filename" placeholder="Neue Datei..." class="new-item-name" required>
+<button type="submit" class="nav-btn explorer-button-home">Erstellen</button>
+</form>
+</div>
+
+<button type="button" class="nav-btn toggle-btn explorer-button-grow" data-target="newfolder-box" aria-controls="newfolder-box" aria-expanded="false">📁 Ordner</button>
+
+<div id="newfolder-box" class="toggle-box toggle-box-hidden">
+<form method="post" action="/explorer/new_folder">
+<input type="hidden" name="path" value="{{ current_path }}">
+<input type="text" name="foldername" placeholder="Neuer Ordner..." class="new-item-name" required>
+<button type="submit" class="nav-btn explorer-button-grow">Erstellen</button>
+</form>
+</div>
+
+</div>
+{% endif %}
+
+{% if not edit_file %}
+<div class="sidebar">
+
+{% for item in items | sort(attribute='is_dir', reverse=True) %}
+<div class="explorer-item-row">
+
+{% if item.is_dir %}
+<a href="/explorer?path={{ item.full_path | urlencode }}&selected=" class="item dir">
+📁 {{ item.name }}
+</a>
+{% else %}
+<a href="/explorer?path={{ current_path | urlencode }}&selected={{ item.name | urlencode }}&type=file" class="item file selectable-item {% if selected_file == item.name %}selected{% endif %}" data-name="{{ item.name }}" data-type="file">
+📄 {{ item.name }}
+</a>
+{% endif %}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="editor-area{% if edit_file %} editor-area-full{% endif %}">
+{% if edit_file %}
+<form method="post" action="/explorer/save" class="editor-form">
+<input type="hidden" name="path" value="{{ current_path }}">
+<input type="hidden" name="filename" value="{{ edit_file }}">
+<div class="editor-toolbar">
+Datei:
+<b class="explorer-highlight">{{ edit_file }}</b>
+
+<button type="submit" class="nav-btn explorer-button-home">💾 Speichern</button>
+<a href="/explorer?path={{ current_path | urlencode }}" data-confirm-discard class="nav-btn explorer-button-close">
+❌ Schließen
+</a>
+</div>
+<textarea name="content" class="explorer-editor">{{ content }}</textarea>
+</form>
+{% else %}
+<p>Datei auswählen Editor.</p>
+{% endif %}
+</div>
+</div>
+
+<div id="context-menu">
+<button type="button" data-context-action="open">📂 Öffnen</button>
+<button type="button" data-context-action="rename">✏️ Umbenennen</button>
+<button type="button" data-context-action="delete">🗑️ Löschen</button>
+<hr>
+<button type="button" data-context-action="download">⬇️ Download</button>
+</div>
+
+<script src="{{ url_for('static', filename='explorer.js') }}"></script>
+</body>
+</html>

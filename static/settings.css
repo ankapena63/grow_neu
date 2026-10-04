@@ -1,0 +1,63 @@
+.settings-page {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 10px !important;
+}
+
+.settings-hms-limit {
+    width: 90px;
+}
+
+.settings-max-limit {
+    width: 120px;
+}
+
+.settings-soc-row {
+    gap: 0.5rem;
+}
+
+.settings-soc-input {
+    flex: 1 1 100px;
+}
+
+.settings-full-row {
+    width: 100%;
+}
+
+.settings-ppv-check {
+    flex-shrink: 0;
+}
+
+.settings-ppv-label,
+.settings-ppv-soc-prefix {
+    font-size: 0.8rem;
+}
+
+.settings-ppv-watt {
+    width: 85px;
+    flex-shrink: 0;
+}
+
+.settings-ppv-soc {
+    width: 70px;
+    flex-shrink: 0;
+}
+
+.settings-ppv-note {
+    display: block;
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+.settings-correction-input {
+    width: 50%;
+}
+
+.settings-correction-label {
+    font-size: 0.65rem;
+}
+
+.settings-toast-layer {
+    z-index: 1055;
+}

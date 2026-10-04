@@ -1,0 +1,198 @@
+<!-- Button zum Aufklappen -->
+<div class="d-flex justify-content-between mb-0">
+    <button class="btn btn-outline-secondary w-100"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#taktzeitenCollapse"
+            aria-expanded="false"
+            aria-controls="taktzeitenCollapse">
+        ⚙️ Taktzeiten einstellen
+    </button>
+</div>
+
+<!-- Aufklappbarer Block für Taktzeiten -->
+<div class="collapse" id="taktzeitenCollapse">
+    <div class="card card-body p-2 mb-3">
+
+        <div class="row g-2">
+
+            <!-- Benutzer aktiv -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="takt_benutzrer_activ">Benutzer aktiv</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="takt_benutzrer_activ"
+                           class="form-control"
+                           name="takt_benutzrer_activ"
+                           min="1"
+                           max="60"
+                           value="{{ einstellungen.get('takt_benutzrer_activ', 50) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+            <!-- HMS -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="takt_hms">HMS</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="takt_hms"
+                           class="form-control"
+                           name="takt_hms"
+                           min="1"
+                           value="{{ einstellungen.get('takt_hms', 25) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+            <!-- Akku aktiv -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="takt_akku">Akku aktiv</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="takt_akku"
+                           class="form-control"
+                           name="takt_akku"
+                           min="1"
+                           value="{{ einstellungen.get('takt_akku', 25) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+            <!-- Akku inaktiv -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="takt_akku_inactiv">Akku inaktiv</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="takt_akku_inactiv"
+                           class="form-control"
+                           name="takt_akku_inactiv"
+                           min="1"
+                           value="{{ einstellungen.get('takt_akku_inactiv', 60) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+            <!-- Solax Lokal -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="takt_solax_l">Solax Lokal</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="takt_solax_l"
+                           class="form-control"
+                           name="takt_solax_l"
+                           min="1"
+                           value="{{ einstellungen.get('takt_solax_l', 25) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+            <!-- Solax Cloud -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="takt_solax_c">Solax Cloud</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="takt_solax_c"
+                           class="form-control"
+                           name="takt_solax_c"
+                           min="1"
+                           value="{{ einstellungen.get('takt_solax_c', 25) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+            <!-- Strom -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="takt_strom">Strom</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="takt_strom"
+                           class="form-control"
+                           name="takt_strom"
+                           min="1"
+                           value="{{ einstellungen.get('takt_strom', 25) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+            <!-- Intervall Takt -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="intervall_takt">Abfrageschleife</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="intervall_takt"
+                           class="form-control"
+                           name="intervall_takt"
+                           min="1"
+                           value="{{ einstellungen.get('intervall_takt', 4) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+            <!-- Sendeintervall an SML -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="dazu_senden">Senden an SML jede</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="dazu_senden"
+                           name="dazu_senden"
+                           class="form-control form-control-sm"
+                           min="2"
+                           max="3600"
+                           step="1"
+                           value="{{ einstellungen.get('dazu_senden', 600) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+            <!-- Dazu Toleranz -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="dazu_tolleranz">Dazu Toleranz</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="dazu_tolleranz"
+                           name="dazu_tolleranz"
+                           class="form-control form-control-sm"
+                           min="0"
+                           max="200"
+                           step="1"
+                           value="{{ einstellungen.get('dazu_tolleranz', 20) }}">
+                    <span class="input-group-text">W</span>
+                </div>
+            </div>
+
+            <!-- Akku Kapazität -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="watt_max">Akku Kapazität</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="watt_max"
+                           name="watt_max"
+                           class="form-control form-control-sm"
+                           min="2000"
+                           max="10000"
+                           step="1"
+                           value="{{ einstellungen.get('watt_max', 4000) }}">
+                    <span class="input-group-text">W</span>
+                </div>
+            </div>
+
+            <!-- Mehr beim Sanftladen -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="sanft_soc_meher">Mehr beim Sanftladen</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="sanft_soc_meher"
+                           name="sanft_soc_meher"
+                           class="form-control form-control-sm"
+                           min="0"
+                           max="100"
+                           step="1"
+                           value="{{ einstellungen.get('sanft_soc_meher', 20) }}">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

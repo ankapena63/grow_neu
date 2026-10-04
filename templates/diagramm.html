@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagramme</title>
+
+<!-- Alle externen Bibliotheken vollständig geladen -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0"></script>
+
+
+
+<style>
+body{background:#95a6b8;margin:0;padding:20px;font-family:Arial}
+h2{text-align:center}
+.steuerung,.modus{display:flex;justify-content:center;gap:10px;margin-bottom:15px;flex-wrap:wrap}
+button{font-size:20px;padding:5px 15px;border:none;border-radius:8px;cursor:pointer}
+button:disabled{opacity:0.3;cursor:not-allowed}
+.modus button{font-size:16px}
+.aktiv{font-weight:bold}
+.diagramm,.summen{background:white;padding:15px;border-radius:10px;margin-bottom:20px}
+#zeitraum{font-size:20px;font-weight:bold;min-width:150px;text-align:center}
+.summen p{margin:8px 0; font-size: 18px;}
+
+.farbe-einspeise { color: #f39c12; }
+.farbe-gesamt    { color: #e90a2f; }
+.farbe-hms       { color: #27ae60; }
+.farbe-growatt   { color: #8e44ad; }
+.farbe-solax     { color: #2980b9; }
+
+.farbe-solarverbrauch { color: #34495e; }
+</style>
+</head>
+
+<body>
+
+<div class="modus">
+    <button id="monatButton" onclick="setModus('monat')">Monat</button>
+    <button onclick="window.location.href='/'">🔄 🏠 Haupt</button>
+    <button id="jahrButton" onclick="setModus('jahr')">Jahr</button>
+</div>
+
+<div class="steuerung">
+    <button onclick="wechsel(-1)">◀</button>
+    <div id="zeitraum"></div>
+    <button id="vorButton" onclick="wechsel(1)">▶</button>
+</div>
+
+<div class="diagramm"><canvas id="energieDiagramm"></canvas></div>
+
+<div class="summen">
+    <h3>Gesamtwerte</h3>
+    <p>Solarverbrauch: <strong id="summeSolarverbrauch" class="farbe-solarverbrauch">0</strong> kWh</p>
+    <p>Einspeisung: <strong id="summeEinspeise" class="farbe-einspeise">0</strong> kWh</p>
+    <p>Gesamt: <strong id="summeGesamt" class="farbe-gesamt">0</strong> kWh</p>
+    <p>HMS: <strong id="summeHms" class="farbe-hms">0</strong> kWh</p>
+    <p>Growatt: <strong id="summeGrowatt" class="farbe-growatt">0</strong> kWh</p>
+    <p>Solax: <strong id="summeSolax" class="farbe-solax">0</strong> kWh</p>
+</div>
+
+<script>
+let modus="monat", jahr=new Date().getFullYear(), monat=new Date().getMonth()+1, chart=null;
+let sichtbar = {};
+const monate=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+
+const aktuellesJahr = new Date().getFullYear();
+const aktuellerMonat = new Date().getMonth() + 1;
+
+const farben = {
+    Einspeisung:   "#f39c12", 
+    Gesamt:        "#e90a2f", 
+    HMS:           "#00a000", 
+    Growatt:       "#8e44ad", 
+    Solax:          "#0066ff",  // kräftiges Blau
+    Solarverbrauch: "#34495e" 
+};
+
+function getColors(label) {
+    const farbe = farben[label] || "gray";
+    return {
+        borderColor: farbe,
+        backgroundColor: farbe, 
+        borderWidth: 1,
+        tension: 0.1
+    };
+}
+
+function setModus(m){ 
+    modus=m; 
+    if(modus === "monat" && jahr === aktuellesJahr && monat > aktuellerMonat) {
+        monat = aktuellerMonat;
+    }
+    if(jahr > aktuellesJahr) {
+        jahr = aktuellesJahr;
+    }
+    monatButton.classList.toggle("aktiv",m==="monat");
+    jahrButton.classList.toggle("aktiv",m==="jahr");
+    lade();
+}
+
+function zeitraum(){
+    document.getElementById("zeitraum").textContent =
+        modus==="jahr"
+        ? jahr
+        : `${monate[monat-1]} ${jahr}`;
+        
+    const istZukunft = (modus === "jahr" && jahr >= aktuellesJahr) || 
+                       (modus === "monat" && jahr >= aktuellesJahr && monat >= aktuellerMonat);
+                       
+    document.getElementById("vorButton").disabled = istZukunft;
+}
+
+function wechsel(r){
+    if(modus==="jahr") {
+        if(r > 0 && jahr >= aktuellesJahr) return; 
+        jahr+=r;
+    }
+    else{
+        if(r > 0 && jahr >= aktuellesJahr && monat >= aktuellerMonat) return;
+        monat+=r;
+        if(monat<1){monat=12;jahr--}
+        if(monat>12){monat=1;jahr++}
+    }
+    lade();
+}
+
+async function lade(){
+    zeitraum();
+    const url=`/api/diagramm?jahr=${jahr}&monat=${monat}&modus=${modus}`;
+    const res=await fetch(url);
+    const d=await res.json();
+
+    if(chart) {
+        chart.data.datasets.forEach((ds, i) => {
+            sichtbar[ds.label] = chart.isDatasetVisible(i);
+        });
+        chart.destroy();
+    }
+    
+    chart=new Chart(energieDiagramm,{
+        type: modus==="jahr" ? "line" : "bar",
+        data:{
+            labels:d.labels,
+            datasets:[
+                {label:"Solarverbrauch",data:d.solarverbrauch,hidden:sichtbar.Solarverbrauch===false,...getColors("Solarverbrauch")
+    },
+                {label:"Einspeisung", data:d.einspeise,  hidden:sichtbar.Einspeisung===false, ...getColors("Einspeisung")},
+                {label:"Gesamt",      data:d.gesamt,     hidden:sichtbar.Gesamt===false,      ...getColors("Gesamt")},
+                {label:"HMS",         data:d.hms,        hidden:sichtbar.HMS===false,       stack:"solar",  ...getColors("HMS")},
+                {label:"Growatt",     data:d.growatt,    hidden:sichtbar.Growatt===false,     ...getColors("Growatt")},
+                {label:"Solax",       data:d.solax,      hidden:sichtbar.Solax===false,     stack:"solar",  ...getColors("Solax")}
+            
+            
+            ]
+        },
+        options:{
+            responsive:true,
+            interaction:{mode:"index",intersect:false},
+            plugins:{
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 15,
+                        boxHeight: 15,
+                        usePadding: 20,
+                        font: { size: 14, weight: 'bold' },
+                        generateLabels: (chart) => {
+                            const datasets = chart.data.datasets;
+                            return datasets.map((ds, i) => ({
+                                text: ds.label,
+                                fillStyle: ds.borderColor,
+                                strokeStyle: ds.borderColor,
+                                lineWidth: 0,
+                                hidden: chart.isDatasetVisible(i) === false,
+                                datasetIndex: i
+                            }));
+                        }
+                    }
+                },
+                tooltip:{
+                    callbacks:{
+                        title:c=> modus === "jahr" ? "Monat: " + c.label : "Tag: " + c.label,
+                        label:c=>`${c.dataset.label}: ${Number(c.raw).toFixed(2)} kWh`
+                    }
+                },
+                zoom:{
+                    pan:{enabled:true,mode:"x"},
+                    zoom:{wheel:{enabled:true},pinch:{enabled:true},mode:"x"}
+                }
+            },
+            scales:{y:{beginAtZero:true,title:{display:true,text:"kWh"}}}
+        }
+    });
+    summeEinspeise.textContent     = d.summen.einspeise.toFixed(2);
+    summeGesamt.textContent        = d.summen.gesamt.toFixed(2);
+    summeHms.textContent           = d.summen.hms.toFixed(2);
+    summeGrowatt.textContent       = d.summen.growatt.toFixed(2);
+    summeSolax.textContent         = d.summen.solax.toFixed(2);
+    summeSolarverbrauch.textContent = d.summen.solarverbrauch.toFixed(2);
+}
+
+setModus("monat");
+</script>
+
+</body>
+</html>

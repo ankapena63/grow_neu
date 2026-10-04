@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Energiedaten & Einstellungen</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+      <!-- Eigene CSS-Dateien -->
+      <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+      <link rel="stylesheet" href="{{ url_for('static', filename='settings.css') }}">
+</head>
+<body class="container-fluid px-0 mt-1 settings-page">
+<div class="row justify-content-center mt-0 gx-1">
+  <div class="col-sm-12 col-md-6">
+
+    <form id="settingsForm" action="/update" method="POST" class="p-2 bg-light border rounded">
+      <!-- CSRF Token falls nötig -->
+      {# {{ form.csrf_token }} #}
+
+      <!-- Kopfbuttons: Zurück / Speichern / Hilfe -->
+<div class="row g-2 mb-1">
+
+    <div class="col-4 d-flex">
+        <a href="/" 
+           class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center">
+            ⬅️ Zurück
+        </a>
+    </div>
+
+    <div class="col-4 d-flex">
+        <button type="submit" 
+                class="btn btn-primary w-100 d-flex justify-content-center align-items-center">
+            Speichern
+        </button>
+    </div>
+
+    <div class="col-4 d-flex">
+        <button class="btn btn-outline-info w-100 d-flex justify-content-center align-items-center"
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#hilfeText">
+            Hilfe
+        </button>
+    </div>
+
+</div>
+
+      <!-- Aufklappbarer Hilfetext -->
+      <div class="collapse mb-2" id="hilfeText">
+        <div class="card card-body small">
+          <h6>ℹ️ Hilfe & Erklärung</h6>
+          <p>Diese Seite dient zur Konfiguration deiner Energieverwaltung.</p>
+          <ul class="mb-1">
+            <li><strong>Smartmeter-IP:</strong> Lokale IP deines Stromzählers (z. B. 192.168.178.xxx).</li>
+            <li><strong>Tasmota / Growatt:</strong> Auswahl der Quelle für Akku-Daten und das Abfrageintervall.</li>
+            <li><strong>Akku entladen ON:</strong> PPV ist auch aktiv. Max <strong>{{ einstellungen.get('max_limit', 750) }} W</strong> bei SOC {{ einstellungen.get('max_soc', 99) }} % bis {{ einstellungen.get('ppv_soc', 91) }} %.</li>
+            <li><strong>PPV aktiviert:</strong> Entladung ab <strong>{{ einstellungen.get('ppv_soc_ab', 75) }} %</strong> SOC minus <strong>{{ einstellungen.get('mittel_verbrauch', 100) }} W</strong>.</li>
+            <li><strong>Sanft-Entladung:</strong> Zusätzliche sanfte Leistungsanforderung über das definierte Zeitintervall.</li>
+          </ul>
+        </div>
+      </div>
+
+      {% include 'taktzeiten.html' %}
+
+      <!-- Reihe 2: Akku + Strom Dropdowns mit Symbolen -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap settings-row">
+        <label class="visually-hidden" for="quelle_akku">Akku-Datenquelle</label>
+        <select id="quelle_akku" name="abfrage_growatt" class="form-select form-select-sm settings-select">
+          <option value="true" {% if einstellungen.get('abfrage_growatt', False) %}selected{% endif %}>🔋 Growatt</option>
+          <option value="false" {% if not einstellungen.get('abfrage_growatt', False) %}selected{% endif %}>🔋 ioBroker</option>
+        </select>
+        <label class="visually-hidden" for="quelle_strom">Strom-Datenquelle</label>
+        <select id="quelle_strom" name="abfrage_tasmota" class="form-select form-select-sm settings-select">
+          <option value="true" {% if einstellungen.get('abfrage_tasmota', False) %}selected{% endif %}>⚡ Tasmota</option>
+          <option value="false" {% if not einstellungen.get('abfrage_tasmota', False) %}selected{% endif %}>⚡ SML</option>
+        </select>
+      </div>
+
+
+
+<!-- Reihe: HMS Verbrauch auf 0 / Limit -->
+<div class="d-flex flex-wrap settings-row align-items-center">
+
+    <div class="form-check me-2 mb-0">
+        <input type="hidden" name="hms_bekommt_null" value="false">
+        <input class="form-check-input"
+               type="checkbox"
+               name="hms_bekommt_null"
+               value="true"
+               id="hms_bekommt_null_cb"
+               {% if einstellungen.get('hms_bekommt_null', False) %}checked{% endif %}>
+        <label class="form-check-label ms-1 mb-0" for="hms_bekommt_null_cb">
+            Tasmota 0 an HMS
+        </label>
+    </div>
+
+    <div class="input-group input-group-sm mb-0 settings-hms-limit">
+        <label class="visually-hidden" for="hms_limit_soll">HMS-Leistungsgrenze in Watt</label>
+        <input type="number"
+               name="hms_limit_soll"
+               id="hms_limit_soll"
+               class="form-control form-control-sm"
+               min="26"
+               max="1600"
+               value="{{ einstellungen.get('hms_limit_soll', 100) }}">
+        <span class="input-group-text">W</span>
+    </div>
+
+</div>
+
+
+
+
+      
+      
+      <!-- Benachrichtigungen an aus -->
+<div class="d-flex justify-content-between align-items-center flex-wrap settings-row">       
+<div class="form-check mb-0">
+  <input type="hidden" name="nachricht_app" value="false">
+  <input class="form-check-input" 
+         type="checkbox" 
+         name="nachricht_app" 
+         value="true" 
+         id="nachricht_app"
+         {% if einstellungen.get('nachricht_app', False) %}checked{% endif %}>
+  <label class="form-check-label" for="nachricht_app">
+    Nachrichten an APP
+  </label>
+</div>
+</div>
+
+
+      
+      <!-- Solax Mittelwert Option -->
+<div class="d-flex justify-content-between align-items-center flex-wrap settings-row">       
+<div class="form-check mb-0">
+  <input type="hidden" name="solax_l_mittelwert_nutzen" value="false">
+  <input class="form-check-input" 
+         type="checkbox" 
+         name="solax_l_mittelwert_nutzen" 
+         value="true" 
+         id="solax_mittelwert"
+         {% if einstellungen.get('solax_l_mittelwert_nutzen', False) %}checked{% endif %}>
+  <label class="form-check-label" for="solax_mittelwert">
+    Solax Local-Mittelwert nutzen
+  </label>
+</div>
+</div>
+
+
+
+      <!-- sanft laden -->
+<div class="d-flex justify-content-between align-items-center flex-wrap settings-row">       
+<div class="form-check mb-0">
+  <input type="hidden" name="akku_sanft" value="false">
+  <input class="form-check-input" 
+         type="checkbox" 
+         name="akku_sanft" 
+         value="true" 
+         id="akku_sanft"
+         {% if einstellungen.get('akku_sanft', False) %}checked{% endif %}>
+  <label class="form-check-label" for="akku_sanft">
+    Sanft Laden bis Max Soc
+  </label>
+</div>
+</div>
+
+
+      <!-- Sanft-Entladung -->
+      <div class="settings-row">
+        <input type="hidden" name="akku_sanft_zeit" value="false">
+        <div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" name="akku_sanft_zeit" value="true"
+                 id="akku_sanft_checkbox" data-bs-toggle="collapse" data-bs-target="#sanftCollapse"
+                 {% if web.get('akku_sanft_zeit', False) %}checked{% endif %}>
+          <label class="form-check-label" for="akku_sanft_checkbox">Fest-Entladung nach Zeit aktivieren</label>
+        </div>
+        <div class="collapse {% if web.get('akku_sanft_zeit', False) %}show{% endif %}" id="sanftCollapse">
+          <div class="card card-body p-1 mb-0">
+            <div class="row gx-3">
+              <div class="col-6">
+                <label for="dazu_sanft" class="form-label">Sanft Watt</label>
+                <input type="number" name="dazu_sanft" id="dazu_sanft" class="form-control" min="-800" max="800" step="1"
+                       value="{{ einstellungen.get('dazu_sanft', 0) }}">
+              </div>
+              <div class="col-6">
+                <label for="dazu_intervall" class="form-label">Zeitintervall (min)</label>
+                <input type="number" name="dazu_intervall" id="dazu_intervall" class="form-control" min="0" max="600" step="1"
+                       value="{{ einstellungen.get('dazu_intervall', 0) }}">
+              </div>
+            </div>
+          </div>
+        </div>
+</div>
+
+      <!-- Reihe 3: Akku Entladung + Max Watt -->
+      <div class="d-flex flex-wrap settings-row align-items-center">
+        <div class="form-check me-2 mb-0">
+          <input type="hidden" name="akku_entladen" value="false">
+          <input class="form-check-input" type="checkbox" name="akku_entladen" value="true" id="akku_entladen_cb"
+                 {% if einstellungen.get('akku_entladen', False) %}checked{% endif %}>
+          <label class="form-check-label ms-1 mb-0" for="akku_entladen_cb">🔋Hard Entladen</label>
+        </div>
+        <div class="input-group input-group-sm mb-0 settings-max-limit">
+          <label class="visually-hidden" for="max_limit">Maximale Entladeleistung in Watt</label>
+          <input type="number" name="max_limit" id="max_limit" class="form-control form-control-sm" min="26" max="1600"
+                 value="{{ einstellungen.get('max_limit', 800) }}">
+          <span class="input-group-text">W</span>
+        </div>
+
+<!-- Reihe 4: SOC & PV-SOC in einer Reihe -->
+<div class="d-flex flex-wrap align-items-center mb-0 settings-soc-row">
+  <!-- max SOC -->
+   <label for="max_soc">SOC-Grenze</label>
+  <div class="input-group input-group-sm settings-soc-input">
+    <input type="number" name="max_soc" id="max_soc" class="form-control form-control-sm"
+           value="{{ einstellungen.get('max_soc', 99) }}" min="40" max="100">
+    <span class="input-group-text">% SOC</span>
+  </div>
+
+  <!-- PV-SOC -->
+    <label >bis {{ einstellungen.get('max_soc', 99)|int -5 }}</label>
+    <span class="input-group-text">% SOC</span>
+</div>
+  </div>
+
+<!-- Reihe 5: PPV-Entladung (Zweizeilig für bessere Lesbarkeit) -->
+<div class="settings-row mb-0 settings-full-row">
+    
+    <!-- Erste Zeile: Checkbox und Eingaben -->
+    <div class="d-flex flex-nowrap align-items-center gap-1">
+        <!-- Checkbox + Label -->
+        <div class="form-check d-flex align-items-center mb-0 settings-ppv-check">
+            <input type="hidden" name="akku_ppv" value="false">
+            <input class="form-check-input mt-0" type="checkbox" name="akku_ppv" value="true" id="akku_ppv_cb"
+                   {% if einstellungen.get('akku_ppv', False) %}checked{% endif %}>
+            <label class="form-check-label ms-1 mb-0 text-nowrap settings-ppv-label" for="akku_ppv_cb">☀️PPV⤵ minus </label>
+        </div>
+
+        <!-- Ø Verbrauch -->
+        <div class="input-group input-group-sm mb-0 settings-ppv-watt">
+            <label class="visually-hidden" for="mittel_verbrauch">PPV-Verbrauchsabzug in Watt</label>
+            <input type="number" name="mittel_verbrauch" id="mittel_verbrauch" class="form-control form-control-sm px-1 text-center"
+                   value="{{ einstellungen.get('mittel_verbrauch', 100) }}" min="-1400" max="1400">
+            <span class="input-group-text px-1">W</span>
+        </div>
+
+        <label class="mb-0 text-nowrap settings-ppv-soc-prefix"> ab </label>
+              
+        <!-- SOC Eingabe -->
+        <div class="input-group input-group-sm mb-0 settings-ppv-soc">
+            <label class="visually-hidden" for="ppv_soc_ab">PPV-Entladung ab SOC in Prozent</label>
+            <input type="number" name="ppv_soc_ab" id="ppv_soc_ab" class="form-control form-control-sm px-1 text-center"
+                   value="{{ einstellungen.get('ppv_soc_ab', 75) }}" min="40" max="{{ einstellungen.get('ppv_soc', 92) }}">
+            <span class="input-group-text px-1">%</span>
+        </div>
+    </div>
+
+<!-- Zweite Zeile: Der "oder"-Text -->
+    <div class="ms-4 mt-1">
+        <small class="text-muted settings-ppv-note">
+            oder auch <b>{{ einstellungen.get('max_soc', 99)|int - 5 }}%</b>, wenn 🚀 Hard Entladen aktiv ist
+        </small>
+    </div>
+</div>
+
+<div class="settings-row mb-0 settings-full-row">
+     
+
+<!-- Nachtmodus + Korrekturwerte -->
+<div class="settings-container d-flex flex-column gap-2">
+  
+  <!-- 1. Reihe: Überschrift / Checkbox -->
+  <div class="form-check">
+    <input type="hidden" name="nacht_nur_0_schalter" value="false">
+    <input class="form-check-input" type="checkbox" name="nacht_nur_0_schalter" value="true" id="nacht_nur_0"
+           {% if einstellungen.get('nacht_nur_0_schalter', False) %}checked{% endif %}>
+    <label class="form-check-label fw-bold" for="nacht_nur_0">
+      🌙 Nachts nur Null-Einspeisung
+    </label>
+  </div>
+
+  <!-- 2. Reihe: nacht  -->
+  <div class="d-flex flex-nowrap gap-1">
+    <!-- Korrektur nach Sonnenaufgang -->
+    <div class="input-group input-group-sm settings-correction-input">
+      <label class="input-group-text px-1 settings-correction-label" for="kor_aufgang">+ Min ☀️ Auf</label>
+      <input type="number" name="kor_aufgang" id="kor_aufgang" class="form-control px-1"
+             value="{{ einstellungen.get('kor_aufgang', 60) }}" min="-120" max="240">
+    </div>
+
+    <!-- Korrektur vor Sonnenuntergang -->
+    <div class="input-group input-group-sm settings-correction-input">
+      <label class="input-group-text px-1 settings-correction-label" for="kor_unter">- Min ☀️ Unter</label>
+      <input type="number" name="kor_unter" id="kor_unter" class="form-control px-1"
+             value="{{ einstellungen.get('kor_unter', 60) }}" min="-120" max="240">
+    </div>
+  </div>
+
+</div>
+ 
+</div>
+</div>
+    </form>
+
+    <section class="alert alert-warning mt-3" aria-labelledby="shutdownHeading">
+      <h2 id="shutdownHeading" class="h6">Anwendung beenden</h2>
+      <p class="mb-2">Beendet den Server für alle verbundenen Geräte. Zum erneuten Starten das Python-Skript wieder ausführen.</p>
+      <form id="shutdownForm" action="/shutdown" method="POST">
+        <button type="submit" class="btn btn-danger">Server beenden</button>
+      </form>
+    </section>
+
+</div>
+<!-- Toast Container zentriert oben oder mittig -->
+<div class="position-fixed top-50 start-50 translate-middle p-3 settings-toast-layer">
+  <div id="toastContainer"></div>
+</div>
+
+<script src="{{ url_for('static', filename='settings.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+Termux: App installieren und starten
+=====================================
+
+Voraussetzungen
+---------------
+- Android mit Termux, empfohlen aus F-Droid:
+  https://f-droid.org/packages/com.termux/
+- Die Projektdateien in einem Verzeichnis innerhalb von Termux' HOME
+  ablegen, zum Beispiel ~/grow-app. Nicht direkt aus gemeinsamem Speicher
+  wie ~/storage/downloads starten.
+
+Einrichtung
+-----------
+Termux aktualisieren und Python installieren:
+
+    pkg update
+    pkg upgrade
+    pkg install python
+
+In das Projektverzeichnis wechseln und eine virtuelle Umgebung einrichten:
+
+    cd ~/grow-app
+    python -m venv .venv
+    source .venv/bin/activate
+    python -m pip install --upgrade pip
+    python -m pip install -r requirements.txt
+
+Die Installation von requirements.txt verwendet festgelegte direkte
+Projektabhängigkeiten. Pip löst deren transitive Abhängigkeiten beim
+Installieren auf.
+
+Starten
+-------
+Im aktivierten Environment aus dem Projektverzeichnis starten:
+
+    python neu.py
+
+Der Server hört auf Port 5000. Auf demselben Gerät öffnen:
+
+    http://127.0.0.1:5000/
+
+Im lokalen WLAN die IP-Adresse des Android-Geräts verwenden:
+
+    http://<IP-Adresse-des-Geräts>:5000/
+
+Zum Beenden im Termux-Terminal Ctrl+C drücken. Für den Zugriff aus dem
+WLAN müssen beide Geräte im selben Netzwerk sein; die Firewall des
+Routers darf den Zugriff nicht blockieren.
+
+Konfiguration und Laufzeitdaten
+-------------------------------
+Die Anwendung legt Laufzeitdaten unter data/ ab. Einstellungen,
+Zugangsdaten und CSV-Verläufe sind lokale Daten und gehören nicht in Git.
+Die Zugangsdaten können über die Einstellungsseiten gepflegt werden.
+
+Die Anwendung verwendet weiterhin ihre bestehende QUART_SECRET_KEY-/
+SECRET_KEY-Konfiguration einschließlich des vorhandenen Fallbacks.
+Für einen produktiven, öffentlich erreichbaren Betrieb ist ein eigener,
+stabiler Schlüssel als Umgebungsvariable zu konfigurieren.
+
+Tests
+-----
+Im Projektverzeichnis und mit aktivierter virtueller Umgebung:
+
+    python -m unittest discover -v
+
+Hinweis
+-------
+Die Abhängigkeiten sind an der Entwicklungsumgebung fest ausgerichtet.
+Die Installation auf Termux muss auf dem Zielgerät geprüft werden, da
+native Python-Abhängigkeiten je nach Android-/Termux-Version anders
+installiert werden können.

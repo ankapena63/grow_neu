@@ -1,0 +1,58 @@
+
+# So machst du start.sh ausf hrbar:
+# chmod +x start.sh
+# starten ./start.sh
+
+sanfte Akku laden auch ohne zeit
+mit debug
+
+editor tageswerte
+
+daten laden editieren umbenenen
+
+ohne pandas modul
+push nachrichten
+nacht dose nicht aus und session
+
+hypercorn start datei ./start.sh
+
+neu.log rotate
+
+tasmota mit lan eingefügt
+
+mittelwerte auf 2-3 gemacht ppv
+zugangs daten  neu
+haus verbrauch. = actuel-hms-solax
+ppv und hausverbrauch in tasmota
+
+SSH SERVER 
+
+Status und Zugangs date 
+growatt verbessert
+
+graf48 stunden
+diagramme monat Jahr 
+und in html rein fix raus
+
+augeräumt
+takten verbessert
+status verbessert
+
+loggin stat print 
+explorer verbessert
+noch paar kleinichkeiten
+
+aufgeräumt 
+kontext in strom hms solax 
++
+jons button in akku
+
+tageswerte.csv rausgenohmen
+
+Tasmota kann 0 lifern 
+und auf HMS Limit setzen
+
+Button aus An
+
+
+

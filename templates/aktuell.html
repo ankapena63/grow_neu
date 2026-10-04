@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aktuell</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.5.0/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0"></script>
+<style>
+body{background:#95a6b8;margin:0;padding:15px}
+.diagramm{background:white;padding:15px;border-radius:10px}
+.chart-container{position:relative;height:500px;width:100%;margin-top:15px}
+</style>
+</head>
+<body>
+<div class="diagramm">
+    <button onclick="chart?.resetZoom()">🔍 Reset</button>
+    
+    <button onclick="ladeAktuell()">🔃 Neu</button>
+    <button onclick="location.href='/'">🔄 🏠 Haupt</button>
+   <span style="background-color: #cfe8ff; padding: 2px 5px; border-radius: 4px;">
+    &nbsp;Shift + Mausrad = Zoom X&nbsp;</span>
+    <div class="chart-container">
+        <canvas id="aktuellDiagramm"></canvas>
+    </div>
+</div>
+<script>
+let chart=null;
+async function ladeAktuell(){
+    try{
+        const d=await (await fetch("/api/aktuell")).json();
+        const makeSet=(label,color,data)=>({
+            label,
+            data:data
+                .filter(e=>e?.zeit!=null&&e?.wert!=null)
+                .map(e=>({
+                    x:typeof e.zeit==="number"?e.zeit:new Date(e.zeit).getTime(),
+                    y:e.wert
+                })),
+            borderColor:color,
+            backgroundColor:color,
+            borderWidth:1,
+            tension:0,
+            pointRadius:0,
+            pointHoverRadius:2,
+            showLine:true
+        });
+        const sets=[];
+        if(d.strom?.length) sets.push(makeSet("Strom","red",d.strom));
+        if(d.hms?.length) sets.push(makeSet("HMS","green",d.hms));
+        if(d.solax?.length) sets.push(makeSet("Solax","blue",d.solax));
+        if(chart){
+            chart.data.datasets=sets;
+            chart.update("none");
+            return;
+        }
+        chart=new Chart(aktuellDiagramm,{
+            type:"line",
+            data:{datasets:sets},
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                animation:false,
+                normalized:true,
+                parsing:false,
+                spanGaps:true,
+
+                interaction:{
+                    mode:"nearest",
+                    intersect:false
+                },
+                plugins:{
+                    tooltip:{
+                        callbacks:{
+                            title:c=>luxon.DateTime
+                                .fromMillis(c[0].raw.x)
+                                .toFormat("dd.MM.yyyy HH:mm:ss"),
+                            label:c=>`${c.dataset.label}: ${c.raw.y}`
+                        }
+                    },
+                    zoom:{
+                        pan:{
+                            enabled:true,
+                            mode:"xy",
+                            threshold:10
+                        },
+                        zoom:{
+                            wheel:{enabled:false},
+                            pinch:{enabled:true},
+                            mode:"xy"
+                        }
+                    }
+                },
+                scales:{
+                    x:{
+                        type:"time",
+                        bounds:"data",
+                        time:{
+                            displayFormats:{
+                                millisecond:"HH:mm:ss.SSS",
+                                second:"HH:mm:ss",
+                                minute:"HH:mm",
+                                hour:"dd.MM. HH:mm",
+                                day:"dd.MM.yyyy"
+                            }
+                        },
+                        ticks:{
+                            source:"auto",
+                            maxRotation:0,
+                            autoSkip:true,
+                            autoSkipPadding:20
+                        },
+                        title:{display:true,text:"Zeit"}
+                    },
+                    y:{
+                        type:"linear",
+                        title:{display:true,text:"Wert"}
+                    }
+                }
+            }
+        });
+        aktuellDiagramm.addEventListener("wheel",e=>{
+            if(!chart)return;
+            e.preventDefault();
+            const factor=e.deltaY<0?1.15:0.87;
+            const scale=e.shiftKey?chart.scales.x:chart.scales.y;
+            const center=(scale.min+scale.max)/2;
+            const range=(scale.max-scale.min)/factor;
+            chart.zoomScale(
+                e.shiftKey?"x":"y",
+                {
+                    min:center-range/2,
+                    max:center+range/2
+                },
+                "none"
+            );
+        },{passive:false});
+
+    }catch(e){
+        console.error("Fehler:",e);
+    }
+}
+ladeAktuell();
+setInterval(ladeAktuell,30000);
+</script>
+</body>
+</html>

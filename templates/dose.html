@@ -1,0 +1,157 @@
+<div class="card shadow-sm border-primary mt-3">
+    <div class="card-body">
+
+        <div class="row align-items-center">
+
+            <!-- LINKE SPALTE -->
+            <div class="col-6 text-start">
+                <h5 class="fw-bold mb-2">⚡ Smart Dose</h5>
+                <div class="mb-1">
+                    <b>Status:</b>
+<span id="relay" class="fw-bold">
+    {% if web['dose_relay_state'] is none %}
+        <span class="text-muted">OFFLINE ☁️</span>
+    {% elif web['dose_relay_state'] %}
+        <span class="text-danger">AN 🔥</span>
+    {% else %}
+        <span class="text-success">AUS ❄️</span>
+    {% endif %}
+</span>
+
+                </div>
+                <div>
+                    <b>Temp:</b>
+                    <span id="temp">{{ web.get('temperature', 24) }}°C</span>
+                </div>
+            </div>
+            <!-- RECHTE SPALTE -->
+            <div class="col-6 text-end">
+                {% set mode = web['dose_mode'] %}
+                <button class="btn w-100 py-3 text-white fw-bold"
+                    style="font-size:1.2rem;
+                    background: {% if mode=='auto' %}#0d6efd{% else %}#198754{% endif %};"
+                    onclick="toggleMode()">
+                    {% if mode == 'auto' %}
+                        <div style="font-size:1.6rem;">⚙️ AUTO</div>
+                        <div style="font-size:0.8rem; opacity:0.8;">✋ Hand</div>
+                    {% else %}
+                        <div style="font-size:1.6rem;">✋ HAND</div>
+                        <div style="font-size:0.8rem; opacity:0.8;">⚙️ Auto</div>
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AUTO-MODUS -->
+{% if web['dose_mode'] == "auto" %}
+<div class="card shadow-sm border-primary mt-3">
+    <div class="card-body text-center">
+
+        <h5 class="fw-bold">Auto Temperatur-Regelung</h5>
+
+<div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+    <!-- Start Temperatur -->
+    <div class="d-flex align-items-center">
+        <label for="t_start" class="me-2 mb-0">Start:</label>
+        <input type="number" id="t_start" class="form-control w-auto"
+               value="{{ einstellungen['dose_t_start'] }}" 
+               min="0" max="100" step="1">
+        <span class="ms-1">°C</span>
+    </div>
+
+    <!-- Stop Temperatur -->
+    <div class="d-flex align-items-center">
+        <label for="t_stop" class="me-2 mb-0">Stop:</label>
+        <input type="number" id="t_stop" class="form-control w-auto"
+               value="{{ einstellungen['dose_t_stop'] }}" 
+               min="0" max="{{ einstellungen['dose_t_start'] | int - 2 }}" step="1">
+        <span class="ms-1">°C</span>
+    </div>
+</div>
+        <button class="btn btn-primary" onclick="saveTemps()">Speichern</button>
+
+    </div>
+</div>
+{% endif %}
+
+<!-- HAND-MODUS -->
+{% if web['dose_mode'] == "manual" %}
+<div class="text-center mt-3">
+    <button class="btn btn-success btn-lg me-2 {% if web['dose_relay_state'] %}disabled{% endif %}" 
+            onclick="manual('on')">AN</button>
+    <button class="btn btn-danger btn-lg {% if not web['dose_relay_state'] %}disabled{% endif %}" 
+            onclick="manual('off')">AUS</button>
+</div>
+{% endif %}
+
+
+
+<script>
+async function toggleMode() {
+    const current = "{{ web['dose_mode'] }}";
+    const next = current === "auto" ? "manual" : "auto";
+    const text = next === "manual"
+        ? "In den HAND-Modus wechseln?"
+        : "In den AUTO-Modus wechseln?";
+    if (!confirm(text)) {
+        return;
+    }
+    await fetch("/dose/set_mode", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: "mode=" + next
+    });
+    location.reload();
+}
+
+
+async function manual(action) {
+    const text = action === "on"
+        ? "Smart Dose wirklich einschalten?"
+        : "Smart Dose wirklich ausschalten?";
+    if (!confirm(text)) {
+        return;
+    }
+    await fetch("/dose/manual", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: "action=" + action
+    });
+    location.reload();
+}
+
+async function saveTemps() {
+    const start = parseInt(document.getElementById("t_start").value);
+    const stop  = parseInt(document.getElementById("t_stop").value);
+
+    // --- FRONTEND VALIDIERUNG ---
+    if (start < 20 || start > 45) {
+        alert("Start muss zwischen 20 und 45°C liegen");
+        return;
+    }
+    if (stop < 0) {
+        alert("Stop darf nicht negativ sein");
+        return;
+    }
+    if (stop > start - 2) {
+        alert("Stop muss mindestens 2°C kleiner als Start sein");
+        return;
+    }
+    // --- SENDEN ---
+    const r = await fetch("/dose/set_temps", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: "start=" + start + "&stop=" + stop
+    });
+    if (!r.ok) {
+        const msg = await r.text();
+        alert("Fehler: " + msg);
+        return;
+    }
+    location.reload();
+}
+
+
+</script>

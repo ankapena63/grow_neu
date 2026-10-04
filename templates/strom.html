@@ -1,0 +1,149 @@
+{% include 'strom_oben.html' %}
+<!-- Nachtmodus Reihe -->
+<div class="row justify-content-center align-items-center mb-0 mt-2">
+    <!-- SSH STATUS -->
+    <div class="col-auto">
+        <button type="button"
+             id="ssh-toggle"
+             class="ssh-status {% if einstellungen.get('server_sshd') %}ssh-status-on{% else %}ssh-status-off{% endif %}"
+             data-toggle-status="{{ 'aus' if einstellungen.get('server_sshd') else 'an' }}"
+             aria-label="SSH-Server {{ 'aktiv' if einstellungen.get('server_sshd') else 'inaktiv' }}; Status ändern"
+             onclick="confirmSSH()">
+            SSH
+        </button>
+    </div>
+    <!-- NACHTMODUS BUTTON -->
+    <button type="button"
+        id="switch-nacht-btn"
+        data-next-status="{{ 'false' if einstellungen.get('nacht_nur_0_schalter') else 'true' }}"
+        aria-pressed="{{ 'true' if einstellungen.get('nacht_nur_0_schalter') else 'false' }}"
+        aria-label="Nachtmodus-Schalter {{ 'aktiv' if einstellungen.get('nacht_nur_0_schalter') else 'inaktiv' }}"
+        class="col-auto p-1 rounded shadow-sm strom-night-switch
+        {% if not einstellungen.get('nacht_nur_0_schalter') %}
+            bg-secondary text-white
+        {% elif web.get('nachtzeit') %}
+            bg-dark text-white
+        {% else %}
+            bg-light text-dark
+        {% endif %}"
+        onclick="toggleNachtSchalter()">
+
+        {% if not einstellungen.get('nacht_nur_0_schalter') %}
+            ⏹ Nachtmodus deaktiviert
+        {% elif web.get('nachtzeit') %}
+            🌙 Nachtmodus 🕒 |
+            {{ web.get('startnacht') }} → {{web.get('endnacht') }}
+        {% else %}
+            ☀️ Tagmodus 🕒 |
+            {{ web.get('endnacht') }} → {{ web.get('startnacht') }}
+        {% endif %}
+    </button>
+
+</div>
+<!-- Unsichtbares Formular für SSH -->
+<form id="sshForm" action="/server_sshd" method="post"></form>
+ <!-- Popup Script -->  
+<script src="{{ url_for('static', filename='strom-steuerung.js') }}"></script>
+ <!-- Card Body -->
+<div class="card-body p-0 text-center">
+    <div class="row text-center g-1">
+        <!-- SOLAX -->
+        <div class="col">
+            <div class="wert-button"
+                 onclick="zeigeGeraet('solax')">
+                C<span id="statusSolaxC">⚪</span>
+                Solax <span id="statusSolaxL">⚪</span>L<br>
+                <span id="solax-actuel">--</span>
+            </div>
+            <small class="{% if einstellungen.akku_sanft %}ppv-highlight{% endif %}">
+                Sanft ab(min 30%)
+            </small><br>
+
+            <small class="{% if web.akku_sanft_zeit %}ppv-highlight{% endif %}">
+                +Fest🕒
+            </small><br>
+            <small class="{% if einstellungen.akku_entladen %}ppv-highlight{% endif %}">
+                Entladen ab:<span id="max_soc">??</span>%
+            </small><br>
+            <small class="{% if einstellungen.akku_ppv %}ppv-highlight{% endif %}">
+                PPV
+            </small><br>
+            <small>Mittelwert</small><br>
+            <small id="dazu-wrapper">
+                Dazu: <span id="dazu">--</span>W
+            </small><br>
+        </div>
+        <!-- STROM -->
+        <div class="col">
+            <div class="wert-button"
+                 onclick="zeigeGeraet('strom')">
+                ⚡Stand <span id="statusStrom">⚪</span><br>
+                <span id="strom-aktuell">--</span>
+            
+            
+        
+            </div>
+<span id="dazu_sanft_soc">??</span>W<br>
+
+            <span id="dazu_sanft">??</span> W<br>
+            <span id="max_limit">??</span> W<br>
+            ab <span id="ppv_soc_ab"></span>%<br>
+            <small>
+                🔋🔆<span id="ppv_mittelwert">??</span>W
+            </small><br>
+
+            <small>
+                Schätzung:🏠<span id="mittel_verbrauch">--</span>W
+            </small><br>
+        </div>
+
+
+        <!-- HMS -->
+        <div class="col">
+            <div class="wert-button"
+                 onclick="zeigeGeraet('hms')">
+                🔆HMS <span id="statusHms">⚪</span><br>
+                <span id="hms-aktuel">--</span>
+            </div>
+            <span id="stunden_bis_nacht">--</span>St.<br>
+            <span>
+                für: <span id="dazu_intervall">--</span> Min
+            </span><br>
+            <span>
+                bis: {{ einstellungen.max_soc -5 }}%
+            </span><br>
+            und {{ einstellungen.max_soc -5 }}%<br>
+            <small>
+                Solax🔆<span id="solax_l_mittelwert">??</span>W
+            </small><br>
+            <small>
+                ist:<span id="haus_verbrauch">--</span>
+            </small>
+        </div>
+    </div>
+</div>
+    </div>
+</div>
+
+<!-- Gerät-Fenster -->
+<div class="modal fade" id="geraetModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title" id="geraetModalTitel">
+                    Gerät
+                </h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="geraetModalText">
+                    Test
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='strom-dialog.js') }}"></script>

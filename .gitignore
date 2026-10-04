@@ -1,0 +1,29 @@
+# Python bytecode and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local environment configuration
+.env
+.env.*
+!.env.example
+
+# Runtime data and local credentials
+/data/*.json
+/data/*.csv
+/neu.log
+/neu_*.log
+*.log
+
+# Local editor and operating-system files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Archived local integration scripts may contain device credentials
+/doc/tuya_mit_KEY.py
+/doc/noah_auslesen_neu super.py
