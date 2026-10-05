@@ -1,25 +1,25 @@
-https://www.eu.solaxcloud.com/proxyApp/proxy/api/getRealtimeInfo.do?tokenId=202306170351297281979113&sn=SXZJYAUMNM
+https://www.eu.solaxcloud.com/proxyApp/proxy/api/getRealtimeInfo.do?tokenId=202306170351297281979113&sn=ZJYAUM
 LINK ZU Cloud
 curl -X POST "http://192.168.178.92" -H "Content-Type: application/x-www-form-urlencoded" -d "optType=ReadRealTimeData&pwd=SXZJYAUMNM"
-{"sn":"SXZJYAUMNM","ver":"3.003.02","type":4,"Data":[2329,4,40,794,0,6,0,50,0,4995,2,26785,
+{"sn":"ZJYAUM","ver":"3.003.02","type":4,"Data":[2329,4,40,794,0,6,0,50,0,4995,2,26785,
 0,36,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,33,0,15345,0,0,0,0,0,0,0,
 0,0,0,0,0,0,39,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0],"Information":[0.600,4,"XM3062HC096471",8,2.19,0.00,1.37,0.00,0.00,1]}
+0,0,0,0,0,0],"Information":[0.600,4,"XC096471",8,2.19,0.00,1.37,0.00,0.00,1]}
 
 
 
 
 
-pkill -f neu.py           proces l�schen
+pkill -f neu.py           proces löschen
 pkill -f hypercorn        oder
 pkill -9 -f hypercorn     oder
 pkill -f neu:app
 
-pkill sshd        server proces l�schen
+pkill sshd        server proces löschen
 
 whoami           user name ssh 
   
-# So machst du start.sh ausf�hrbar:
+# So machst du start.sh ausführbar:
 # chmod +x start.sh
 # starten ./start.sh
 ------------------------------------
@@ -38,7 +38,7 @@ cd ~/storage/downloads/grow
 # --workers 1 ist wichtig, um Doppel-Tasks zu vermeiden
 
 # Schreibt alle Ausgaben (auch Fehler) in solar.log
-# '2>&1' sorgt dafür, dass auch Fehlermeldungen im Log landen
+# '2>&1' sorgt dafÃ¼r, dass auch Fehlermeldungen im Log landen
 #hypercorn neu:app --bind 0.0.0.0:5000 --workers 1 >> neu.log 2>&1
 
 echo "--- Start Solar Monitor: $(date) ---" >>neu.log
