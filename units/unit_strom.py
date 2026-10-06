@@ -20,6 +20,25 @@ class Strom:
     def __init__(self, app_state):
         self.app_state = app_state
 
+
+    
+    @property
+    def takt(self) -> int:
+        einst = self.app_state.einstellungen
+        if self.app_state.benutzer_activ:
+            return einst.get("takt_strom", 15)
+        
+        takt = einst.get("takt_akku_inactiv", 120)
+        if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
+            takt = 599
+        if einst.get("aktuell_aktiv", False):
+            takt = 60
+        if einst.get("hms_bekommt_null", False):
+           takt = min(120, takt)
+        return takt
+
+
+
     async def abfrage_tasmota(
         self,
         alt_daten: dict,
