@@ -1,9 +1,7 @@
 """Central scheduler for device polling and application control."""
-
 from datetime import datetime
 import logging
 import time
-
 from units.unit_dose import dose_tuya
 from units.unit_alle.history import speichere_aktuell_csv
 from units.unit_alle.calculations import reset_heute_werte
@@ -85,13 +83,12 @@ def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
         app_state.dazu_intervall = round(verbleibend / 60, 2)
 
 async def pruefe_48st(app_state: AppState,zeit: float) -> None:
-    
     if not app_state.einstellungen.get("aktuell_aktiv", True):
         return
     takt = 3600*2
     if zeit == 0 or zeit - app_state.aktuell_letztes_speichern >= takt:
         try:
-            logger.info("💾 [Backup] Speichere stündliches Aktuell-Daten-Backup...")
+            logger.info("💾 [Backup]  Speichere 2 stündliches Aktuell-Daten-Backup...")
             await speichere_aktuell_csv(app_state)
         except Exception:
             logger.error("❌ Fehler beim Backup-CSV-Speichern")
@@ -152,21 +149,15 @@ async def wiederholte_takt(app_state: AppState) -> None:
 
     app_state.nachtzeit = app_state.startnacht <= now or now <= app_state.endnacht
     app_state.stunden_bis_nacht = stunden_bis_nacht_get(app_state)
-    
     app_state.benutzer_activ = (
         zeit_jetzt - app_state.last_activity
         < app_state.einstellungen.get("takt_benutzrer_activ", 50)
     )    
-    
-    # Aufrufe der Hilfsfunktionen (jetzt ohne manuelle Takt-Parameter)
     pruefe_dazu_intervall(app_state, zeit_jetzt)
     await pruefe_48st(app_state, zeit_jetzt)
     await pruefe_dose(app_state, zeit_jetzt)
-    
     if app_state.kochen:
         await pruefe_kochen(app_state, zeit_jetzt)
-        
-    # Komponenten-Abfragen mit den neuen @properties
     await app_state.growatt.pruefe(zeit_jetzt)
     await app_state.hms.pruefe_limit(zeit_jetzt, nullen)
     await app_state.solax.pruefe_cloud(zeit_jetzt)
