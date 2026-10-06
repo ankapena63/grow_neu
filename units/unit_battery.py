@@ -39,6 +39,20 @@ class GrowattSessionManager:
         self.last_query = 0             # Zeitpunkt der letzten Abfrage
         self.cooldown = 30               # minimale Sekunden zwischen Abfragen
 
+
+    @property
+    def takt(self) -> int:
+        einst = self.app_state.einstellungen
+        if self.app_state.benutzer_activ:
+            return einst.get("takt_akku", 61)
+        
+        takt = einst.get("takt_akku_inactiv", 120)
+    # Nachtmodus-Prüfung ohne erste_abfrage
+        if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
+            takt = 300
+        return takt
+
+
     async def run_with_lock(self, func, *args, cooldown=0, **kwargs):
       async with self.api_lock:
         now = time.monotonic()
