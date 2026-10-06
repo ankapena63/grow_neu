@@ -136,3 +136,7 @@ class AppState:
         self.temperature = 0.0
         self.soc = 0
         self.log_level = "INFO"
+
+        self.takt_48_datei = 3600*2
+        self.takt_48 = 60
+
