@@ -167,7 +167,7 @@ async def wiederholte_takt(app_state: AppState) -> None:
         await pruefe_kochen(app_state, zeit_jetzt)
         
     # Komponenten-Abfragen mit den neuen @properties
-    await app_state.growatt.pruefe_akku(zeit_jetzt)
+    await app_state.growatt.pruefe(zeit_jetzt)
     await app_state.hms.pruefe_limit(zeit_jetzt, nullen)
     await app_state.solax.pruefe_cloud(zeit_jetzt)
     await app_state.solax.pruefe_local(zeit_jetzt)
