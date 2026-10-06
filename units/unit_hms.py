@@ -339,3 +339,35 @@ class Hms:
         except Exception:
             logger.exception("[HMS] Fehler beim Schalten des WR")
             return False
+
+
+
+    @property
+    def takt(self) -> int:
+        """Berechnet das Abfrageintervall für die OpenDTU / HMS."""
+        einst = self.app_state.einstellungen
+        
+        # 1. Benutzer ist aktiv
+        if self.app_state.benutzer_activ:
+            return einst.get("takt_hms", 25)
+            
+        # 2. Standard-Inaktiv-Takt
+        takt = einst.get("takt_akku_inactiv", 120)
+        
+        # 3. Nacht-Modus
+        if self.app_state.nachtzeit :
+            takt = 600
+
+        # 4. Sonderregelungen
+        if einst.get("aktuell_aktiv", False):
+            takt = 60
+            
+        if einst.get("hms_bekommt_null", False):
+            # Holt den aktuellen Takt von Strom (wird live ausgelesen/berechnet)
+            # Falls Strom eine eigene Property hat, könnte hier stehen:
+            self.app_state.strom_instanz.takt
+            takt_strom = 60 if einst.get("aktuell_aktiv", False) else einst.get("takt_akku_inactiv", 120)
+            takt = min(120, takt_strom)
+
+        return takt
+
