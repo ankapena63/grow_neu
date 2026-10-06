@@ -1,5 +1,3 @@
-"""HTTP client and power-limit control for the HMS/OpenDTU integration."""
-
 import asyncio
 import json
 import logging
@@ -13,8 +11,6 @@ from units.state import AppState
 logger = logging.getLogger(__name__)
 
 class Hms:
-    """State-bound HMS client, polling service, and inverter controls."""
-
     def __init__(self, app_state):
         self.app_state = app_state
 
@@ -131,20 +127,21 @@ class Hms:
             logger.exception("[HMS] Fehler beim Setzen des Limits")
             return False
 
-    async def pruefe(self, zeit: float, takt: int = 30) -> None:
+    async def pruefe(self, zeit: float) -> None:
         app_state = self.app_state
+        takt=self.takt
         if zeit - app_state.start_hms > takt or app_state.erste_abfrage:
             logger.info("📡 HMS✅ %s Sek", takt)
             app_state.alle_daten["hms"] = await self.abfrage(
                 app_state.alle_daten.get("hms", {}),
-                takt,
+                takt
             )
             app_state.start_hms = zeit
             if app_state.einstellungen.get("aktuell_aktiv", True):
                 speichere_aktuell_wert(
                     app_state,
                     "hms",
-                    app_state.alle_daten["hms"].get("aktuell", 0),
+                    app_state.alle_daten["hms"].get("aktuell", 0)
                 )
 
     async def pruefe_limit(self, zeit: float, nullen: bool) -> None:
@@ -344,30 +341,22 @@ class Hms:
 
     @property
     def takt(self) -> int:
-        """Berechnet das Abfrageintervall für die OpenDTU / HMS."""
         einst = self.app_state.einstellungen
-        
         # 1. Benutzer ist aktiv
         if self.app_state.benutzer_activ:
-            return einst.get("takt_hms", 25)
-            
+            return einst.get("takt_hms", 25)    
         # 2. Standard-Inaktiv-Takt
         takt = einst.get("takt_akku_inactiv", 120)
-        
         # 3. Nacht-Modus
         if self.app_state.nachtzeit :
             takt = 600
-
         # 4. Sonderregelungen
         if einst.get("aktuell_aktiv", False):
             takt = 60
-            
         if einst.get("hms_bekommt_null", False):
             # Holt den aktuellen Takt von Strom (wird live ausgelesen/berechnet)
-            # Falls Strom eine eigene Property hat, könnte hier stehen:
-            self.app_state.strom_instanz.takt
-            takt_strom = 60 if einst.get("aktuell_aktiv", False) else einst.get("takt_akku_inactiv", 120)
-            takt = min(120, takt_strom)
-
+            # Falls Strom eine eigene Property hat, könnte hier stehen:self.app_state.strom_instanz.takt
+            #takt_strom = 60 if einst.get("aktuell_aktiv", False) else einst.get("takt_akku_inactiv", 120)
+            takt = min(120, takt)
         return takt
 
