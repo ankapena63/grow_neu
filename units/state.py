@@ -96,9 +96,7 @@ class AppState:
         self.start_strom = jetzt
         self.start_dazu_senden = jetzt
         self.takte = {}
-        self.takt_geaendert = True
         self.benutzer_activ = False
-        self.nachtzeit_alt = False
         self.start_hms0 = 10
 
         self.dazu = 0.0
