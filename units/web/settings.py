@@ -237,7 +237,7 @@ async def update_settings():
     state.einstellungen["takt_solax_c"] = int(form.get("takt_solax_c", 25))
     state.einstellungen["takt_strom"] = int(form.get("takt_strom", 25))
     state.einstellungen["intervall_takt"] = int(form.get("intervall_takt", 4))
-    state.einstellungen["takt_benutzrer_activ"] = int(form.get("intervall_takt", 4)*3)
+    state.einstellungen["takt_benutzrer_activ"] = int(form.get("intervall_takt", 4))+10
     state.einstellungen["takt_48"] = int(form.get("takt_48", 60))
 
 

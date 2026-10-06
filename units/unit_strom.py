@@ -227,6 +227,7 @@ class Strom:
     async def pruefe(self, zeit: float) -> None:
         app_state = self.app_state
         takt = self.takt
+        status_aktualisieren(app_state, "strom", takt,False)
         if zeit - app_state.start_strom <= takt and not app_state.erste_abfrage:
             return
         logger.debug("Strom %s Sek", takt)

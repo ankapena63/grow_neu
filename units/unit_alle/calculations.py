@@ -107,11 +107,13 @@ def get_jahres_werte(daten, einst):
             - einst.get("solax_jahr_0", 0)),2)
     return werte
 
-def status_aktualisieren(app_state, geraet, takt):
+def status_aktualisieren(app_state, geraet, takt, zeit: bool = True):
     if geraet not in app_state.status_html:
         app_state.status_html[geraet] = {}
-    app_state.status_html[geraet]["zeit_meine"] = zeitstempel()
+    if zeit:
+        app_state.status_html[geraet]["zeit_meine"] = zeitstempel()
     app_state.status_html[geraet]["takt"] = takt
+
 
 def gereate_status(status_html):
     status ={}

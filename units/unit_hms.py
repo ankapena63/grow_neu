@@ -152,6 +152,9 @@ class Hms:
     async def pruefe(self, zeit: float) -> None:
         app_state = self.app_state
         takt=self.takt
+
+        status_aktualisieren(app_state, "hms", takt,False)
+
         if zeit - app_state.start_hms > takt or app_state.erste_abfrage:
             logger.info("📡 HMS✅ %s Sek", takt)
             app_state.alle_daten["hms"] = await self.abfrage(

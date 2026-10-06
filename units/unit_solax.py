@@ -185,6 +185,7 @@ class Solax:
     async def pruefe_local(self, zeit: float) -> None:
         app_state = self.app_state
         takt = self.takt_local
+        status_aktualisieren(app_state, "solax_l", takt,False)
         if ( zeit - app_state.start_solax_l > takt
             or app_state.erste_abfrage
         ):
@@ -200,6 +201,7 @@ class Solax:
     async def pruefe_cloud(self, zeit: float) -> None:
         app_state = self.app_state
         takt = self.takt_cloud
+        status_aktualisieren(app_state, "solax_c", takt,False)
         if zeit - app_state.start_solax_c > takt or app_state.erste_abfrage:
             logger.info("☁️ Solax C✅ %s Sek", takt)
             app_state.alle_daten["solax"] = await self.abfrage_cloud(

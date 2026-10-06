@@ -398,6 +398,9 @@ class GrowattSessionManager:
 
     async def pruefe( self, zeit: float) -> None:
       takt = self.takt
+      status_aktualisieren(self.app_state, "akku_token", takt,False)
+      status_aktualisieren(self.app_state, "akku_login", takt,False)
+
       if zeit - self.app_state.start_akku <= takt and not self.app_state.erste_abfrage:
         return
       
