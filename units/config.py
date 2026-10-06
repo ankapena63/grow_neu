@@ -36,7 +36,7 @@ STANDARD_ZUGANG= {
 
 STANDARD_EINSTELLUNGEN = {
     "server_sshd"    : False,
-    "aktuell_aktiv": True,
+
     "kochen_soc_min" : 20,
     "kochen_wert" : 1400,
 
@@ -80,17 +80,22 @@ STANDARD_EINSTELLUNGEN = {
     "growatt_jahr_0": 0,
     "solax_jahr_0": 0,
 
-    "takt_benutzrer_activ": 50,  #sek
-    "takt_hms": 25,
-    "takt_akku": 25,
-    "takt_akku_inactiv": 60,  
-    "takt_solax_l": 25,
-    "takt_solax_c": 25,
-    "takt_strom": 25,
-    "takt_dose": 300,
-
     "intervall_takt": 4, # Sekunden  schleife zum actualisieren web ind zykl
+    
+    "takt_benutzrer_activ": 8,  #sek "intervall_takt"*2
 
+    "aktuell_aktiv": True, ## 48
+    "takt_48_datei": 3600*2, # oder in state??? 
+    "takt_48": 60, 
+    
+    "takt_hms": 8,
+    "takt_akku": 60,
+    "takt_akku_inactiv": 120,  
+    "takt_solax_l": 9,
+    "takt_solax_c": 300,
+    "takt_strom": 10,
+    "takt_dose": 300,
+    
     "dose_t_start": 31,
     "dose_t_stop" :26
     
