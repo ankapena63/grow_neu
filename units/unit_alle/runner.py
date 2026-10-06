@@ -85,7 +85,7 @@ def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
 async def pruefe_48st(app_state: AppState,zeit: float) -> None:
     if not app_state.einstellungen.get("aktuell_aktiv", True):
         return
-    takt = 3600*2
+    takt =  app_state.takt_48_datei
     if zeit == 0 or zeit - app_state.aktuell_letztes_speichern >= takt:
         try:
             logger.info("💾 [Backup]  Speichere 2 stündliches Aktuell-Daten-Backup...")
