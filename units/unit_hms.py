@@ -150,10 +150,9 @@ class Hms:
             app_state.start_hms0 += 1
             logger.info(
                 "⏳ HMS-Limit: %s Takt Startverzögerung",
-                app_state.start_hms0,
+                app_state.start_hms0
             )
             return
-
         if nullen:
             hms_limit_soll = int(
                 app_state.einstellungen.get("hms_limit_soll", 100)
@@ -166,7 +165,7 @@ class Hms:
                     logger.info(
                         "HMS neues Limit: %s W (vorher %s W)",
                         hms_limit_soll,
-                        hms_limit_aktuell,
+                        hms_limit_aktuell
                     )
 
     async def lese_config(self) -> dict:
@@ -179,7 +178,7 @@ class Hms:
             url = f"{dtu_ip}/api/powerlimiter/config"
             auth = aiohttp.BasicAuth(
                 app_state.zugang.get("hms_name"),
-                app_state.zugang.get("hms_pas"),
+                app_state.zugang.get("hms_pas")
             )
             session = await mache_session(
                 app_state,
@@ -188,7 +187,7 @@ class Hms:
             )
             async with session.get(
                 url,
-                timeout=aiohttp.ClientTimeout(total=5),
+                timeout=aiohttp.ClientTimeout(total=5)
             ) as response:
                 response.raise_for_status()
                 config = await response.json()
