@@ -20,25 +20,6 @@ class Strom:
     def __init__(self, app_state):
         self.app_state = app_state
 
-
-    
-    @property
-    def takt(self) -> int:
-        einst = self.app_state.einstellungen
-        if self.app_state.benutzer_activ:
-            return einst.get("takt_strom", 15)
-        
-        takt = einst.get("takt_akku_inactiv", 120)
-        if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
-            takt = 599
-        if einst.get("aktuell_aktiv", False):
-            takt = 60
-        if einst.get("hms_bekommt_null", False):
-           takt = min(120, takt)
-        return takt
-
-
-
     async def abfrage_tasmota(
         self,
         alt_daten: dict,
@@ -232,31 +213,40 @@ class Strom:
         await self.sende_tasmota(0)
         logger.info("An Tasmota senden %s= %s", nullung, hms0)
 
-    async def pruefe(self, zeit: float, takt: int = 30) -> None:
+    
+    @property
+    def takt(self) -> int:
+        einst = self.app_state.einstellungen
+        if self.app_state.benutzer_activ:
+            return einst.get("takt_strom", 15)
+        
+        takt = einst.get("takt_akku_inactiv", 120)
+        if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
+            takt = 600
+        if einst.get("aktuell_aktiv", False):
+            takt = 60
+        return takt
+
+    
+    async def pruefe(self, zeit: float) -> None:
         app_state = self.app_state
+        takt = self.takt
         if zeit - app_state.start_strom <= takt and not app_state.erste_abfrage:
             return
-
-        logger.debug("zum Strom %s Sek", takt)
+        logger.debug("Strom %s Sek", takt)
         try:
             if app_state.einstellungen.get("abfrage_tasmota", False):
                 strom = await self.abfrage_tasmota(
                     app_state.alle_daten.get("strom") or {},
-                    takt,
-                )
+                    takt)
             else:
                 strom = await self.abfrage_smart(
                     app_state.alle_daten.get("strom") or {},
                     app_state.zugang.get("ip_smart", "123"),
-                    takt,
-                )
+                    takt)
             app_state.alle_daten["strom"] = strom
             if app_state.einstellungen.get("aktuell_aktiv", True):
-                speichere_aktuell_wert(
-                    app_state,
-                    "strom",
-                    strom.get("Actuel", 0),
-                )
+                speichere_aktuell_wert( app_state,"strom",strom.get("Actuel", 0),)
         except Exception:
             logger.exception("[Fehler] ❌ Stromabfrage fehlgeschlagen")
         finally:
