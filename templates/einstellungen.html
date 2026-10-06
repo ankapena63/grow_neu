@@ -52,7 +52,7 @@
           <h6>ℹ️ Hilfe & Erklärung</h6>
           <p>Diese Seite dient zur Konfiguration deiner Energieverwaltung.</p>
           <ul class="mb-1">
-            <li><strong>Smartmeter-IP:</strong> Lokale IP deines Stromzählers (z. B. 192.168.178.xxx).</li>
+            <li><strong>Smartmeter-IP:</strong> Locale IP deines Stromzählers (z. B. 192.168.178.xxx).</li>
             <li><strong>Tasmota / Growatt:</strong> Auswahl der Quelle für Akku-Daten und das Abfrageintervall.</li>
             <li><strong>Akku entladen ON:</strong> PPV ist auch aktiv. Max <strong>{{ einstellungen.get('max_limit', 750) }} W</strong> bei SOC {{ einstellungen.get('max_soc', 99) }} % bis {{ einstellungen.get('ppv_soc', 91) }} %.</li>
             <li><strong>PPV aktiviert:</strong> Entladung ab <strong>{{ einstellungen.get('ppv_soc_ab', 75) }} %</strong> SOC minus <strong>{{ einstellungen.get('mittel_verbrauch', 100) }} W</strong>.</li>

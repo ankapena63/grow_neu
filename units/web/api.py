@@ -255,7 +255,7 @@ async def api_aktuell():
 @routes.route("/api/stat")
 async def api_status():
     state: AppState = _app_state()
-    state.last_activity = time.monotonic()
+    #state.last_activity = time.monotonic()
     return jsonify(state.status_html)
 
 @routes.get("/api/log")

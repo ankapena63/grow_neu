@@ -105,7 +105,7 @@ class Solax:
                         data = text.split(",")
                         if len(data) < 17:
                             logger.error(
-                                "[Solax Lokal] Daten unvollständig (Länge %s)",
+                                "[Solax Local] Daten unvollständig (Länge %s)",
                                 len(data),
                             )
                             continue
@@ -155,13 +155,13 @@ class Solax:
                         app_state.solax_local = result
                         return result
                     logger.error(
-                        "[Solax Lokal] HTTP %s bei Versuch %s",
+                        "[Solax Local] HTTP %s bei Versuch %s",
                         response.status,
                         versuch + 1,
                     )
             except (aiohttp.ClientError, asyncio.TimeoutError) as error:
                 logger.warning(
-                    "[Solax Lokal] Verbindungsfehler Versuch %s: %s",
+                    "[Solax Local] Verbindungsfehler Versuch %s: %s",
                     versuch + 1,
                     error,
                 )
@@ -169,22 +169,22 @@ class Solax:
                     await asyncio.sleep(basis_wartezeit * (2 ** versuch))
             except Exception:
                 logger.exception(
-                    "[Solax Lokal] Fehler Versuch %s",
+                    "[Solax Local] Fehler Versuch %s",
                     versuch + 1,
                 )
                 if versuch < versuche - 1:
                     await asyncio.sleep(basis_wartezeit * (2 ** versuch))
 
-        logger.error("[Solax Lokal] Alle Versuche fehlgeschlagen. Fallback.")
+        logger.error("[Solax Local] Alle Versuche fehlgeschlagen. Fallback.")
         app_state.solax_l_mittelwert = 0
         result = app_state.solax_local.copy() if app_state.solax_local else {}
-        result["fehler"] = f"Lokale Solax-API nicht erreichbar ({url})"
+        result["fehler"] = f"Locale Solax-API nicht erreichbar ({url})"
         result["zeit_fehler"] = zeitstempel()
         return result
 
-    async def pruefe_local(self, zeit: float, takt: int = 15) -> None:
+    async def pruefe_local(self, zeit: float) -> None:
         app_state = self.app_state
-        takt = takt_local
+        takt = self.takt_local
         if ( zeit - app_state.start_solax_l > takt
             or app_state.erste_abfrage
         ):
@@ -193,13 +193,13 @@ class Solax:
                 app_state.start_solax_l = zeit
         if zeit - app_state.start_solax_l > takt * 10:
             app_state.solax_local["fehler"] = (
-                "Lokale Solax-API zu lang nicht erreichbar"
+                "Locale Solax-API zu lang nicht erreichbar"
             )
             app_state.solax_local["zeit_fehler"] = zeitstempel()
 
-    async def pruefe_cloud(self, zeit: float0) -> None:
+    async def pruefe_cloud(self, zeit: float) -> None:
         app_state = self.app_state
-        takt = takt_cloud
+        takt = self.takt_cloud
         if zeit - app_state.start_solax_c > takt or app_state.erste_abfrage:
             logger.info("☁️ Solax C✅ %s Sek", takt)
             app_state.alle_daten["solax"] = await self.abfrage_cloud(
@@ -207,25 +207,26 @@ class Solax:
                 takt
             )
             app_state.start_solax_c = zeit
+   
+    async def pruefe(self, zeit: float) -> None:
+        await self.pruefe_cloud(zeit)
+        await self.pruefe_local(zeit)
+   
     @property
     def takt_cloud(self) -> int:
         if self.app_state.benutzer_activ:
             return 300
-        else 
+        else:
             return 600
             
     @property
-    def takt_lokal(self) -> int:
+    def takt_local(self) -> int:
         einst = self.app_state.einstellungen
-        # 1. Benutzer ist aktiv
         if self.app_state.benutzer_activ:
-            return einst.get("takt_solax_l", 25)  
-            
+            return einst.get("takt_solax_l", 25)   
         if einst.get("aktuell_aktiv", False):
              return self.app_state.takt_48
-        # 2. Standard-Inaktiv-Takt
         takt = einst.get("takt_akku_inactiv", 120)
-        # 3. Nacht-Modus
         if self.app_state.nachtzeit :
             takt = 600*3
         return takt

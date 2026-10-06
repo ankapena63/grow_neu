@@ -36,7 +36,6 @@ def stunden_bis_nacht_get(app_state: AppState) -> float:
         )
     return stunden_bis_nacht
 
-
 async def pruefe_dose(app_state: AppState, zeit: float) -> None:
     takt = app_state.einstellungen.get("takt_dose", 300)
     if zeit - app_state.last_dose_check > takt:
@@ -57,13 +56,13 @@ async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
         app_state.kochen = False
         app_state.kochen_zeit = 0.0
         await rechne_dazu(app_state)
-        logger.info("KOCHEN AUS: SOC zu niedrig oder _Zeit Abgelaufen")
+        logger.info("KOCHEN AUS: SOC zu niedrig oder _Zeit abgelaufen")
         return
     if (
         app_state.nachtzeit
         and app_state.einstellungen.get("nacht_nur_0_schalter", False)
     ):
-        logger.info("KOCHEN AUS:Nachts nur 0   ein")
+        logger.info("KOCHEN AUS:Nachts nur 0 Einp.")
         app_state.kochen = False
         app_state.kochen_zeit = 0.0
         await rechne_dazu(app_state)
@@ -96,50 +95,6 @@ async def pruefe_48st(app_state: AppState,zeit: float) -> None:
             if zeit != 0:
                 app_state.aktuell_letztes_speichern = zeit
 
-def berechne_takte(
-    app_state: AppState,
-    benutzer_activ: bool,
-) -> dict[str, int]:
-    einst = app_state.einstellungen
-    aktuell_aktiv = einst.get("aktuell_aktiv", False)
-    if benutzer_activ:
-        return {
-            "akku": einst.get("takt_akku", 61),
-            "hms": einst.get("takt_hms", 25),
-            "solax_c": einst.get("takt_solax_c", 150),
-            "solax_l": einst.get("takt_solax_l", 15),
-            "strom": einst.get("takt_strom", 15),
-        }
-    takt = einst.get("takt_akku_inactiv", 120)
-    takte = {
-        "akku": takt,
-        "hms": takt,
-        "solax_c": 301,
-        "solax_l": takt,
-        "strom": takt,
-    }
-    nur_growatt = (
-        app_state.nachtzeit
-        and not app_state.erste_abfrage
-        and not benutzer_activ
-    )
-    if nur_growatt:
-        takte.update({
-            "akku": 300,
-            "strom": 599,
-            "hms": 600,
-            "solax_c": 600,
-            "solax_l": 600,
-        })
-    takte["solax_c"] = max(600, takte["solax_c"])
-    if aktuell_aktiv:
-        takte["strom"] = 60
-        takte["hms"] = 60
-    if app_state.einstellungen.get("hms_bekommt_null", False):
-        takte["strom"] = min(120, takte["strom"])
-        takte["hms"] = takte["strom"]
-    return takte
-
 async def wiederholte_takt(app_state: AppState) -> None:
     await reset_heute_werte(app_state)
     jetzt = datetime.now()
@@ -151,7 +106,7 @@ async def wiederholte_takt(app_state: AppState) -> None:
     app_state.stunden_bis_nacht = stunden_bis_nacht_get(app_state)
     app_state.benutzer_activ = (
         zeit_jetzt - app_state.last_activity
-        < app_state.einstellungen.get("takt_benutzrer_activ", 50)
+        < app_state.einstellungen.get("takt_benutzrer_activ", 10)
     )    
     pruefe_dazu_intervall(app_state, zeit_jetzt)
     await pruefe_48st(app_state, zeit_jetzt)
@@ -160,8 +115,7 @@ async def wiederholte_takt(app_state: AppState) -> None:
         await pruefe_kochen(app_state, zeit_jetzt)
     await app_state.growatt.pruefe(zeit_jetzt)
     await app_state.hms.pruefe_limit(zeit_jetzt, nullen)
-    await app_state.solax.pruefe_cloud(zeit_jetzt)
-    await app_state.solax.pruefe_local(zeit_jetzt)
+    await app_state.solax.pruefe(zeit_jetzt)  #beide 
     await app_state.hms.pruefe(zeit_jetzt)
     await app_state.strom.pruefe(zeit_jetzt)
     

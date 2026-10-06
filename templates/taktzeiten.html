@@ -16,17 +16,17 @@
 
         <div class="row g-2">
 
-            <!-- Benutzer aktiv -->
+            <!-- Takt Graf48 -->
             <div class="col-6">
-                <label class="form-label mb-0 small" for="takt_benutzrer_activ">Benutzer aktiv</label>
+                <label class="form-label mb-0 small" for="takt_48">Graf 48 (60)</label>
                 <div class="input-group input-group-sm">
                     <input type="number"
-                           id="takt_benutzrer_activ"
+                           id="takt_48"
                            class="form-control"
-                           name="takt_benutzrer_activ"
-                           min="1"
-                           max="60"
-                           value="{{ einstellungen.get('takt_benutzrer_activ', 50) }}">
+                           name="takt_48"
+                           min="4"
+                           max="600"
+                           value="{{ einstellungen.get('takt_48', 60) }}">
                     <span class="input-group-text">Sek.</span>
                 </div>
             </div>
@@ -73,9 +73,9 @@
                 </div>
             </div>
 
-            <!-- Solax Lokal -->
+            <!-- Solax Local -->
             <div class="col-6">
-                <label class="form-label mb-0 small" for="takt_solax_l">Solax Lokal</label>
+                <label class="form-label mb-0 small" for="takt_solax_l">Solax Local</label>
                 <div class="input-group input-group-sm">
                     <input type="number"
                            id="takt_solax_l"

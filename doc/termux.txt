@@ -39,7 +39,7 @@ Der Server hört auf Port 5000. Auf demselben Gerät öffnen:
 
     http://127.0.0.1:5000/
 
-Im lokalen WLAN die IP-Adresse des Android-Geräts verwenden:
+Im localen WLAN die IP-Adresse des Android-Geräts verwenden:
 
     http://<IP-Adresse-des-Geräts>:5000/
 
@@ -50,7 +50,7 @@ Routers darf den Zugriff nicht blockieren.
 Konfiguration und Laufzeitdaten
 -------------------------------
 Die Anwendung legt Laufzeitdaten unter data/ ab. Einstellungen,
-Zugangsdaten und CSV-Verläufe sind lokale Daten und gehören nicht in Git.
+Zugangsdaten und CSV-Verläufe sind locale Daten und gehören nicht in Git.
 Die Zugangsdaten können über die Einstellungsseiten gepflegt werden.
 
 Die Anwendung verwendet weiterhin ihre bestehende QUART_SECRET_KEY-/

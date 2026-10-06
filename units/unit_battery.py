@@ -397,10 +397,10 @@ class GrowattSessionManager:
         return alt_daten
 
     async def pruefe( self, zeit: float) -> None:
-
+      takt = self.takt
       if zeit - self.app_state.start_akku <= takt and not self.app_state.erste_abfrage:
         return
-      takt = self.takt
+      
       solax_l_mittelwert_nutzen = self.app_state.einstellungen.get( "solax_l_mittelwert_nutzen",False, )
       logger.info("🔋Akkus %s Sek", takt)
       self.app_state.alle_daten["akku"] = await self.akku_daten(

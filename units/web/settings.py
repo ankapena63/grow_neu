@@ -229,7 +229,7 @@ async def update_settings():
     state.einstellungen["solax_l_mittelwert_nutzen"] = "true" in form.getlist("solax_l_mittelwert_nutzen")
     state.einstellungen["nachricht_app"] = "true" in form.getlist("nachricht_app")
 # Taktzeiten
-    state.einstellungen["takt_benutzrer_activ"] = int(form.get("takt_benutzrer_activ", 50))
+   # state.einstellungen["takt_benutzrer_activ"] = int(form.get("takt_benutzrer_activ", 50))
     state.einstellungen["takt_hms"] = int(form.get("takt_hms", 25))
     state.einstellungen["takt_akku"] = int(form.get("takt_akku", 25))
     state.einstellungen["takt_akku_inactiv"] = int(form.get("takt_akku_inactiv", 60))
@@ -237,6 +237,10 @@ async def update_settings():
     state.einstellungen["takt_solax_c"] = int(form.get("takt_solax_c", 25))
     state.einstellungen["takt_strom"] = int(form.get("takt_strom", 25))
     state.einstellungen["intervall_takt"] = int(form.get("intervall_takt", 4))
+    state.einstellungen["takt_benutzrer_activ"] = int(form.get("intervall_takt", 4)*3)
+    state.einstellungen["takt_48"] = int(form.get("takt_48", 60))
+
+
     # Zahleneingaben mit Fallbacks absichern
     try:
         state.einstellungen["hms_limit_soll"] = int(form.get("hms_limit_soll", 100))
