@@ -184,8 +184,8 @@ class Solax:
 
     async def pruefe_local(self, zeit: float, takt: int = 15) -> None:
         app_state = self.app_state
-        if (
-            zeit - app_state.start_solax_l > takt
+        takt = takt_local
+        if ( zeit - app_state.start_solax_l > takt
             or app_state.erste_abfrage
         ):
             if app_state.alle_daten.get("solax", {}).get("acpower", 0) != 0:
@@ -197,12 +197,36 @@ class Solax:
             )
             app_state.solax_local["zeit_fehler"] = zeitstempel()
 
-    async def pruefe_cloud(self, zeit: float, takt: int = 60) -> None:
+    async def pruefe_cloud(self, zeit: float0) -> None:
         app_state = self.app_state
+        takt = takt_cloud
         if zeit - app_state.start_solax_c > takt or app_state.erste_abfrage:
             logger.info("☁️ Solax C✅ %s Sek", takt)
             app_state.alle_daten["solax"] = await self.abfrage_cloud(
                 app_state.alle_daten.get("solax", {}),
-                takt,
+                takt
             )
             app_state.start_solax_c = zeit
+    @property
+    def takt_cloud(self) -> int:
+        if self.app_state.benutzer_activ:
+            return 300
+        else 
+            return 600
+            
+    @property
+    def takt_lokal(self) -> int:
+        einst = self.app_state.einstellungen
+        # 1. Benutzer ist aktiv
+        if self.app_state.benutzer_activ:
+            return einst.get("takt_solax_l", 25)  
+            
+        if einst.get("aktuell_aktiv", False):
+             return 60
+        # 2. Standard-Inaktiv-Takt
+        takt = einst.get("takt_akku_inactiv", 120)
+        # 3. Nacht-Modus
+        if self.app_state.nachtzeit :
+            takt = 600*3
+        return takt
+
