@@ -2,13 +2,18 @@ import json
 import aiohttp
 import asyncio
 import time
-from units.funkzii import (
+from units.unit_alle.configuration import (
     password_get,
     mache_session,
+)
+from units.unit_alle.calculations import (
     zeitstempel,
     status_aktualisieren,
-    schreibe_in_roh)
-from units.dose_routes import  dose_tuya
+)
+from units.unit_alle.history import schreibe_in_roh
+from units.unit_dose import dose_tuya
+from units.unit_alle.power import rechne_dazu, sende_push
+from units.state import AppState
 import logging
 
 logger = logging.getLogger(__name__)
@@ -334,4 +339,74 @@ class GrowattSessionManager:
              for key, val in zip(datapoints.keys(), results)}
         daten["daten_von"] = "IoBroker"
         return daten
+
+    async def akku_daten(
+        self,
+        alt_daten: dict,
+        takt: int = 60,
+        ) -> dict:
+      try:
+        if self.app_state.einstellungen.get("abfrage_growatt", False):
+            status2, status1 = await asyncio.gather(
+                self.app_state.growatt.get_status(takt),
+                self.app_state.growatt.run_with_lock(
+                    self.app_state.growatt.get_noah_queryLastData,
+                    takt,
+                    cooldown=60,
+                ),
+            )
+            if not status1:
+                status1 = alt_daten or {}
+            if status2:
+                status = {**status1, **status2}
+            else:
+                status = status1
+        else:
+            status = await self.app_state.growatt.get_iobroker() or {}
+            status["zeit_meine"] = zeitstempel()
+
+        temp1 = status.get("battery1Temp", 0)
+        temp2 = status.get("battery2Temp", 0)
+        if temp1 > 44 or temp2 > 44:
+            max_temp = max(temp1, temp2)
+            message = (
+                f"⚠️ Akku zu heiß: {max_temp}°C! "
+                "Bitte für Kühlung/Schatten sorgen."
+            )
+            await sende_push(self.app_state, message, 600, 5)
+        status_akku = status.get("status", 1)
+        if status_akku != 1:
+            await sende_push(self.app_state, f"Akku status: {status_akku}", 3600, 4)
+        return status
+      except Exception as error:
+        logger.exception("[Growatt] Fehler")
+        alt_daten = alt_daten or {}
+        alt_daten["fehler"] = str(error)
+        alt_daten["zeit_fehler"] = zeitstempel()
+        return alt_daten
+
+    async def pruefe_akku(
+        self,
+        zeit: float,
+        takt: int = 60,
+    ) -> None:
+      solax_l_mittelwert_nutzen = self.app_state.einstellungen.get(
+        "solax_l_mittelwert_nutzen",
+        False,
+      )
+      if zeit - self.app_state.start_akku <= takt and not self.app_state.erste_abfrage:
+        return
+
+      logger.info("🔋Akkus %s Sek", takt)
+      self.app_state.alle_daten["akku"] = await self.akku_daten(
+        self.app_state.alle_daten.get("akku", {}),
+        takt,
+      )
+      if solax_l_mittelwert_nutzen and not self.app_state.nachtzeit:
+        self.app_state.solax_local = (
+            await self.app_state.solax.abfrage_local(takt)
+        )
+      self.app_state.start_solax_l = zeit
+      self.app_state.start_akku = zeit
+      await rechne_dazu(self.app_state)
     

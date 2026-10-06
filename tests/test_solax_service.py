@@ -1,0 +1,53 @@
+import unittest
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
+
+from units.unit_solax import Solax
+
+
+class SolaxServiceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_cloud_polling_updates_state_when_due(self):
+        state = SimpleNamespace(
+            start_solax_c=10,
+            erste_abfrage=False,
+            alle_daten={"solax": {"acpower": 12}},
+        )
+        service = Solax(state)
+        service.abfrage_cloud = AsyncMock(return_value={"acpower": 40})
+
+        await service.pruefe_cloud(20, takt=5)
+
+        service.abfrage_cloud.assert_awaited_once_with(
+            {"acpower": 12},
+            5,
+        )
+        self.assertEqual(state.alle_daten["solax"], {"acpower": 40})
+        self.assertEqual(state.start_solax_c, 20)
+
+    async def test_cloud_polling_skips_when_not_due(self):
+        state = SimpleNamespace(
+            start_solax_c=10,
+            erste_abfrage=False,
+            alle_daten={"solax": {}},
+        )
+        service = Solax(state)
+        service.abfrage_cloud = AsyncMock()
+
+        await service.pruefe_cloud(14, takt=5)
+
+        service.abfrage_cloud.assert_not_awaited()
+
+    async def test_local_polling_observes_existing_power_gate(self):
+        state = SimpleNamespace(
+            start_solax_l=10,
+            erste_abfrage=False,
+            alle_daten={"solax": {"acpower": 0}},
+            solax_local={},
+        )
+        service = Solax(state)
+        service.abfrage_local = AsyncMock()
+
+        await service.pruefe_local(20, takt=5)
+
+        service.abfrage_local.assert_not_awaited()
+        self.assertEqual(state.start_solax_l, 10)

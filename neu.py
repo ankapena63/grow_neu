@@ -2,17 +2,20 @@ import asyncio
 import os
 import signal
 from quart import Quart
-from units.routes import routes
-from units.dose_routes import (
-    bp as dose_bp,
-    create_dose_device
-)
+from units.web import routes
+from units.unit_dose import bp as dose_bp, create_dose_device
+from units.unit_hms import Hms
 from units.lifecycle import register_lifecycle
+from units.unit_solax import Solax
 from units.state import AppState
+from units.unit_strom import Strom
 
 def create_app():
     app = Quart(__name__)
     app_state = AppState()
+    app_state.hms = Hms(app_state)
+    app_state.solax = Solax(app_state)
+    app_state.strom = Strom(app_state)
     app_state.dose_device = create_dose_device()
     app.extensions["app_state"] = app_state
     app.extensions["server_shutdown_event"] = asyncio.Event()

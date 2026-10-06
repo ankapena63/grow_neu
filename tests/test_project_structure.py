@@ -6,8 +6,10 @@ from unittest.mock import patch
 
 import neu
 from units.config import STANDARD_ZUGANG
-from units import funkzii, routes
-from units.services import calculations, configuration, history, integrations
+from units.unit_battery import GrowattSessionManager
+from units.unit_hms import Hms
+from units.unit_solax import Solax
+from units.unit_strom import Strom
 from units.web import routes as web_routes
 
 
@@ -26,22 +28,40 @@ class ProjectStructureTests(unittest.TestCase):
             with self.subTest(field=field):
                 self.assertEqual(STANDARD_ZUGANG[field], "")
 
-    def test_legacy_service_imports_forward_to_split_modules(self):
-        self.assertIs(funkzii.astro_werte, calculations.astro_werte)
-        self.assertIs(
-            funkzii.lade_einstellungen,
-            configuration.lade_einstellungen,
-        )
-        self.assertIs(
-            funkzii.abfrage_solax_local,
-            integrations.abfrage_solax_local,
-        )
-        self.assertIs(
-            funkzii.speichere_aktuell_wert,
-            history.speichere_aktuell_wert,
-        )
+    def test_app_state_owns_one_solax_device(self):
+        with patch("neu.create_dose_device", return_value=object()):
+            first_app = neu.create_app()
+            second_app = neu.create_app()
 
-    def test_legacy_route_import_keeps_original_blueprint_and_endpoints(self):
+        first_state = first_app.extensions["app_state"]
+        second_state = second_app.extensions["app_state"]
+        self.assertIsInstance(first_state.solax, Solax)
+        self.assertIs(first_state.solax.app_state, first_state)
+        self.assertIsNot(first_state.solax, second_state.solax)
+
+    def test_app_state_owns_one_hms_device(self):
+        with patch("neu.create_dose_device", return_value=object()):
+            first_app = neu.create_app()
+            second_app = neu.create_app()
+
+        first_state = first_app.extensions["app_state"]
+        second_state = second_app.extensions["app_state"]
+        self.assertIsInstance(first_state.hms, Hms)
+        self.assertIs(first_state.hms.app_state, first_state)
+        self.assertIsNot(first_state.hms, second_state.hms)
+
+    def test_app_state_owns_one_strom_device(self):
+        with patch("neu.create_dose_device", return_value=object()):
+            first_app = neu.create_app()
+            second_app = neu.create_app()
+
+        first_state = first_app.extensions["app_state"]
+        second_state = second_app.extensions["app_state"]
+        self.assertIsInstance(first_state.strom, Strom)
+        self.assertIs(first_state.strom.app_state, first_state)
+        self.assertIsNot(first_state.strom, second_state.strom)
+
+    def test_feature_routes_register_expected_blueprint_and_endpoints(self):
         expected_routes = {
             "routes.dashboard": ("/", {"GET"}),
             "routes.get_akku_cloud": ("/akku_cloud", {"GET"}),
@@ -109,7 +129,7 @@ class ProjectStructureTests(unittest.TestCase):
             if rule.endpoint != "static"
         }
 
-        self.assertIs(routes.routes, web_routes)
+        self.assertIs(neu.routes, web_routes)
         self.assertEqual(actual_routes, expected_routes)
 
 

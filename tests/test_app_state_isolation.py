@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 
 import neu
-from units.dose_routes import relay_on, shutdown_dose
+from units.unit_dose import relay_on, shutdown_dose
 
 
 class FakeDoseDevice:

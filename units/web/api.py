@@ -2,8 +2,15 @@
 from . import routes, _app_state
 from datetime import date, datetime
 from quart import jsonify, request
-from units.funkzii import abfrage_solax_local, gereate_status, get_heute_werte, get_jahres_werte, get_monats_werte, lese_tageswerte0, speichere_einstellungen
-from units.funkzii2 import get_web_daten
+from units.unit_alle.calculations import (
+    gereate_status,
+    get_heute_werte,
+    get_jahres_werte,
+    get_monats_werte,
+)
+from units.unit_alle.configuration import speichere_einstellungen
+from units.unit_alle.history import lese_tageswerte0
+from units.web.dashboard import get_web_daten
 from units.logg import log_buffer
 from units.state import AppState
 import logging
@@ -74,7 +81,9 @@ async def get_sol_cloud():
 @routes.route("/solax_local", methods=["GET"])
 async def get_local():
     state: AppState = _app_state()
-    state.solax_local = await abfrage_solax_local(_app_state(), state.einstellungen.get("takt_solax_l", 15))
+    state.solax_local = await state.solax.abfrage_local(
+        state.einstellungen.get("takt_solax_l", 15)
+    )
     return jsonify({
          "Seite"       : "Solax Local",
          "meine_daten" :  state.solax_local,

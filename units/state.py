@@ -1,7 +1,15 @@
+from __future__ import annotations
+
 from collections import deque
 import asyncio
 import time
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    from units.unit_battery import GrowattSessionManager
+    from units.unit_hms import Hms
+    from units.unit_solax import Solax
+    from units.unit_strom import Strom
 
 
 class DoseDevice(Protocol):
@@ -13,14 +21,12 @@ class DoseDevice(Protocol):
     def set_socketRetryLimit(self, limit: int) -> Any: ...
 
 class AppState:
-    def __init__(self):
-        self._initialize_data()
-        self._initialize_buffers()
-        self._initialize_sessions()
-        self._initialize_timing()
-        self._initialize_control_state()
+    growatt: GrowattSessionManager
+    hms: Hms
+    solax: Solax
+    strom: Strom
 
-    def _initialize_data(self):
+    def __init__(self):
         self.version = "20-09-2026"
         self.save_lock = asyncio.Lock()
         self.alle_daten = {
@@ -46,7 +52,6 @@ class AppState:
         self.zugang = {}
         self.solax_local = {}
 
-    def _initialize_buffers(self):
         self.ppv_werte = deque(maxlen=2)
         self.solax_l_werte = deque(maxlen=3)
         self.solax_l_mittelwert = 0.0
@@ -64,7 +69,6 @@ class AppState:
             "solax": 0.0
         }
 
-    def _initialize_sessions(self):
         self.session_push = None
         self.session_hms = None
         self.session_tasmota = None
@@ -73,7 +77,6 @@ class AppState:
         self.session_solax_c = None
         self.session_growatt = None
 
-    def _initialize_timing(self):
         self.erste_abfrage = True
         self.status_html = {
             "hms": {"zeit_meine": 0, "takt": 10},
@@ -98,7 +101,6 @@ class AppState:
         self.nachtzeit_alt = False
         self.start_hms0 = 10
 
-    def _initialize_control_state(self):
         self.dazu = 0.0
         self.last_dose_check = 0.0
         self.dose_mode = "auto"

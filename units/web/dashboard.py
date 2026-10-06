@@ -1,12 +1,49 @@
 """Dashboard routes."""
 from . import routes, _app_state
 from quart import redirect, render_template, request
-from units.funkzii import get_heute_werte, get_jahres_werte, get_monats_werte, load_tageswerte, run_sshd, speichere_einstellungen, start_sshd, stop_sshd
-from units.funkzii2 import get_web_daten
-from units.logic import rechne_dazu
+from units.unit_alle.calculations import (
+    get_heute_werte,
+    get_jahres_werte,
+    get_monats_werte,
+)
+from units.unit_alle.configuration import (
+    load_tageswerte,
+    run_sshd,
+    speichere_einstellungen,
+    start_sshd,
+    stop_sshd,
+)
+from units.unit_alle.calculations import haus_verbrauch_get
+from units.unit_alle.power import rechne_dazu
 from units.state import AppState
 import logging
 import time
+
+
+def get_web_daten(app_state: AppState) -> dict:
+    return {
+        "dazu": app_state.dazu,
+        "haus_verbrauch": haus_verbrauch_get(app_state),
+        "stunden_bis_nacht": app_state.stunden_bis_nacht,
+        "brauche_watt": app_state.brauche_watt,
+        "pro_stunde": app_state.pro_stunde,
+        "akku_sanft_zeit": app_state.akku_sanft_zeit,
+        "dazu_intervall": app_state.dazu_intervall,
+        "dazu_sanft_soc": app_state.dazu_sanft_soc,
+        "sonnenaufgang": app_state.sonnenaufgang,
+        "sonnenuntergang": app_state.sonnenuntergang,
+        "tageslange": app_state.tageslange,
+        "startnacht": app_state.startnacht,
+        "endnacht": app_state.endnacht,
+        "nachtzeit": app_state.nachtzeit,
+        "dose_mode": app_state.dose_mode,
+        "dose_relay_state": app_state.dose_relay_state,
+        "dose_watt": app_state.dose_watt,
+        "solax_l_mittelwert": app_state.solax_l_mittelwert,
+        "ppv_mittelwert": app_state.ppv_mittelwert,
+        "temperature": app_state.temperature,
+    }
+
 
 @routes.route("/tageswerte")
 async def tageswerte():

@@ -2,10 +2,14 @@
 import asyncio
 from . import routes, _app_state
 from quart import current_app, flash, jsonify, redirect, render_template, request
-from units.funkzii import sende_vdazu_tasmota, speichere_einstellungen, speichere_zugang
-from units.funkzii2 import get_web_daten
-from units.growatt import GrowattSessionManager
-from units.logic import get_nachtzeten, rechne_dazu
+from units.unit_alle.configuration import (
+    speichere_einstellungen,
+    speichere_zugang,
+)
+from units.web.dashboard import get_web_daten
+from units.unit_battery import GrowattSessionManager
+from units.unit_alle.calculations import get_nachtzeten
+from units.unit_alle.power import rechne_dazu
 from units.state import AppState
 import time
 import logging
@@ -214,7 +218,7 @@ async def update_settings():
         else: 
             logger.info("HMS Limit  auf 0 AUS)")
         state.einstellungen["hms_bekommt_null"] = hms_bekommt_null
-        await sende_vdazu_tasmota(_app_state(), 0)
+        await state.strom.sende_tasmota(0)
 
     state.hms_bekommt_null =  state.einstellungen.get("hms_bekommt_null",False)
     
