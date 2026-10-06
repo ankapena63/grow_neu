@@ -167,6 +167,8 @@ async def wiederholte_takt(app_state: AppState) -> None:
         zeit_jetzt - app_state.last_activity
         < app_state.einstellungen.get("takt_benutzrer_activ", 50)
     )
+    app_state.benutzer_activ = benutzer_activ
+    
     if benutzer_activ != app_state.benutzer_activ:
         app_state.benutzer_activ = benutzer_activ
         app_state.takt_geaendert = True
@@ -205,10 +207,7 @@ async def wiederholte_takt(app_state: AppState) -> None:
         zeit_jetzt,
         app_state.takte["solax_l"],
     )
-    await app_state.hms.pruefe(
-        zeit_jetzt,
-        app_state.takte["hms"],
-    )
+    await app_state.hms.pruefe( zeit_jetzt)
     await app_state.strom.pruefe(
         zeit_jetzt,
         app_state.takte["strom"],
