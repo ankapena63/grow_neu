@@ -52,6 +52,17 @@ class GrowattSessionManager:
             takt = 300
         return takt
 
+    
+    async def pruefe(self, zeit: float) -> None:
+        app_state = self.app_state
+        takt=self.takt
+        if zeit - app_state.start_akku > takt or app_state.erste_abfrage:
+            logger.info("📡Akku✅ %s Sek", takt)
+            app_state.alle_daten["akku"] = await self.abfrage(
+                app_state.alle_daten.get("akku", {}),
+                takt
+            )
+
 
     async def run_with_lock(self, func, *args, cooldown=0, **kwargs):
       async with self.api_lock:
