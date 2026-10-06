@@ -220,7 +220,7 @@ class Strom:
         if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
             takt = 600
         if einst.get("aktuell_aktiv", False):
-            takt = 60
+            takt = self.app_state.takt_48
         return takt
 
     
