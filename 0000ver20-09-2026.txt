@@ -53,6 +53,7 @@ Tasmota kann 0 lifern
 und auf HMS Limit setzen
 
 Button aus An
+in  Klassen gemacht
 
 
 
