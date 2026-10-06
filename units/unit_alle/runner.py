@@ -15,9 +15,6 @@ logger = logging.getLogger(__name__)
 
 def stunden_bis_nacht_get(app_state: AppState) -> float:
     jetzt = datetime.now()
-    now = jetzt.strftime("%H:%M")
-    nacht = app_state.startnacht <= now or now <= app_state.endnacht
-    app_state.nachtzeit = nacht
     max_s = app_state.einstellungen.get("max_soc", 99)
     soc = app_state.soc
     app_state.brauche_watt = round(
@@ -25,8 +22,9 @@ def stunden_bis_nacht_get(app_state: AppState) -> float:
         2,
     )
     app_state.pro_stunde = app_state.brauche_watt
-    if nacht:
-        return 0
+    # 💡 Nutzt jetzt die im State berechnete Nachtzeit aus deiner Hauptschleife
+    if app_state.nachtzeit:
+        return 0.0
     heute = jetzt.strftime("%Y-%m-%d")
     start_zeit = datetime.strptime(
         f"{heute} {app_state.startnacht}",
@@ -41,11 +39,11 @@ def stunden_bis_nacht_get(app_state: AppState) -> float:
         )
     return stunden_bis_nacht
 
-async def pruefe_dose(
-    app_state: AppState,
-    zeit: float,
-    takt: int = 300,
-) -> None:
+
+async def pruefe_dose(app_state: AppState, zeit: float) -> None:
+    # 💡 Holt den Takt aus den Einstellungen oder nutzt 300 Sekunden als Fallback
+    takt = app_state.einstellungen.get("takt_dose", 300)
+    
     if zeit - app_state.last_dose_check > takt:
         try:
             await dose_tuya(app_state)
@@ -53,6 +51,7 @@ async def pruefe_dose(
             logger.exception("[Dose] Fehler")
         finally:
             app_state.last_dose_check = zeit
+
 
 async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
     soc = app_state.soc
@@ -153,19 +152,18 @@ def berechne_takte(
 
 async def wiederholte_takt(app_state: AppState) -> None:
     await reset_heute_werte(app_state)
+    jetzt = datetime.now()
+    now = jetzt.strftime("%H:%M")
     zeit_jetzt = time.monotonic()
     nullen = app_state.einstellungen.get("hms_bekommt_null", False)
 
     app_state.stunden_bis_nacht = stunden_bis_nacht_get(app_state)
-    benutzer_activ = (
+    app_state.nachtzeit = app_state.startnacht <= now or now <= app_state.endnacht
+    
+    app_state.benutzer_activ = (
         zeit_jetzt - app_state.last_activity
         < app_state.einstellungen.get("takt_benutzrer_activ", 50)
     )    
-    if benutzer_activ != app_state.benutzer_activ:
-        app_state.benutzer_activ = benutzer_activ
-    if app_state.nachtzeit != app_state.nachtzeit_alt:
-        app_state.nachtzeit_alt = app_state.nachtzeit
-
     pruefe_dazu_intervall(app_state, zeit_jetzt)
     await pruefe_48st(app_state, zeit_jetzt, 3600 * 2)
     await pruefe_dose(app_state, zeit_jetzt)
@@ -174,7 +172,146 @@ async def wiederholte_takt(app_state: AppState) -> None:
     await app_state.growatt.pruefe_akku(  zeit_jetzt)#,  app_state.takte["akku"])
     await app_state.hms.pruefe_limit(zeit_jetzt, nullen)
     await app_state.solax.pruefe_cloud(zeit_jetzt)
-    await app_state.solax.pruefe_local(zeit_jetz)
+    await app_state.solax.pruefe_local(zeit_jetzt)
     await app_state.hms.pruefe( zeit_jetzt)
     await app_state.strom.pruefe(zeit_jetzt)
     app_state.erste_abfrage = False
+
+
+
+
+
+
+#############################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
+    soc = app_state.soc
+    verbleibend = app_state.kochen_end - zeit
+    if (
+        soc < app_state.einstellungen.get("kochen_soc_min", 30)
+        or verbleibend <= 0
+    ):
+        app_state.kochen = False
+        app_state.kochen_zeit = 0.0
+        await rechne_dazu(app_state)
+        logger.info("KOCHEN AUS: SOC zu niedrig oder Zeit Abgelaufen")
+        return
+    if (
+        app_state.nachtzeit
+        and app_state.einstellungen.get("nacht_nur_0_schalter", False)
+    ):
+        logger.info("KOCHEN AUS: Nachts nur 0 ein")
+        app_state.kochen = False
+        app_state.kochen_zeit = 0.0
+        await rechne_dazu(app_state)
+    app_state.kochen_zeit = round(verbleibend / 60, 2)
+
+
+def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
+    verbleibend = round(
+        app_state.dazu_intervall_dauer * 60
+        - (zeit - app_state.dazu_intervall_start),
+        2,
+    )
+    if verbleibend <= 0:
+        app_state.dazu_intervall = 0.0
+        app_state.bool_dazu_intervall = False
+        app_state.akku_sanft_zeit = False
+    else:
+        app_state.dazu_intervall = round(verbleibend / 60, 2)
+
+
+async def pruefe_48st(app_state: AppState, zeit: float) -> None:
+    if not app_state.einstellungen.get("aktuell_aktiv", True):
+        return
+        
+    # 💡 Holt den Backup-Takt aus den Einstellungen (7200 Sek = 2 Std. als Fallback)
+    takt = app_state.einstellungen.get("takt_backup_csv", 3600 * 2)
+    
+    if zeit == 0 or zeit - app_state.aktuell_letztes_speichern >= takt:
+        try:
+            logger.info("💾 [Backup] Speichere stündliches Aktuell-Daten-Backup...")
+            await speichere_aktuell_csv(app_state)
+        except Exception:
+            logger.error("❌ Fehler beim Backup-CSV-Speichern")
+        finally:
+            if zeit != 0:
+                app_state.aktuell_letztes_speichern = zeit
+
+
+async def wiederholte_takt(app_state: AppState) -> None:
+    await reset_heute_werte(app_state)
+    jetzt = datetime.now()
+    now = jetzt.strftime("%H:%M")
+    zeit_jetzt = time.monotonic()
+    nullen = app_state.einstellungen.get("hms_bekommt_null", False)
+
+    app_state.nachtzeit = app_state.startnacht <= now or now <= app_state.endnacht
+    app_state.stunden_bis_nacht = stunden_bis_nacht_get(app_state)
+    
+    app_state.benutzer_activ = (
+        zeit_jetzt - app_state.last_activity
+        < app_state.einstellungen.get("takt_benutzrer_activ", 50)
+    )    
+    
+    # Aufrufe der Hilfsfunktionen (jetzt ohne manuelle Takt-Parameter)
+    pruefe_dazu_intervall(app_state, zeit_jetzt)
+    await pruefe_48st(app_state, zeit_jetzt)
+    await pruefe_dose(app_state, zeit_jetzt)
+    
+    if app_state.kochen:
+        await pruefe_kochen(app_state, zeit_jetzt)
+        
+    # Komponenten-Abfragen mit den neuen @properties
+    await app_state.growatt.pruefe_akku(zeit_jetzt)
+    await app_state.hms.pruefe_limit(zeit_jetzt, nullen)
+    await app_state.solax.pruefe_cloud(zeit_jetzt)
+    await app_state.solax.pruefe_local(zeit_jetzt)
+    await app_state.hms.pruefe(zeit_jetzt)
+    await app_state.strom.pruefe(zeit_jetzt)
+    
+    app_state.erste_abfrage = False
+
+
+
+
+@property
+def takt(self) -> int:
+    einst = self.app_state.einstellungen
+    if self.app_state.benutzer_activ:
+        return einst.get("takt_strom", 15)
+        
+    takt = einst.get("takt_akku_inactiv", 120)
+    if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
+        takt = 599
+    if einst.get("aktuell_aktiv", False):
+        takt = 60
+    if einst.get("hms_bekommt_null", False):
+        takt = min(120, takt)
+    return takt
+
+
+
+@property
+def takt(self) -> int:
+    einst = self.app_state.einstellungen
+    if self.app_state.benutzer_activ:
+        return einst.get("takt_akku", 61)
+        
+    takt = einst.get("takt_akku_inactiv", 120)
+    # Nachtmodus-Prüfung ohne erste_abfrage
+    if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
+        takt = 300
+    return takt
+
