@@ -41,9 +41,7 @@ def stunden_bis_nacht_get(app_state: AppState) -> float:
 
 
 async def pruefe_dose(app_state: AppState, zeit: float) -> None:
-    # 💡 Holt den Takt aus den Einstellungen oder nutzt 300 Sekunden als Fallback
     takt = app_state.einstellungen.get("takt_dose", 300)
-    
     if zeit - app_state.last_dose_check > takt:
         try:
             await dose_tuya(app_state)
@@ -51,6 +49,8 @@ async def pruefe_dose(app_state: AppState, zeit: float) -> None:
             logger.exception("[Dose] Fehler")
         finally:
             app_state.last_dose_check = zeit
+
+
 
 
 async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
@@ -191,45 +191,6 @@ async def wiederholte_takt(app_state: AppState) -> None:
 
 
 
-
-
-
-
-async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
-    soc = app_state.soc
-    verbleibend = app_state.kochen_end - zeit
-    if (
-        soc < app_state.einstellungen.get("kochen_soc_min", 30)
-        or verbleibend <= 0
-    ):
-        app_state.kochen = False
-        app_state.kochen_zeit = 0.0
-        await rechne_dazu(app_state)
-        logger.info("KOCHEN AUS: SOC zu niedrig oder Zeit Abgelaufen")
-        return
-    if (
-        app_state.nachtzeit
-        and app_state.einstellungen.get("nacht_nur_0_schalter", False)
-    ):
-        logger.info("KOCHEN AUS: Nachts nur 0 ein")
-        app_state.kochen = False
-        app_state.kochen_zeit = 0.0
-        await rechne_dazu(app_state)
-    app_state.kochen_zeit = round(verbleibend / 60, 2)
-
-
-def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
-    verbleibend = round(
-        app_state.dazu_intervall_dauer * 60
-        - (zeit - app_state.dazu_intervall_start),
-        2,
-    )
-    if verbleibend <= 0:
-        app_state.dazu_intervall = 0.0
-        app_state.bool_dazu_intervall = False
-        app_state.akku_sanft_zeit = False
-    else:
-        app_state.dazu_intervall = round(verbleibend / 60, 2)
 
 
 async def pruefe_48st(app_state: AppState, zeit: float) -> None:
