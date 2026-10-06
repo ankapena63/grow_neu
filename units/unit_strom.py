@@ -1,5 +1,3 @@
-"""HTTP clients for the smart meter and Tasmota controller."""
-
 import asyncio
 import logging
 import aiohttp
@@ -15,8 +13,6 @@ from units.unit_alle.history import speichere_aktuell_wert
 logger = logging.getLogger(__name__)
 
 class Strom:
-    """State-bound smart-meter client and polling service."""
-
     def __init__(self, app_state):
         self.app_state = app_state
 
