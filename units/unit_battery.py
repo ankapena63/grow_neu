@@ -42,28 +42,14 @@ class GrowattSessionManager:
 
     @property
     def takt(self) -> int:
-        einst = self.app_state.einstellungen
         if self.app_state.benutzer_activ:
-            return einst.get("takt_akku", 61)
-        
-        takt = einst.get("takt_akku_inactiv", 120)
+            return self.app_state.einstellungen.get("takt_akku", 61)       
+        takt = self.app_state.einstellungen.get("takt_akku_inactiv", 120)
     # Nachtmodus-Prüfung ohne erste_abfrage
         if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
             takt = 300
         return takt
-
-    
-    async def pruefe(self, zeit: float) -> None:
-        app_state = self.app_state
-        takt=self.takt
-        if zeit - app_state.start_akku > takt or app_state.erste_abfrage:
-            logger.info("📡Akku✅ %s Sek", takt)
-            app_state.alle_daten["akku"] = await self.abfrage(
-                app_state.alle_daten.get("akku", {}),
-                takt
-            )
-
-
+        
     async def run_with_lock(self, func, *args, cooldown=0, **kwargs):
       async with self.api_lock:
         now = time.monotonic()
@@ -410,28 +396,18 @@ class GrowattSessionManager:
         alt_daten["zeit_fehler"] = zeitstempel()
         return alt_daten
 
-    async def pruefe_akku(
-        self,
-        zeit: float,
-        takt: int = 60,
-    ) -> None:
-      solax_l_mittelwert_nutzen = self.app_state.einstellungen.get(
-        "solax_l_mittelwert_nutzen",
-        False,
-      )
+    async def pruefe_akku( self, zeit: float) -> None:
+
       if zeit - self.app_state.start_akku <= takt and not self.app_state.erste_abfrage:
         return
-
+      takt = self.takt
+      solax_l_mittelwert_nutzen = self.app_state.einstellungen.get( "solax_l_mittelwert_nutzen",False, )
       logger.info("🔋Akkus %s Sek", takt)
       self.app_state.alle_daten["akku"] = await self.akku_daten(
-        self.app_state.alle_daten.get("akku", {}),
-        takt,
-      )
+        self.app_state.alle_daten.get("akku", {}), takt)
       if solax_l_mittelwert_nutzen and not self.app_state.nachtzeit:
-        self.app_state.solax_local = (
-            await self.app_state.solax.abfrage_local(takt)
-        )
-      self.app_state.start_solax_l = zeit
+        self.app_state.solax_local = ( await self.app_state.solax.abfrage_local(takt))
+        self.app_state.start_solax_l = zeit
       self.app_state.start_akku = zeit
       await rechne_dazu(self.app_state)
     
