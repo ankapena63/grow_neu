@@ -17,11 +17,11 @@ class Hms:
     async def abfrage(
         self,
         alt_daten: dict,
-        takt: int,
         versuche: int = 3,
         basis_wartezeit: int = 2,
     ) -> dict:
         app_state = self.app_state
+        takt=self.takt
         url = (
             f"{app_state.zugang.get('ip_haupt')}"
             f"{app_state.zugang.get('ip_hms')}"
@@ -155,8 +155,7 @@ class Hms:
         if zeit - app_state.start_hms > takt or app_state.erste_abfrage:
             logger.info("📡 HMS✅ %s Sek", takt)
             app_state.alle_daten["hms"] = await self.abfrage(
-                app_state.alle_daten.get("hms", {}),
-                takt
+                app_state.alle_daten.get("hms", {})
             )
             app_state.start_hms = zeit
             if app_state.einstellungen.get("aktuell_aktiv", True):
