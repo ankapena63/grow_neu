@@ -177,34 +177,3 @@ async def wiederholte_takt(app_state: AppState) -> None:
     app_state.erste_abfrage = False
 
 
-
-
-@property
-def takt(self) -> int:
-    einst = self.app_state.einstellungen
-    if self.app_state.benutzer_activ:
-        return einst.get("takt_strom", 15)
-        
-    takt = einst.get("takt_akku_inactiv", 120)
-    if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
-        takt = 599
-    if einst.get("aktuell_aktiv", False):
-        takt = 60
-    if einst.get("hms_bekommt_null", False):
-        takt = min(120, takt)
-    return takt
-
-
-
-@property
-def takt(self) -> int:
-    einst = self.app_state.einstellungen
-    if self.app_state.benutzer_activ:
-        return einst.get("takt_akku", 61)
-        
-    takt = einst.get("takt_akku_inactiv", 120)
-    # Nachtmodus-Prüfung ohne erste_abfrage
-    if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
-        takt = 300
-    return takt
-
