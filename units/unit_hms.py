@@ -351,7 +351,7 @@ class Hms:
             takt = 600
         # 4. Sonderregelungen
         if einst.get("aktuell_aktiv", False):
-            takt = 60
+            takt = app_state.takt_48
         if einst.get("hms_bekommt_null", False):
             # Holt den aktuellen Takt von Strom (wird live ausgelesen/berechnet)
             # Falls Strom eine eigene Property hat, könnte hier stehen:self.app_state.strom_instanz.takt
