@@ -222,7 +222,7 @@ class Solax:
             return einst.get("takt_solax_l", 25)  
             
         if einst.get("aktuell_aktiv", False):
-             return 60
+             return app_state.takt_48
         # 2. Standard-Inaktiv-Takt
         takt = einst.get("takt_akku_inactiv", 120)
         # 3. Nacht-Modus
