@@ -396,7 +396,7 @@ class GrowattSessionManager:
         alt_daten["zeit_fehler"] = zeitstempel()
         return alt_daten
 
-    async def pruefe_akku( self, zeit: float) -> None:
+    async def pruefe( self, zeit: float) -> None:
 
       if zeit - self.app_state.start_akku <= takt and not self.app_state.erste_abfrage:
         return
