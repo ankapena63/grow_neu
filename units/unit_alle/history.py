@@ -193,7 +193,6 @@ def speichere_aktuell_wert(app_state, geraet, wert):
         else:
             # Normaler Sprung: Neuen Wert direkt anhängen
             daten.append((jetzt, wert))
-
     # 2. Bereinigung: Älter als 48 Stunden entfernen
     grenze_zeit = jetzt - (48 * 60 * 60)
     while daten:
@@ -205,17 +204,12 @@ def speichere_aktuell_wert(app_state, geraet, wert):
             break
 
 def schreibe_in_roh(app_state, key, daten):
-    """
-    Schreibt API-Daten sicher in den Zustand der App.
-    Fängt Strings, Listen und Fehler ab, damit .update() nicht abstürzt.
-    """
     # 1. Sicherstellen, dass der Key im State existiert und ein Dict ist
     if key not in app_state.roh or not isinstance(app_state.roh[key], dict):
         app_state.roh[key] = {}
     app_state.roh[key].clear()
     # 2. Prüfen, was für Daten reinkommen
     if isinstance(daten, dict):
-        # Perfekt, es ist ein Dictionary -> normal updaten
         app_state.roh[key].update(daten)
     else:
         # Fehler abfangen: Es ist ein String, eine Zahl oder Liste
