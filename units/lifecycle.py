@@ -54,11 +54,7 @@ def _load_configuration(app_state: AppState) -> None:
 
     _configure_logging(app_state)
     logger.info("Log-Level beim Start: %s", app_state.log_level)
-    logger.info(
-        "Daten 48h Speicherung: %s",
-        app_state.einstellungen.get("aktuell_aktiv"),
-    )
-
+    logger.info("Daten 48h Speicherung: %s",app_state.einstellungen.get("aktuell_aktiv"))
     try:
         app_state.zugang = lade_zugang(STANDARD_ZUGANG)
     except Exception:
@@ -82,7 +78,6 @@ async def _close_network_resources(app_state: AppState) -> bool:
     cleanup_succeeded = True
     if not await shutdown_dose(app_state):
         cleanup_succeeded = False
-
     growatt = getattr(app_state, "growatt", None)
     if growatt:
         try:
@@ -90,7 +85,6 @@ async def _close_network_resources(app_state: AppState) -> bool:
         except Exception:
             cleanup_succeeded = False
             logger.exception("Growatt schließen fehlgeschlagen.")
-
     for attr_name in dir(app_state):
         if "session" not in attr_name.lower():
             continue
@@ -114,14 +108,8 @@ def register_lifecycle(app: Quart) -> None:
         app_state = app.extensions["app_state"]
         try:
             _load_configuration(app_state)
-            if not (
-                os.environ.get("QUART_SECRET_KEY")
-                or os.environ.get("SECRET_KEY")
-            ):
-                logger.warning(
-                    "QUART_SECRET_KEY nicht gesetzt; "
-                    "verwende temporären Fallback-Wert."
-                )
+            if not ( os.environ.get("QUART_SECRET_KEY") or os.environ.get("SECRET_KEY")):
+                logger.warning( "QUART_SECRET_KEY nicht gesetzt -verwende temporären Fallback-Wert.")
             logger.info("Starte Hintergrund-Task (einmalig).")
             app_state.is_shutting_down = False
             app_state.session_push = aiohttp.ClientSession()
@@ -160,13 +148,10 @@ def register_lifecycle(app: Quart) -> None:
         except Exception:
             shutdown_succeeded = False
             logger.exception("Fehler beim Speichern der 48h-Daten.")
-
         logger.info("Schließe Netzwerk-Sessions...")
         if not await _close_network_resources(app_state):
             shutdown_succeeded = False
         if shutdown_succeeded:
             logger.info("Shutdown erfolgreich beendet.")
         else:
-            logger.error(
-                "Shutdown beendet, aber nicht alle Schritte waren erfolgreich."
-            )
+            logger.error("Shutdown beendet, aber nicht alle Schritte waren erfolgreich.")
