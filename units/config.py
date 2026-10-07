@@ -85,9 +85,7 @@ STANDARD_EINSTELLUNGEN = {
     "takt_benutzrer_activ": 8,  #sek "intervall_takt"*2
 
     "aktuell_aktiv": True, ## 48
-    "takt_48_datei": 3600*2, # oder in state??? 
-    "takt_48": 60, 
-    
+
     "takt_hms": 8,
     "takt_akku": 60,
     "takt_akku_inactiv": 120,  

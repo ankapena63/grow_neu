@@ -168,8 +168,9 @@ class Hms:
                     app_state.alle_daten["hms"].get("aktuell", 0)
                 )
 
-    async def pruefe_limit(self, zeit: float, nullen: bool) -> None:
+    async def pruefe_limit(self, zeit: float) -> None:
         app_state = self.app_state
+        nullen = app_state.einstellungen.get("hms_bekommt_null", False)
         if app_state.start_hms0 < 2:
             app_state.start_hms0 += 1
             logger.info(

@@ -100,7 +100,7 @@ async def wiederholte_takt(app_state: AppState) -> None:
     jetzt = datetime.now()
     now = jetzt.strftime("%H:%M")
     zeit_jetzt = time.monotonic()
-    nullen = app_state.einstellungen.get("hms_bekommt_null", False)
+    #nullen = app_state.einstellungen.get("hms_bekommt_null", False)
 
     app_state.nachtzeit = app_state.startnacht <= now or now <= app_state.endnacht
     app_state.stunden_bis_nacht = stunden_bis_nacht_get(app_state)
@@ -114,7 +114,7 @@ async def wiederholte_takt(app_state: AppState) -> None:
     if app_state.kochen:
         await pruefe_kochen(app_state, zeit_jetzt)
     await app_state.growatt.pruefe(zeit_jetzt)
-    await app_state.hms.pruefe_limit(zeit_jetzt, nullen)
+    await app_state.hms.pruefe_limit(zeit_jetzt)
     await app_state.solax.pruefe(zeit_jetzt)  #beide 
     await app_state.hms.pruefe(zeit_jetzt)
     await app_state.strom.pruefe(zeit_jetzt)
