@@ -19,7 +19,6 @@ from units.state import AppState
 import logging
 import time
 
-
 def get_web_daten(app_state: AppState) -> dict:
     return {
         "dazu": app_state.dazu,
@@ -43,7 +42,6 @@ def get_web_daten(app_state: AppState) -> dict:
         "ppv_mittelwert": app_state.ppv_mittelwert,
         "temperature": app_state.temperature,
     }
-
 
 @routes.route("/tageswerte")
 async def tageswerte():
