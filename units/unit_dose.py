@@ -1,19 +1,14 @@
-"""Tuya device access and automatic dose relay control."""
-
 import asyncio
 from datetime import datetime
 import logging
-
 import tinytuya
 from quart import Blueprint, current_app, request
-
 from units.unit_alle.configuration import speichere_einstellungen
 from units.unit_alle.calculations import status_aktualisieren, zeitstempel
 from units.unit_alle.history import schreibe_in_roh
 from units.state import AppState, DoseDevice
 
 logger = logging.getLogger(__name__)
-
 
 def _dose_device(app_state: AppState) -> DoseDevice:
     if app_state.dose_device is None:
@@ -61,20 +56,15 @@ async def dose_tuya(app_state: AppState) -> None:
         diff_sekunden = 9999
         if akku_zeit_str:
             try:
-                noah_dt = datetime.strptime(
-                    akku_zeit_str,
-                    "%Y-%m-%d %H:%M:%S",
-                )
+                noah_dt = datetime.strptime( akku_zeit_str, "%Y-%m-%d %H:%M:%S" )
                 diff_sekunden = (datetime.now() - noah_dt).total_seconds()
             except Exception:
                 logger.exception("❌Zeit-Fehler:")
         else:
             logger.warning("⚠️Keine zeit_Noah gefunden")
-
         if diff_sekunden == 9999:
             logger.info("⚠️ [Dose]- Not keine  Akku-Daten")
             return
-
         if diff_sekunden > 1200:
             if is_on:
                 logger.info(
@@ -83,10 +73,8 @@ async def dose_tuya(app_state: AppState) -> None:
                 )
                 await relay_off(app_state)
             return
-
         if app_state.dose_mode != "auto":
             return
-
         temp = app_state.temperature
         t_start = app_state.einstellungen.get("dose_t_start", 32)
         t_stop = app_state.einstellungen.get("dose_t_stop", 28)
@@ -193,7 +181,6 @@ async def set_temps():
         stop = int(data.get("stop", 28))
     except ValueError:
         return "Ungültige Werte", 400
-
     if not 20 <= start <= 45:
         return "Start muss zwischen 20 und 45°C liegen", 400
     if stop > start - 1:
