@@ -17,11 +17,11 @@ class Hms:
     async def abfrage(
         self,
         alt_daten: dict,
+        takt: int =15,
         versuche: int = 3,
-        basis_wartezeit: int = 2,
+        basis_wartezeit: int = 2
     ) -> dict:
         app_state = self.app_state
-        takt=self.takt
         url = (
             f"{app_state.zugang.get('ip_haupt')}"
             f"{app_state.zugang.get('ip_hms')}"
@@ -66,10 +66,8 @@ class Hms:
             except Exception:
                 logger.exception("[HMS] Unerwarteter Fehler:")
                 break
-
             if versuch < versuche - 1:
                 await asyncio.sleep(basis_wartezeit * (2 ** versuch))
-
         result = (alt_daten or {}).copy()
         result.update({
             "fehler": "HMS API nicht erreichbar",
@@ -142,12 +140,8 @@ class Hms:
         if einst.get("aktuell_aktiv", False):
             takt = self.app_state.takt_48
         if einst.get("hms_bekommt_null", False):
-            # Holt den aktuellen Takt von Strom (wird live ausgelesen/berechnet)
-            # Falls Strom eine eigene Property hat, könnte hier stehen:self.app_state.strom_instanz.takt
-            #takt_strom = 60 if einst.get("aktuell_aktiv", False) else einst.get("takt_akku_inactiv", 120)
             takt = min(120, takt)
         return takt
-
 
     async def pruefe(self, zeit: float) -> None:
         app_state = self.app_state
@@ -158,8 +152,7 @@ class Hms:
         
         if zeit - app_state.start_hms > takt or app_state.erste_abfrage:
             logger.info("📡 HMS✅ %s Sek", takt)
-            app_state.alle_daten["hms"] = await self.abfrage(
-                app_state.alle_daten.get("hms", {})
+            app_state.alle_daten["hms"] = await self.abfrage(app_state.alle_daten.get("hms", {},takt)
             )
             app_state.start_hms = zeit
             if app_state.einstellungen.get("aktuell_aktiv", True):
