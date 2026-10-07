@@ -114,9 +114,10 @@ async def wiederholte_takt(app_state: AppState) -> None:
     if app_state.kochen:
         await pruefe_kochen(app_state, zeit_jetzt)
     await app_state.growatt.pruefe(zeit_jetzt)
-    await app_state.hms.pruefe_limit(zeit_jetzt)
+
     await app_state.solax.pruefe(zeit_jetzt)  #beide 
     await app_state.hms.pruefe(zeit_jetzt)
+    #await app_state.hms.pruefe_limit(zeit_jetzt)   in hms
     await app_state.strom.pruefe(zeit_jetzt)
     
     app_state.erste_abfrage = False

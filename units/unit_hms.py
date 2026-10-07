@@ -152,9 +152,10 @@ class Hms:
     async def pruefe(self, zeit: float) -> None:
         app_state = self.app_state
         takt=self.takt
-
         status_aktualisieren(app_state, "hms", takt,False)
 
+        await app_state.hms.pruefe_limit(zeit) 
+        
         if zeit - app_state.start_hms > takt or app_state.erste_abfrage:
             logger.info("📡 HMS✅ %s Sek", takt)
             app_state.alle_daten["hms"] = await self.abfrage(
@@ -170,7 +171,8 @@ class Hms:
 
     async def pruefe_limit(self, zeit: float) -> None:
         app_state = self.app_state
-        nullen = app_state.einstellungen.get("hms_bekommt_null", False)
+        if not app_state.einstellungen.get("hms_bekommt_null", False):
+            return
         if app_state.start_hms0 < 2:
             app_state.start_hms0 += 1
             logger.info(
@@ -178,20 +180,19 @@ class Hms:
                 app_state.start_hms0
             )
             return
-        if nullen:
-            hms_limit_soll = int(
-                app_state.einstellungen.get("hms_limit_soll", 100)
+        hms_limit_soll = int(
+            app_state.einstellungen.get("hms_limit_soll", 100)
+        )
+        hms_limit_aktuell = (
+            app_state.alle_daten.get("hms", {}).get("limit", 0)
             )
-            hms_limit_aktuell = (
-                app_state.alle_daten.get("hms", {}).get("limit", 0)
-            )
-            if abs(hms_limit_aktuell - hms_limit_soll) > 10:
-                if await self.setze_limit(hms_limit_soll):
-                    logger.info(
-                        "HMS neues Limit: %s W (vorher %s W)",
-                        hms_limit_soll,
-                        hms_limit_aktuell
-                    )
+        if abs(hms_limit_aktuell - hms_limit_soll) > 10:
+            if await self.setze_limit(hms_limit_soll):
+                logger.info(
+                    "HMS neues Limit: %s W (vorher %s W)",
+                    hms_limit_soll,
+                    hms_limit_aktuell
+                )
 
     async def lese_config(self) -> dict:
         app_state = self.app_state
