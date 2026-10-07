@@ -1,4 +1,3 @@
-"""Explorer routes."""
 from . import routes
 from pathlib import Path
 from quart import redirect, render_template, request, send_file, url_for

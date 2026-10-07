@@ -209,7 +209,6 @@ class Strom:
         await self.sende_tasmota(0)
         logger.info("An Tasmota senden %s= %s", nullung, hms0)
 
-    
     @property
     def takt(self) -> int:
         einst = self.app_state.einstellungen

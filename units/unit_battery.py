@@ -39,7 +39,6 @@ class GrowattSessionManager:
         self.last_query = 0             # Zeitpunkt der letzten Abfrage
         self.cooldown = 30               # minimale Sekunden zwischen Abfragen
 
-
     @property
     def takt(self) -> int:
         if self.app_state.benutzer_activ:
@@ -380,10 +379,7 @@ class GrowattSessionManager:
         temp2 = status.get("battery2Temp", 0)
         if temp1 > 44 or temp2 > 44:
             max_temp = max(temp1, temp2)
-            message = (
-                f"⚠️ Akku zu heiß: {max_temp}°C! "
-                "Bitte für Kühlung/Schatten sorgen."
-            )
+            message = (f"⚠️ Akku zu heiß: {max_temp}°C! Bitte für Kühlung/Schatten sorgen.")
             await sende_push(self.app_state, message, 600, 5)
         status_akku = status.get("status", 1)
         if status_akku != 1:

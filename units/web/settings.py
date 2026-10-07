@@ -15,14 +15,12 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
-
 async def _stop_server_after_response(
     shutdown_event: asyncio.Event,
     delay: float = 0.5,
 ) -> None:
     await asyncio.sleep(delay)
     shutdown_event.set()
-
 
 @routes.post("/shutdown")
 async def shutdown_server():
@@ -36,7 +34,6 @@ async def shutdown_server():
         5,
     )
     return await render_template("shutdown.html"), 202
-
 
 @routes.route("/update_einstellung", methods=["POST"])
 async def update_einstellung():
