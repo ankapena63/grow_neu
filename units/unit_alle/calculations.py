@@ -40,9 +40,8 @@ def astro_werte(app_state):
 
 def get_heute_werte(daten,einst):
     werte = {}
-    werte["datum"] = date.today().strftime("%d.%m.%Y")  #date.today().isoformat()
- 
-    werte["tag_t"] = date.today().timetuple().tm_yday   #tag
+    werte["datum"] = date.today().strftime("%d.%m.%Y")  
+    werte["tag_t"] = date.today().timetuple().tm_yday  
     if "strom" in daten:
         if "Einspeise" in daten["strom"]:
             werte["einspeise_t"] = round(max(0, daten["strom"]["Einspeise"] - einst.get("einspeise_0", 0)),2)
@@ -62,46 +61,21 @@ def get_heute_werte(daten,einst):
 def get_monats_werte(daten, einst):
     werte = {}
     werte["monat"] = date.today().month
-    werte["einspeise"] = round(
-        max(0, daten.get("strom", {}).get("Einspeise", 0)
-            - einst.get("einspeise_monat_0", 0)), 2)
-    werte["gesamt"] = round(
-        max(0, daten.get("strom", {}).get("Gesamt", 0)
-            - einst.get("gesamt_monat_0", 0)), 2)
-    werte["hms"] = round(
-        max(0, daten.get("hms", {}).get("gesamt", 0)
-            - einst.get("hms_monat_0", 0)), 2)
-    werte["growatt"] = round(
-        max(0, daten.get("akku", {}).get("eacTotal", 0)
-            - einst.get("growatt_monat_0", 0)), 2)
-    werte["solax"] = round(
-        max(0, daten.get("solax", {}).get("gesamt", 0)
-            - einst.get("solax_monat_0", 0)), 2)
+    werte["einspeise"] = round(max(0, daten.get("strom",{}).get("Einspeise", 0) - einst.get("einspeise_monat_0", 0)), 2)
+    werte["gesamt"] = round(max(0, daten.get("strom", {}).get("Gesamt", 0) - einst.get("gesamt_monat_0", 0)), 2)
+    werte["hms"] = round( max(0, daten.get("hms", {}).get("gesamt", 0)- einst.get("hms_monat_0", 0)), 2)
+    werte["growatt"] = round( max(0, daten.get("akku", {}).get("eacTotal", 0) - einst.get("growatt_monat_0", 0)), 2)
+    werte["solax"] = round( max(0, daten.get("solax", {}).get("gesamt", 0) - einst.get("solax_monat_0", 0)), 2)
     return werte
 
 def get_jahres_werte(daten, einst):
     werte = {}
     werte["jahr"] = date.today().year
-    werte["einspeise"] = round(
-        max(0,
-            daten.get("strom", {}).get("Einspeise", 0)
-            - einst.get("einspeise_jahr_0", 0)),2)
-    werte["gesamt"] = round(
-        max( 0,
-            daten.get("strom", {}).get("Gesamt", 0)
-            - einst.get("gesamt_jahr_0", 0)),2)
-    werte["hms"] = round(
-        max(0,
-            daten.get("hms", {}).get("gesamt", 0)
-            - einst.get("hms_jahr_0", 0)),2)
-    werte["growatt"] = round(
-        max(0,
-            daten.get("akku", {}).get("eacTotal", 0)
-            - einst.get("growatt_jahr_0", 0)),2)
-    werte["solax"] = round(
-        max(0,
-            daten.get("solax", {}).get("gesamt", 0)
-            - einst.get("solax_jahr_0", 0)),2)
+    werte["einspeise"] = round( max(0, daten.get("strom", {}).get("Einspeise", 0) - einst.get("einspeise_jahr_0", 0)),2)
+    werte["gesamt"] = round(  max( 0, daten.get("strom", {}).get("Gesamt", 0)  - einst.get("gesamt_jahr_0", 0)),2)
+    werte["hms"] = round(max(0,  daten.get("hms", {}).get("gesamt", 0)  - einst.get("hms_jahr_0", 0)),2)
+    werte["growatt"] = round( max(0,  daten.get("akku", {}).get("eacTotal", 0)  - einst.get("growatt_jahr_0", 0)),2)
+    werte["solax"] = round(  max(0,  daten.get("solax", {}).get("gesamt", 0)  - einst.get("solax_jahr_0", 0)),2)
     return werte
 
 def status_aktualisieren(app_state, geraet, takt, zeit: bool = True):
@@ -154,23 +128,17 @@ def get_nachtzeten(app_state: AppState):
     try:
         sunrise_str = app_state.sonnenaufgang
         sunset_str = app_state.sonnenuntergang
-
         if sunrise_str and sunset_str:
             sunrise = datetime.strptime(sunrise_str, "%H:%M:%S")
             sunset = datetime.strptime(sunset_str, "%H:%M:%S")
-
             kor_aufgang = app_state.einstellungen.get("kor_aufgang", 0)
             kor_unter = app_state.einstellungen.get("kor_unter", 0)
-
             startnacht = sunset - timedelta(minutes=kor_unter)
             endnacht = sunrise + timedelta(minutes=kor_aufgang)
-
             app_state.startnacht = startnacht.strftime("%H:%M")
             app_state.endnacht = endnacht.strftime("%H:%M")
-
     except Exception:
         logger.exception("Nachtfenster konnte nicht berechnet werden")
-
 
 async def reset_heute_werte(app_state: AppState):
     letzter_reset = app_state.einstellungen.get("tag_0", 0)
@@ -180,12 +148,10 @@ async def reset_heute_werte(app_state: AppState):
     heute = date.today()
     aktueller_monat = heute.month
     aktuelles_jahr = heute.year
-
     strom_daten = app_state.alle_daten.get("strom", {})
     hms_daten = app_state.alle_daten.get("hms", {})
     akku_daten = app_state.alle_daten.get("akku", {})
     solax_daten = app_state.alle_daten.get("solax", {})
-
     einspeise = strom_daten.get("Einspeise", 0)
     gesamt = strom_daten.get("Gesamt", 0)
     hms = hms_daten.get("gesamt", 0)
