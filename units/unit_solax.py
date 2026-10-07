@@ -1,5 +1,4 @@
 """HTTP clients for Solax cloud and local APIs."""
-
 import asyncio
 import json
 import logging
@@ -17,8 +16,7 @@ from units.state import AppState
 logger = logging.getLogger(__name__)
 
 class Solax:
-    """State-bound Solax API client and polling service."""
-
+    
     def __init__(self, app_state: AppState):
         self.app_state = app_state
 
@@ -104,74 +102,33 @@ class Solax:
                     if response.status == 200:
                         data = text.split(",")
                         if len(data) < 17:
-                            logger.error(
-                                "[Solax Local] Daten unvollständig (Länge %s)",
-                                len(data),
-                            )
+                            logger.error("[Solax Local] Daten unvollständig (Länge %s)",len(data))
                             continue
-                        schreibe_in_roh(
-                            app_state,
-                            "solax_l",
-                            json.loads(text),
-                        )
+                        schreibe_in_roh( app_state,"solax_l",json.loads(text) )
                         logger.info("Solax L✅ %s Sek V:%s", takt, versuch + 1)
                         aktuell = int(data[5]) if len(data) > 5 else -1
                         app_state.solax_l_mittelwert = int(
-                            round(
-                                mittelwert_get(
-                                    aktuell,
-                                    app_state.solax_l_werte,
-                                ),
-                                0,
-                            )
-                        )
+                            round(mittelwert_get( aktuell, app_state.solax_l_werte,  ), 0, )
                         result = {
-                            "sn": (
-                                data[0][7:17]
-                                if len(data) > 0 and len(data[0]) >= 17
-                                else "?"
-                            ),
+                            "sn": ( data[0][7:17] if len(data) > 0 and len(data[0]) >= 17  else "?" ),
                             "aktuell": aktuell,
-                            "gesamt": (
-                                float(data[14]) / 10
-                                if len(data) > 14
-                                else -1
-                            ),
-                            "heute": (
-                                float(data[16]) / 10
-                                if len(data) > 16
-                                else -1
-                            ),
+                            "gesamt": (float(data[14]) / 10 if len(data) > 14  else -1),
+                            "heute": ( float(data[16]) / 10    if len(data) > 16  else -1),
                             "takt": takt,
                             "zeit_meine": zeitstempel(),
                         }
                         if app_state.einstellungen.get("aktuell_aktiv", True):
-                            speichere_aktuell_wert(
-                                app_state,
-                                "solax",
-                                aktuell,
-                            )
+                            speichere_aktuell_wert( app_state, "solax", aktuell, )
                         status_aktualisieren(app_state, "solax_l", takt)
                         app_state.solax_local = result
                         return result
-                    logger.error(
-                        "[Solax Local] HTTP %s bei Versuch %s",
-                        response.status,
-                        versuch + 1,
-                    )
+                    logger.error("[Solax Local] HTTP %s bei Versuch %s",response.status,versuch + 1,  )
             except (aiohttp.ClientError, asyncio.TimeoutError) as error:
-                logger.warning(
-                    "[Solax Local] Verbindungsfehler Versuch %s: %s",
-                    versuch + 1,
-                    error,
-                )
+                logger.warning("[Solax Local] Verbindungsfehler Versuch %s: %s",versuch + 1,error)
                 if versuch < versuche - 1:
                     await asyncio.sleep(basis_wartezeit * (2 ** versuch))
             except Exception:
-                logger.exception(
-                    "[Solax Local] Fehler Versuch %s",
-                    versuch + 1,
-                )
+                logger.exception("[Solax Local] Fehler Versuch %s", versuch + 1)
                 if versuch < versuche - 1:
                     await asyncio.sleep(basis_wartezeit * (2 ** versuch))
 
