@@ -1,16 +1,13 @@
 from __future__ import annotations
-
 from collections import deque
 import asyncio
 import time
 from typing import TYPE_CHECKING, Any, Protocol
-
 if TYPE_CHECKING:
     from units.unit_battery import GrowattSessionManager
     from units.unit_hms import Hms
     from units.unit_solax import Solax
     from units.unit_strom import Strom
-
 
 class DoseDevice(Protocol):
     def status(self) -> Any: ...
