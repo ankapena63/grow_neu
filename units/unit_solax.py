@@ -107,8 +107,7 @@ class Solax:
                         schreibe_in_roh( app_state,"solax_l",json.loads(text) )
                         logger.info("Solax L✅ %s Sek V:%s", takt, versuch + 1)
                         aktuell = int(data[5]) if len(data) > 5 else -1
-                        app_state.solax_l_mittelwert = int(
-                            round(mittelwert_get( aktuell, app_state.solax_l_werte,  ), 0, )
+                        app_state.solax_l_mittelwert = int( round(mittelwert_get( aktuell, app_state.solax_l_werte,  ), 0, ))
                         result = {
                             "sn": ( data[0][7:17] if len(data) > 0 and len(data[0]) >= 17  else "?" ),
                             "aktuell": aktuell,

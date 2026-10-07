@@ -152,8 +152,7 @@ class Hms:
         
         if zeit - app_state.start_hms > takt or app_state.erste_abfrage:
             logger.info("📡 HMS✅ %s Sek", takt)
-            app_state.alle_daten["hms"] = await self.abfrage(app_state.alle_daten.get("hms", {},takt)
-            )
+            app_state.alle_daten["hms"] = await self.abfrage(app_state.alle_daten.get("hms", {}),takt)
             app_state.start_hms = zeit
             if app_state.einstellungen.get("aktuell_aktiv", True):
                 speichere_aktuell_wert(
