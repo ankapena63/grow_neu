@@ -85,7 +85,6 @@ def status_aktualisieren(app_state, geraet, takt, zeit: bool = True):
         app_state.status_html[geraet]["zeit_meine"] = zeitstempel()
     app_state.status_html[geraet]["takt"] = takt
 
-
 def gereate_status(status_html):
     status ={}
     jetzt = time.time()
@@ -122,7 +121,6 @@ def haus_verbrauch_get (app_state):
     hms   = app_state.alle_daten.get("hms", {}).get("aktuell", 0) or 0
     strom = app_state.alle_daten.get("strom", {}).get("Actuel", 0) or 0
     return  round(solax + hms + strom)
-
 
 def get_nachtzeten(app_state: AppState):
     try:
@@ -208,5 +206,5 @@ async def reset_heute_werte(app_state: AppState):
     astro_werte(app_state)
     get_nachtzeten(app_state)
     await speichere_einstellungen(app_state, app_state.einstellungen)
-    logger.info("[neu start] Tagesstartwerte zurückgesetzt:")
+    logger.info("Start neuerTag. Tagesstartwerte zurückgesetzt:")
     rotate_logs()

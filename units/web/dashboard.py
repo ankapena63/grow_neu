@@ -14,7 +14,7 @@ from units.unit_alle.configuration import (
     stop_sshd,
 )
 from units.unit_alle.calculations import haus_verbrauch_get
-from units.unit_alle.power import rechne_dazu
+from units.unit_alle.runner import rechne_dazu
 from units.state import AppState
 import logging
 import time

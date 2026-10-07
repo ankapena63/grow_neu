@@ -22,8 +22,8 @@ STANDARD_ZUGANG= {
     "solax_l_url": "http://192.168.178.92",
 
     "ip_haupt": "http://192.168.178.",
-    "ip_smart": "123",  # Letztes Oktett der IP-Adresse den Smartmeter
-    "ip_tasmota": "42",  # Letztes Oktett der IP-Adresse den Smartmeter
+    "ip_smart": "123", 
+    "ip_tasmota": "42", 
     #"tasmota": "http://192.168.178.29/cm?cmnd=status%2010",
     "url_tasmota": "/cm?cmnd=status%2010",   
 
@@ -61,7 +61,7 @@ STANDARD_EINSTELLUNGEN = {
     "hms_0":    0,
     "growatt_0":    0,
     "solax_0":    0,
-    "tag_0": 0 , # date.today().timetuple().tm_yday,   #tag  
+    "tag_0": 0 , 
     "heute" :  datetime.now().strftime("%d.%m.%Y"),
     
 
@@ -96,7 +96,6 @@ STANDARD_EINSTELLUNGEN = {
     
     "dose_t_start": 31,
     "dose_t_stop" :26
-    
 }
 FELDREIHENFOLGE = [
     "datum",

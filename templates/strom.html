@@ -55,23 +55,16 @@
                 Solax <span id="statusSolaxL">⚪</span>L<br>
                 <span id="solax-actuel">--</span>
             </div>
+            <small id="dazu-wrapper">Dazu: <span id="dazu">--</span>W</small><br>            
             <small class="{% if einstellungen.akku_sanft %}ppv-highlight{% endif %}">
                 Sanft ab(min 30%)
             </small><br>
-
-            <small class="{% if web.akku_sanft_zeit %}ppv-highlight{% endif %}">
-                +Fest🕒
-            </small><br>
+            <small class="{% if web.akku_sanft_zeit %}ppv-highlight{% endif %}">+Fest🕒</small><br>
             <small class="{% if einstellungen.akku_entladen %}ppv-highlight{% endif %}">
                 Entladen ab:<span id="max_soc">??</span>%
             </small><br>
-            <small class="{% if einstellungen.akku_ppv %}ppv-highlight{% endif %}">
-                PPV
-            </small><br>
+            <small class="{% if einstellungen.akku_ppv %}ppv-highlight{% endif %}">PPV</small><br>
             <small>Mittelwert</small><br>
-            <small id="dazu-wrapper">
-                Dazu: <span id="dazu">--</span>W
-            </small><br>
         </div>
         <!-- STROM -->
         <div class="col">
@@ -79,22 +72,14 @@
                  onclick="zeigeGeraet('strom')">
                 ⚡Stand <span id="statusStrom">⚪</span><br>
                 <span id="strom-aktuell">--</span>
-            
-            
-        
             </div>
-<span id="dazu_sanft_soc">??</span>W<br>
+            <small>Schätzung:🏠<span id="mittel_verbrauch">--</span>W</small><br>
+            <span id="dazu_sanft_soc">??</span>W<br>
 
             <span id="dazu_sanft">??</span> W<br>
             <span id="max_limit">??</span> W<br>
             ab <span id="ppv_soc_ab"></span>%<br>
-            <small>
-                🔋🔆<span id="ppv_mittelwert">??</span>W
-            </small><br>
-
-            <small>
-                Schätzung:🏠<span id="mittel_verbrauch">--</span>W
-            </small><br>
+            <small>🔋🔆<span id="ppv_mittelwert">??</span>W</small><br>
         </div>
 
 
@@ -105,25 +90,18 @@
                 🔆HMS <span id="statusHms">⚪</span><br>
                 <span id="hms-aktuel">--</span>
             </div>
+            <small>ist:<span id="haus_verbrauch">--</span></small> <br>          
             <span id="stunden_bis_nacht">--</span>St.<br>
-            <span>
-                für: <span id="dazu_intervall">--</span> Min
-            </span><br>
-            <span>
-                bis: {{ einstellungen.max_soc -5 }}%
-            </span><br>
+            <span> für: <span id="dazu_intervall">--</span> Min</span><br>
+            <span>bis: {{ einstellungen.max_soc -5 }}%</span><br>
             und {{ einstellungen.max_soc -5 }}%<br>
-            <small>
-                Solax🔆<span id="solax_l_mittelwert">??</span>W
-            </small><br>
-            <small>
-                ist:<span id="haus_verbrauch">--</span>
-            </small>
+            <small>Solax🔆<span id="solax_l_mittelwert">??</span>W</small><br>
+
         </div>
     </div>
 </div>
     </div>
-</div>
+
 
 <!-- Gerät-Fenster -->
 <div class="modal fade" id="geraetModal" tabindex="-1" aria-hidden="true">

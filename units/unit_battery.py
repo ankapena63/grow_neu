@@ -12,7 +12,7 @@ from units.unit_alle.calculations import (
 )
 from units.unit_alle.history import schreibe_in_roh
 from units.unit_dose import dose_tuya
-from units.unit_alle.power import rechne_dazu, sende_push
+from units.unit_alle.runner import rechne_dazu, sende_push
 from units.state import AppState
 import logging
 

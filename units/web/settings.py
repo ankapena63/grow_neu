@@ -9,7 +9,7 @@ from units.unit_alle.configuration import (
 from units.web.dashboard import get_web_daten
 from units.unit_battery import GrowattSessionManager
 from units.unit_alle.calculations import get_nachtzeten
-from units.unit_alle.power import rechne_dazu
+from units.unit_alle.runner import rechne_dazu
 from units.state import AppState
 import time
 import logging
