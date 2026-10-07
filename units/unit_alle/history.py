@@ -1,4 +1,3 @@
-"""History services."""
 from ..config import DATA_DIR
 import csv
 from datetime import datetime, date
