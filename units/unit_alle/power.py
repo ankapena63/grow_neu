@@ -1,14 +1,10 @@
-"""Battery-aware power calculations and output control."""
-
 import logging
 import time
-
 from units.unit_alle.calculations import mittelwert_get
 from units.unit_alle.configuration import mache_session
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
-
 
 async def sende_dazu(app_state: AppState, wert):
     soc = app_state.soc
