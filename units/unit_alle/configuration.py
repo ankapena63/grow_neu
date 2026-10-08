@@ -26,9 +26,7 @@ async def mache_session(app_state, name, *, auth=None, headers=None, timeout=10)
     - headers: Default-Header für alle Requests
     - timeout: globaler Timeout für die Session
     """
-
     session = getattr(app_state, name, None)
-
     if session is None or session.closed:
         connector = aiohttp.TCPConnector(
            limit=20,
@@ -37,7 +35,6 @@ async def mache_session(app_state, name, *, auth=None, headers=None, timeout=10)
            ttl_dns_cache=300,
            enable_cleanup_closed=True
         )
-
         session = aiohttp.ClientSession(
             connector=connector,
             auth=auth,

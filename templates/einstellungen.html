@@ -78,10 +78,8 @@
       </div>
 
 
-
 <!-- Reihe: HMS Verbrauch auf 0 / Limit -->
 <div class="d-flex flex-wrap settings-row align-items-center">
-
     <div class="form-check me-2 mb-0">
         <input type="hidden" name="hms_bekommt_null" value="false">
         <input class="form-check-input"
@@ -94,7 +92,6 @@
             Tasmota 0 an HMS
         </label>
     </div>
-
     <div class="input-group input-group-sm mb-0 settings-hms-limit">
         <label class="visually-hidden" for="hms_limit_soll">HMS-Leistungsgrenze in Watt</label>
         <input type="number"
@@ -106,14 +103,9 @@
                value="{{ einstellungen.get('hms_limit_soll', 100) }}">
         <span class="input-group-text">W</span>
     </div>
-
 </div>
 
 
-
-
-      
-      
       <!-- Benachrichtigungen an aus -->
 <div class="d-flex justify-content-between align-items-center flex-wrap settings-row">       
 <div class="form-check mb-0">
@@ -130,8 +122,6 @@
 </div>
 </div>
 
-
-      
       <!-- Solax Mittelwert Option -->
 <div class="d-flex justify-content-between align-items-center flex-wrap settings-row">       
 <div class="form-check mb-0">
@@ -147,8 +137,6 @@
   </label>
 </div>
 </div>
-
-
 
       <!-- sanft laden -->
 <div class="d-flex justify-content-between align-items-center flex-wrap settings-row">       
@@ -181,13 +169,13 @@
             <div class="row gx-3">
               <div class="col-6">
                 <label for="dazu_sanft" class="form-label">Sanft Watt</label>
-                <input type="number" name="dazu_sanft" id="dazu_sanft" class="form-control" min="-800" max="800" step="1"
-                       value="{{ einstellungen.get('dazu_sanft', 0) }}">
+                <input type="number" name="dazu_sanft" id="dazu_sanft" class="form-control" min="-800" max="1600" step="1"
+                       value="{{ einstellungen.get('dazu_sanft', 100) }}">
               </div>
               <div class="col-6">
                 <label for="dazu_intervall" class="form-label">Zeitintervall (min)</label>
                 <input type="number" name="dazu_intervall" id="dazu_intervall" class="form-control" min="0" max="600" step="1"
-                       value="{{ einstellungen.get('dazu_intervall', 0) }}">
+                       value="{{ einstellungen.get('dazu_intervall', 120) }}">
               </div>
             </div>
           </div>
@@ -205,7 +193,7 @@
         <div class="input-group input-group-sm mb-0 settings-max-limit">
           <label class="visually-hidden" for="max_limit">Maximale Entladeleistung in Watt</label>
           <input type="number" name="max_limit" id="max_limit" class="form-control form-control-sm" min="26" max="1600"
-                 value="{{ einstellungen.get('max_limit', 800) }}">
+                 value="{{ einstellungen.get('max_limit', 1600) }}">
           <span class="input-group-text">W</span>
         </div>
 

@@ -1,0 +1,322 @@
+import asyncio
+from datetime import datetime
+import logging
+import tinytuya
+from quart import Blueprint, current_app, request
+from units.unit_alle.configuration import speichere_einstellungen
+from units.unit_alle.calculations import status_aktualisieren, zeitstempel
+from units.unit_alle.history import schreibe_in_roh
+from units.state import AppState, DoseDevice
+
+logger = logging.getLogger(__name__)
+
+class Dose:
+    def __init__(self, app_state: AppState, device: DoseDevice):
+        self.app_state = app_state
+        self.device = device
+        self.lock = asyncio.Lock()
+
+    async def async_tuya_status(self):
+        return await asyncio.to_thread(self.device.status)
+
+    async def async_tuya_on(self):
+        return await asyncio.to_thread(self.device.turn_on)
+
+    async def async_tuya_off(self):
+        return await asyncio.to_thread(self.device.turn_off)
+
+    async def dose_tuya_status(self):
+        try:
+            data = await self.async_tuya_status()
+            schreibe_in_roh(self.app_state, "dose", data)
+            if not data or "dps" not in data:
+                logger.error("Dose nicht erreichbar")
+                return None
+            is_on = data["dps"].get("1")
+            self.app_state.dose_watt = (float(data["dps"].get("22", 0)) / 10)
+            takt = self.app_state.einstellungen.get("takt_dose", 300)
+            self.app_state.alle_daten["dose"]["zeit_meine"] = (zeitstempel())
+            self.app_state.alle_daten["dose"]["takt_dose"] = takt
+            status_aktualisieren(self.app_state,"dose",takt)
+            return is_on
+
+        except Exception:
+            logger.exception("❌ Dose Fehler beim Status-Abruf:")
+            return None
+
+    async def dose_tuya(self) -> None:
+        if self.app_state.dose_laeuft:
+            return
+
+        self.app_state.dose_laeuft = True
+
+        try:
+            is_on = await self.dose_tuya_status()
+            self.app_state.dose_relay_state = is_on
+
+            if is_on is None:
+                return
+
+            akku_zeit_str = (
+                self.app_state.alle_daten
+                .get("akku", {})
+                .get("zeit_Noah")
+            )
+
+            diff_sekunden = 9999
+
+            if akku_zeit_str:
+                try:
+                    noah_dt = datetime.strptime(
+                        akku_zeit_str,
+                        "%Y-%m-%d %H:%M:%S"
+                    )
+                    diff_sekunden = (
+                        datetime.now() - noah_dt
+                    ).total_seconds()
+
+                except Exception:
+                    logger.exception("❌Zeit-Fehler:")
+            else:
+                logger.warning(
+                    "⚠️Keine zeit_Noah gefunden"
+                )
+
+            if diff_sekunden == 9999:
+                logger.info(
+                    "⚠️ Not keine Akku-Daten"
+                )
+                return
+
+            if diff_sekunden > 1200:
+                if is_on:
+                    logger.info(
+                        "⚠️ Not-Aus: Akku-Daten sind %s Sek. alt!",
+                        int(diff_sekunden),
+                    )
+                    await self.relay_off()
+                return
+
+            if self.app_state.dose_mode != "auto":
+                return
+
+            temp = self.app_state.temperature
+
+            t_start = self.app_state.einstellungen.get(
+                "dose_t_start", 32
+            )
+            t_stop = self.app_state.einstellungen.get(
+                "dose_t_stop", 28
+            )
+
+            if temp >= t_start and not is_on:
+                await self.relay_on()
+
+            elif temp <= t_stop and is_on:
+                await self.relay_off()
+
+        except Exception:
+            logger.exception("❌Dose Fehler:")
+
+        finally:
+            self.app_state.dose_laeuft = False
+
+    async def relay_on(self) -> None:
+        async with self.lock:
+            if self.app_state.dose_relay_state is True:
+                logger.info("Dose ist An")
+                return
+
+            try:
+                await self.async_tuya_on()
+
+                data = await self.async_tuya_status()
+
+                if data and "dps" in data:
+                    is_on = data["dps"].get("1")
+
+                    if is_on is True:
+                        logger.info("Dose An ✅")
+
+                        self.app_state.dose_watt = (
+                            float(data["dps"].get("22", 0)) / 10
+                        )
+
+                        self.app_state.dose_relay_state = True
+
+                    else:
+                        logger.error(
+                            "❌ Schaltvorgang fehlgeschlagen"
+                        )
+                        self.app_state.dose_relay_state = is_on
+
+                else:
+                    logger.error(
+                        "❌Keine Antwort – Dose offline"
+                    )
+                    self.app_state.dose_relay_state = None
+
+            except Exception:
+                logger.exception(
+                    "❌Fehler beim Einschalten:"
+                )
+                self.app_state.dose_relay_state = None
+
+    async def relay_off(self) -> None:
+        async with self.lock:
+            if self.app_state.dose_relay_state is False:
+                return
+
+            try:
+                await self.async_tuya_off()
+
+                data = await self.async_tuya_status()
+
+                if data and "dps" in data:
+                    is_on = data["dps"].get("1")
+
+                    self.app_state.dose_relay_state = is_on
+
+                    if is_on is False:
+                        logger.info(
+                            "✅Dose erfolgreich AUS"
+                        )
+                    else:
+                        logger.warning(
+                            "Dose ist noch AN – "
+                            "Schaltvorgang fehlgeschlagen"
+                        )
+
+                else:
+                    logger.error(
+                        "❌Keine Antwort – Dose offline"
+                    )
+                    self.app_state.dose_relay_state = None
+
+            except Exception:
+                logger.exception(
+                    "❌Fehler beim Ausschalten:"
+                )
+                self.app_state.dose_relay_state = None
+
+    async def shutdown_dose(self) -> bool:
+        try:
+            await self.relay_off()
+            logger.info(
+                "✅Not-Aus: Dose ausgeschaltet."
+            )
+            return True
+
+        except Exception:
+            logger.exception(
+                "❌Not-Aus: Dose konnte nicht ausgeschaltet werden."
+            )
+            return False
+
+
+def _dose(app_state: AppState) -> Dose:
+    if app_state.dose is None:
+        raise RuntimeError(
+            "Das Tuya-Dosengerät wurde nicht initialisiert."
+        )
+    return app_state.dose
+
+
+# ---------------------------------------------------------
+# Bestehende Funktionsnamen bleiben erhalten
+# ---------------------------------------------------------
+
+async def async_tuya_status(app_state: AppState):
+    return await _dose(app_state).async_tuya_status()
+
+
+async def async_tuya_on(app_state: AppState):
+    return await _dose(app_state).async_tuya_on()
+
+
+async def async_tuya_off(app_state: AppState):
+    return await _dose(app_state).async_tuya_off()
+
+
+async def dose_tuya_status(app_state: AppState):
+    return await _dose(app_state).dose_tuya_status()
+
+
+async def dose_tuya(app_state: AppState) -> None:
+    return await _dose(app_state).dose_tuya()
+
+
+async def relay_on(app_state: AppState) -> None:
+    return await _dose(app_state).relay_on()
+
+
+async def relay_off(app_state: AppState) -> None:
+    return await _dose(app_state).relay_off()
+
+
+async def shutdown_dose(app_state: AppState) -> bool:
+    return await _dose(app_state).shutdown_dose()
+
+
+def create_dose_device() -> DoseDevice:
+    device = tinytuya.OutletDevice(
+        "DEIN_DEVICE_ID",
+        "192.168.178.41",
+        "DEIN_LOCAL_KEY",
+    )
+    device.set_version(3.4)
+    device.set_socketTimeout(2)
+    device.set_socketRetryLimit(1)
+    return device
+
+def create_dose(app_state: AppState) -> Dose:
+    return Dose(app_state,create_dose_device())
+
+bp = Blueprint("dose",__name__,url_prefix="/dose")
+
+def _app_state() -> AppState:
+    return current_app.extensions["app_state"]
+
+
+@bp.route("/set_mode", methods=["POST"])
+async def set_mode():
+    data = await request.form
+    mode = data.get(
+        "mode",
+        "manual"
+    )
+    _app_state().dose_mode = mode
+    return "", 204
+
+
+@bp.route("/manual", methods=["POST"])
+async def manual():
+    app_state = _app_state()
+    form_data = await request.form
+    if form_data.get("action") == "on":
+        await relay_on(app_state)
+    else:
+        await relay_off(app_state)
+    return "", 204
+
+
+@bp.route("/set_temps", methods=["POST"])
+async def set_temps():
+    app_state = _app_state()
+    data = await request.form
+    try:
+        start = int(data.get("start", 32))
+        stop = int(data.get("stop", 28))
+    except ValueError:
+        return "Ungültige Werte", 400
+    if not 20 <= start <= 45:
+        return ("Start muss zwischen 20 und 45°C liegen", 400)
+    if stop > start - 1:
+        return ("Stop muss mindestens 1°C kleiner als Start sein",400)
+    if stop < 0:
+        return ("Stop darf nicht negativ sein",400)
+    app_state.einstellungen["dose_t_start"] = start
+    app_state.einstellungen["dose_t_stop"] = stop
+    await speichere_einstellungen(app_state,app_state.einstellungen)
+    await dose_tuya(app_state)
+    return "", 204
