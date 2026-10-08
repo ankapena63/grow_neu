@@ -135,7 +135,7 @@ class Hms:
         takt = einst.get("takt_akku_inactiv", 120)
         # 3. Nacht-Modus
         if self.app_state.nachtzeit :
-            takt = 600
+            takt = einst.get("takt_cloud_nacht", 600)
         # 4. Sonderregelungen
         if einst.get("aktuell_aktiv", False):
             takt = self.app_state.takt_48

@@ -236,7 +236,9 @@ async def update_settings():
     state.einstellungen["intervall_takt"] = int(form.get("intervall_takt", 4))
     state.einstellungen["takt_benutzrer_activ"] = int(form.get("intervall_takt", 4))+10
     state.einstellungen["takt_48"] = int(form.get("takt_48", 60))
-
+    state.einstellungen["takt_48_datei"] = int(form.get("takt_48_datei", 7200))
+    state.einstellungen["takt_dose"] = int(form.get("takt_dose", 300))
+    state.einstellungen["takt_cloud_nacht"] = int(form.get("takt_cloud_nacht", 600))
 
     # Zahleneingaben mit Fallbacks absichern
     try:

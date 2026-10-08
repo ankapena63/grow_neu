@@ -217,7 +217,7 @@ class Strom:
         
         takt = einst.get("takt_akku_inactiv", 120)
         if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
-            takt = 600
+            takt = einst.get("takt_cloud_nacht", 600)
         if einst.get("aktuell_aktiv", False):
             takt = self.app_state.takt_48
         return takt

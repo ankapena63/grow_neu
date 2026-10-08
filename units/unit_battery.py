@@ -44,9 +44,8 @@ class GrowattSessionManager:
         if self.app_state.benutzer_activ:
             return self.app_state.einstellungen.get("takt_akku", 61)       
         takt = self.app_state.einstellungen.get("takt_akku_inactiv", 120)
-    # Nachtmodus-Prüfung ohne erste_abfrage
         if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
-            takt = 300
+            takt = self.app_state.einstellungen.get("takt_akku_inactiv", 120)*3
         return takt
         
     async def run_with_lock(self, func, *args, cooldown=0, **kwargs):

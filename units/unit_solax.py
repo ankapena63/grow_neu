@@ -172,10 +172,11 @@ class Solax:
    
     @property
     def takt_cloud(self) -> int:
+        einst = self.app_state.einstellungen
         if self.app_state.benutzer_activ:
-            return 300
+            return einst.get("takt_solax_c",300)
         else:
-            return 600
+            return einst.get("takt_cloud_nacht",600)
             
     @property
     def takt_local(self) -> int:
@@ -186,6 +187,6 @@ class Solax:
              return self.app_state.takt_48
         takt = einst.get("takt_akku_inactiv", 120)
         if self.app_state.nachtzeit :
-            takt = 600*3
+            takt = einst.get("takt_cloud_nacht",600)*3
         return takt
 

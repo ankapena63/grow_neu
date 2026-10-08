@@ -31,6 +31,38 @@
                 </div>
             </div>
 
+
+                        <!-- Speichern Graf48 -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="takt_48_datei">Graf 48 in Datei</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="takt_48_datei"
+                           class="form-control"
+                           name="takt_48_datei"
+                           min="1800"
+                           max="10000"
+                           value="{{ einstellungen.get('takt_48_datei', 7200) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+                                   <!-- Dose Takt -->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="takt_dose">Dose (300)</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="takt_dose"
+                           class="form-control"
+                           name="takt_dose"
+                           min="10"
+                           max="3600"
+                           value="{{ einstellungen.get('takt_dose', 300) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div
+
+
             <!-- HMS -->
             <div class="col-6">
                 <label class="form-label mb-0 small" for="takt_hms">HMS</label>
@@ -95,11 +127,31 @@
                            id="takt_solax_c"
                            class="form-control"
                            name="takt_solax_c"
-                           min="1"
-                           value="{{ einstellungen.get('takt_solax_c', 25) }}">
+                           min="10"
+                           max="3600"
+                           value="{{ einstellungen.get('takt_solax_c', 300) }}">
                     <span class="input-group-text">Sek.</span>
                 </div>
             </div>
+                                    <!-- Solax Cloud  Nacht-->
+            <div class="col-6">
+                <label class="form-label mb-0 small" for="takt_cloud_nacht">Solax Cloud Nacht</label>
+                <div class="input-group input-group-sm">
+                    <input type="number"
+                           id="takt_cloud_nacht"
+                           class="form-control"
+                           name="takt_cloud_nacht"
+                           min="10"
+                           max="3600"
+                           value="{{ einstellungen.get('takt_cloud_nacht',600) }}">
+                    <span class="input-group-text">Sek.</span>
+                </div>
+            </div>
+
+
+
+
+
 
             <!-- Strom -->
             <div class="col-6">
@@ -129,9 +181,9 @@
                 </div>
             </div>
 
-            <!-- Sendeintervall an SML -->
+            <!-- Sendeintervall an Strom -->
             <div class="col-6">
-                <label class="form-label mb-0 small" for="dazu_senden">Senden an SML jede</label>
+                <label class="form-label mb-0 small" for="dazu_senden">Senden an Zähller</label>
                 <div class="input-group input-group-sm">
                     <input type="number"
                            id="dazu_senden"

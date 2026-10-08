@@ -37,7 +37,7 @@ STANDARD_ZUGANG= {
 STANDARD_EINSTELLUNGEN = {
     "server_sshd"    : False,
 
-    "kochen_soc_min" : 20,
+    "kochen_soc_min" : 40,
     "kochen_wert" : 1400,
 
     "solax_l_mittelwert_nutzen" : False,
@@ -45,12 +45,12 @@ STANDARD_EINSTELLUNGEN = {
     "akku_entladen": False,  # soll akku max_limit entladen
     "akku_sanft": False,           # laden so das bis tagessende voll oder zeitinterval                  
     "akku_ppv": False,            #vole ppv leisung -mittel_verbrauch ins haus dazu
-    "abfrage_tasmota": False,       # oder SML
-    "abfrage_growatt": False,    # oder IoBrockerSML
+    "abfrage_tasmota": True,       # oder SML
+    "abfrage_growatt": True,    # oder IoBrockerSML
     "hms_bekommt_null": False,    # für tasmota um verbrauch teuschen als 0
     "hms_limit_soll": 100,    # wenn hms_bekommt_null
 
-    "max_limit": 750,              # was zun entladen bei soc voll
+    "max_limit": 800,              # was zun entladen bei soc voll
     "dazu_senden": 120,            #   jede 120 sek senden set_vdazu
     "dazu_sanft": 100,             # wenn zu  noch nicht voll aber sonne max für bestumte zeit
     "max_soc": 99,
@@ -91,11 +91,12 @@ STANDARD_EINSTELLUNGEN = {
     "takt_akku_inactiv": 120,  
     "takt_solax_l": 9,
     "takt_solax_c": 300,
+    "takt_cloud_nacht":600,
     "takt_strom": 10,
     "takt_dose": 300,
     
-    "dose_t_start": 31,
-    "dose_t_stop" :26
+    "dose_t_start"    :31,
+    "dose_t_stop"     :26
 }
 FELDREIHENFOLGE = [
     "datum",
