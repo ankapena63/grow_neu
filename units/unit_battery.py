@@ -49,7 +49,7 @@ class GrowattSessionManager:
         return takt
 
     
-    def password_get(klar_pass: str) -> str:
+    def password_get(self, klar_pass: str) -> str:
         md5_hash = hashlib.md5(klar_pass.encode("utf-8")).hexdigest()
         chars = list(md5_hash)
         for i in range(0, len(chars), 2):
