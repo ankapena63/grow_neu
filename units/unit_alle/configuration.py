@@ -10,14 +10,6 @@ logger = logging.getLogger(__name__)
 INIT_FILE   = DATA_DIR / "init.json"
 INIT_ZUGANG = DATA_DIR / "init_zugang.json"
 
-def password_get(klar_pass: str) -> str:
-        md5_hash = hashlib.md5(klar_pass.encode("utf-8")).hexdigest()
-        chars = list(md5_hash)
-        for i in range(0, len(chars), 2):
-            if chars[i] == '0':
-                chars[i] = 'c'
-        return  "".join(chars)
-
 async def mache_session(app_state, name, *, auth=None, headers=None, timeout=10):
     """
     Universelle Session-Factory:
