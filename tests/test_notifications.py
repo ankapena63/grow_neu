@@ -2,7 +2,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
-from units.unit_alle.power import sende_ntfy, sende_push
+from units.runner import sende_ntfy, sende_push
 
 
 class FakeResponse:
@@ -66,14 +66,14 @@ class NotificationClientTests(unittest.IsolatedAsyncioTestCase):
 
         with (
             patch(
-                "units.unit_alle.power.mache_session",
+                "units.runner.mache_session",
                 new_callable=AsyncMock,
             ) as make_session,
             patch(
-                "units.unit_alle.power.sende_ntfy",
+                "units.runner.sende_ntfy",
                 new=notification_sender,
             ),
-            patch("units.unit_alle.power.time.time", return_value=1000),
+            patch("units.runner.time.time", return_value=1000),
         ):
             await sende_push(app_state, "Test", pause=600, prio=4)
             await sende_push(app_state, "Test", pause=600, prio=4)
