@@ -18,7 +18,7 @@ class AppState:
     # Der Zustand speichert das Gerät typsicher ab, ohne dass state.py echten Code importiert
     #dose_device: Optional[DoseDevice] = None # ist unten
     def __init__(self):
-        self.version = "20-09-2026"
+        self.version = "10-10-2026"
         self.save_lock = asyncio.Lock()
         self.alle_daten = {
             "akku": {},
