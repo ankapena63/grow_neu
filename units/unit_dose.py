@@ -6,7 +6,8 @@ from quart import Blueprint, current_app, request
 from units.unit_alle.configuration import speichere_einstellungen
 from units.unit_alle.calculations import status_aktualisieren, zeitstempel
 from units.unit_alle.history import schreibe_in_roh
-from units.state import AppState, DoseDevice
+from units.state import AppState#, DoseDevice
+from units.dose_class import DoseDevice
 
 logger = logging.getLogger(__name__)
 

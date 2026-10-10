@@ -2,27 +2,22 @@ from __future__ import annotations
 from collections import deque
 import asyncio
 import time
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING#, Any, Protocol, Optional
 if TYPE_CHECKING:
     from units.unit_battery import GrowattSessionManager
     from units.unit_hms import Hms
     from units.unit_solax import Solax
     from units.unit_strom import Strom
-
-class DoseDevice(Protocol):
-    def status(self) -> Any: ...
-    def turn_on(self) -> Any: ...
-    def turn_off(self) -> Any: ...
-    def set_version(self, version: float) -> Any: ...
-    def set_socketTimeout(self, timeout: float) -> Any: ...
-    def set_socketRetryLimit(self, limit: int) -> Any: ...
+    # Hier importieren wir das Protokoll NUR für den Typ-Prüfer:
+    from units.dose_class import DoseDevice , TuyaDoseManager
 
 class AppState:
     growatt: GrowattSessionManager
     hms: Hms
     solax: Solax
     strom: Strom
-
+    # Der Zustand speichert das Gerät typsicher ab, ohne dass state.py echten Code importiert
+    #dose_device: Optional[DoseDevice] = None # ist unten
     def __init__(self):
         self.version = "20-09-2026"
         self.save_lock = asyncio.Lock()
@@ -103,6 +98,7 @@ class AppState:
         self.dose_relay_state = False
         self.dose_watt = 0.0
         self.dose_device: DoseDevice | None = None
+        self._dose_manager: TuyaDoseManager | None = None
 
         self.is_shutting_down = False
         self.kochen = False

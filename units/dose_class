@@ -2,30 +2,38 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Protocol, TYPE_CHECKING
 import tinytuya
 from quart import Blueprint, current_app, request
-
 from units.unit_alle.configuration import speichere_einstellungen
 from units.unit_alle.calculations import status_aktualisieren, zeitstempel
 from units.unit_alle.history import schreibe_in_roh
-from units.state import AppState, DoseDevice
+
+if TYPE_CHECKING:
+    from units.state import AppState
 
 logger = logging.getLogger(__name__)
+
+# ─── DAS PROTOKOLL BLEIBT DIREKT HIER ───
+class DoseDevice(Protocol):
+    def status(self) -> Any: ...
+    def turn_on(self) -> Any: ...
+    def turn_off(self) -> Any: ...
+    def set_version(self, version: float) -> Any: ...
+    def set_socketTimeout(self, timeout: float) -> Any: ...
+    def set_socketRetryLimit(self, limit: int) -> Any: ...
 
 class TuyaDoseManager:
     """Manager zur Steuerung und Überwachung der Tuya-Steckdose."""
 
     def __init__(self, app_state: AppState) -> None:
         self.app_state = app_state
-        
-        # Erstellt das Tuya-Device in einem Schritt und legt es im app_state ab
-        if getattr(self.app_state, "dose_device", None) is None:
-            self.app_state.dose_device = self._create_dose_device()
+        #if self.app_state.dose_device is None:
+        #    self._device = self._create_dose_device()
 
     def _create_dose_device(self) -> DoseDevice:
-        """Interne Hilfsmethode zur Erstellung des tinytuya-Clients."""
-        device = tinytuya.OutletDevice(
+        """Erstellt den tinytuya-Client mit Protokoll-Typ."""
+        device: DoseDevice = tinytuya.OutletDevice(
             "bfe769408c34e0dd06iuai",
             "192.168.178.41",
             "+k?nQL;':Lei5F)g",
@@ -38,21 +46,43 @@ class TuyaDoseManager:
     @property
     def _device(self) -> DoseDevice:
         if self.app_state.dose_device is None:
-            raise RuntimeError("Das Tuya-Dosengerät wurde nicht initialisiert.")
+            logger.info("🔌 Dose nicht initialisiert. Reconnect...")
+            self.app_state.dose_device = self._create_dose_device()
         return self.app_state.dose_device
 
-    # --- Async-Wrapper für Threads ---
+    @_device.setter
+    def _device(self, new_device: Optional[DoseDevice]) -> None:
+        self.app_state.dose_device = new_device
+
+    def _handle_disconnect(self) -> None:
+        logger.warning("🚨 Tuya-Verbindung verloren! Reset für Reconnect...")
+        self._device = None
+
     async def _async_status(self) -> Any:
-        return await asyncio.to_thread(self._device.status)
+        try:
+            return await asyncio.to_thread(self._device.status)
+        except Exception as e:
+            logger.error("Fehler beim Status-Abruf: %s", e)
+            self._handle_disconnect()
+            return None
 
     async def _async_turn_on(self) -> Any:
-        return await asyncio.to_thread(self._device.turn_on)
+        try:
+            return await asyncio.to_thread(self._device.turn_on)
+        except Exception as e:
+            logger.error("Fehler beim Einschalten: %s", e)
+            self._handle_disconnect()
+            return None
 
     async def _async_turn_off(self) -> Any:
-        return await asyncio.to_thread(self._device.turn_off)
+        try:
+            return await asyncio.to_thread(self._device.turn_off)
+        except Exception as e:
+            logger.error("Fehler beim Ausschalten: %s", e)
+            self._handle_disconnect()
+            return None
 
-    # --- Logik-Methoden ---
-    async def pruefe_dose(self, zeit: float) -> None:
+    async def pruefe(self, zeit: float) -> None:
         """Prüft die Dose basierend auf dem definierten Takt-Intervall (wird draußen aufgerufen)."""
         takt = self.app_state.einstellungen.get("takt_dose", 300)
         
@@ -251,97 +281,7 @@ async def set_temps():
 
 
 
-# units/unit_dose.py
-from __future__ import annotations
-import asyncio
-from datetime import datetime
-import logging
-from typing import Any, Optional, Protocol, TYPE_CHECKING
-import tinytuya
-
-from units.unit_alle.configuration import speichere_einstellungen
-from units.unit_alle.calculations import status_aktualisieren, zeitstempel
-from units.unit_alle.history import schreibe_in_roh
-
-if TYPE_CHECKING:
-    from units.state import AppState
-
-logger = logging.getLogger(__name__)
-
-# ─── DAS PROTOKOLL BLEIBT DIREKT HIER ───
-class DoseDevice(Protocol):
-    def status(self) -> Any: ...
-    def turn_on(self) -> Any: ...
-    def turn_off(self) -> Any: ...
-    def set_version(self, version: float) -> Any: ...
-    def set_socketTimeout(self, timeout: float) -> Any: ...
-    def set_socketRetryLimit(self, limit: int) -> Any: ...
-
-
-# ─── DER MANAGER FÜR DIE STECKDOSE ───
-class TuyaDoseManager:
-    """Manager zur Steuerung und Überwachung der Tuya-Steckdose."""
-
-    def __init__(self, app_state: AppState) -> None:
-        self.app_state = app_state
-        if self.app_state.dose_device is None:
-            self._device = self._create_dose_device()
-
-    def _create_dose_device(self) -> DoseDevice:
-        """Erstellt den tinytuya-Client mit Protokoll-Typ."""
-        device: DoseDevice = tinytuya.OutletDevice(
-            "bfe769408c34e0dd06iuai",
-            "192.168.178.41",
-            "+k?nQL;':Lei5F)g",
-        )
-        device.set_version(3.4)
-        device.set_socketTimeout(2)
-        device.set_socketRetryLimit(1)
-        return device
-
-    @property
-    def _device(self) -> DoseDevice:
-        if self.app_state.dose_device is None:
-            logger.info("🔌 Dose nicht initialisiert. Reconnect...")
-            self.app_state.dose_device = self._create_dose_device()
-        return self.app_state.dose_device
-
-    @_device.setter
-    def _device(self, new_device: Optional[DoseDevice]) -> None:
-        self.app_state.dose_device = new_device
-
-    def _handle_disconnect(self) -> None:
-        logger.warning("🚨 Tuya-Verbindung verloren! Reset für Reconnect...")
-        self._device = None
-
-    async def _async_status(self) -> Any:
-        try:
-            return await asyncio.to_thread(self._device.status)
-        except Exception as e:
-            logger.error("Fehler beim Status-Abruf: %s", e)
-            self._handle_disconnect()
-            return None
-
-    async def _async_turn_on(self) -> Any:
-        try:
-            return await asyncio.to_thread(self._device.turn_on)
-        except Exception as e:
-            logger.error("Fehler beim Einschalten: %s", e)
-            self._handle_disconnect()
-            return None
-
-    async def _async_turn_off(self) -> Any:
-        try:
-            return await asyncio.to_thread(self._device.turn_off)
-        except Exception as e:
-            logger.error("Fehler beim Ausschalten: %s", e)
-            self._handle_disconnect()
-            return None
-
-    # (Hier folgen deine restlichen Logik-Methoden wie pruefe_dose, control_loop, etc.)
-
-
-
+'''
 # units/state.py
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional
@@ -374,13 +314,7 @@ class AppState:
 
 
 
-
-
-
-
-
-
-
+############################################
 import asyncio
 import time
 from quart import Quart, current_app
@@ -448,6 +382,6 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
 
 
-
+'''
 
 

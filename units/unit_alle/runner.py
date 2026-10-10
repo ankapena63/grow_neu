@@ -2,7 +2,7 @@
 from datetime import datetime
 import logging
 import time
-from units.unit_dose import dose_tuya
+#from units.unit_dose import dose_tuya
 from units.unit_alle.history import speichere_aktuell_csv
 from units.unit_alle.calculations import reset_heute_werte
 from units.unit_alle.calculations import mittelwert_get
@@ -187,7 +187,7 @@ def stunden_bis_nacht_get(app_state: AppState) -> float:
         )
     return stunden_bis_nacht
 
-async def pruefe_dose(app_state: AppState, zeit: float) -> None:
+async def pruefe_dose_alt(app_state: AppState, zeit: float) -> None:
     takt = app_state.einstellungen.get("takt_dose", 300)
     if zeit - app_state.last_dose_check > takt:
         try:
@@ -196,6 +196,14 @@ async def pruefe_dose(app_state: AppState, zeit: float) -> None:
             logger.exception("[Dose] Fehler")
         finally:
             app_state.last_dose_check = zeit
+
+
+async def pruefe_dose(app_state: AppState, zeit: float) -> None:
+    if app_state._dose_manager is None:
+        logger.warning("[Dose] Manager ist nicht initialisiert")
+        return
+    await app_state._dose_manager.pruefe(zeit)
+    
 
 async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
     soc = app_state.soc
