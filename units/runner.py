@@ -205,6 +205,7 @@ async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
         app_state.kochen = False
         app_state.kochen_zeit = 0.0
         await rechne_dazu(app_state)
+        return
     app_state.kochen_zeit = round(verbleibend / 60, 2)
 
 def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
