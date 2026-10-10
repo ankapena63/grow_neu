@@ -139,7 +139,10 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
         service = Hms(state)
         state.hms = service
         service.abfrage = AsyncMock(return_value={"aktuell": 80})
-        with patch("units.unit_hms.speichere_aktuell_wert") as save_value:
+        with (
+            patch("units.unit_hms.status_aktualisieren"),
+            patch("units.unit_hms.speichere_aktuell_wert") as save_value,
+        ):
             await service.pruefe(20)
 
         service.abfrage.assert_awaited_once_with(
@@ -166,7 +169,8 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
         state.hms = service
         service.abfrage = AsyncMock()
 
-        await service.pruefe(14)
+        with patch("units.unit_hms.status_aktualisieren"):
+            await service.pruefe(14)
 
         service.abfrage.assert_not_awaited()
 
