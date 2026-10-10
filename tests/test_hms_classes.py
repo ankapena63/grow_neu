@@ -127,14 +127,20 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
     async def test_service_polls_when_due_and_records_current_value(self):
         state = SimpleNamespace(
             start_hms=10,
+            start_hms0=10,
             erste_abfrage=False,
+            benutzer_activ=True,
+            nachtzeit=False,
+            takt_48=60,
             alle_daten={"hms": {"aktuell": 5}},
-            einstellungen={"aktuell_aktiv": True},
+            einstellungen={"aktuell_aktiv": True, "takt_hms": 5},
+            hms=None,
         )
         service = Hms(state)
+        state.hms = service
         service.abfrage = AsyncMock(return_value={"aktuell": 80})
         with patch("units.unit_hms.speichere_aktuell_wert") as save_value:
-            await service.pruefe(20, takt=5)
+            await service.pruefe(20)
 
         service.abfrage.assert_awaited_once_with(
             {"aktuell": 5},
@@ -147,30 +153,38 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
     async def test_service_skips_poll_when_not_due(self):
         state = SimpleNamespace(
             start_hms=10,
+            start_hms0=10,
             erste_abfrage=False,
+            benutzer_activ=True,
+            nachtzeit=False,
+            takt_48=60,
             alle_daten={"hms": {}},
-            einstellungen={},
+            einstellungen={"takt_hms": 5},
+            hms=None,
         )
         service = Hms(state)
+        state.hms = service
         service.abfrage = AsyncMock()
 
-        await service.pruefe(14, takt=5)
+        await service.pruefe(14)
 
         service.abfrage.assert_not_awaited()
 
     async def test_limit_service_preserves_startup_delay_and_threshold(self):
         state = SimpleNamespace(
             start_hms0=0,
-            einstellungen={"hms_limit_soll": 100},
+            hms=None,
+            einstellungen={"hms_limit_soll": 100, "hms_bekommt_null": True},
             alle_daten={"hms": {"limit": 0}},
         )
         service = Hms(state)
+        state.hms = service
         service.setze_limit = AsyncMock(return_value=True)
 
-        await service.pruefe_limit(10, nullen=True)
+        await service.pruefe_limit(10)
         self.assertEqual(state.start_hms0, 1)
         service.setze_limit.assert_not_awaited()
 
         state.start_hms0 = 2
-        await service.pruefe_limit(20, nullen=True)
+        await service.pruefe_limit(20)
         service.setze_limit.assert_awaited_once_with(100)
