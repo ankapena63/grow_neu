@@ -65,7 +65,10 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
         service = Strom(state)
         service.abfrage_tasmota = AsyncMock(return_value={"Actuel": 60})
         service.abfrage_smart = AsyncMock()
-        with patch("units.unit_strom.speichere_aktuell_wert") as save_value:
+        with (
+            patch("units.unit_strom.status_aktualisieren"),
+            patch("units.unit_strom.speichere_aktuell_wert") as save_value,
+        ):
             await service.pruefe(20)
 
         service.abfrage_tasmota.assert_awaited_once_with(
@@ -96,7 +99,8 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
         service.abfrage_tasmota = AsyncMock()
         service.abfrage_smart = AsyncMock(return_value={"Actuel": 40})
 
-        await service.pruefe(15)
+        with patch("units.unit_strom.status_aktualisieren"):
+            await service.pruefe(15)
 
         service.abfrage_smart.assert_awaited_once_with(
             {},
@@ -122,7 +126,8 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
         service.abfrage_tasmota = AsyncMock()
         service.abfrage_smart = AsyncMock()
 
-        await service.pruefe(15, takt=5)
+        with patch("units.unit_strom.status_aktualisieren"):
+            await service.pruefe(15)
 
         service.abfrage_tasmota.assert_not_awaited()
         service.abfrage_smart.assert_not_awaited()
