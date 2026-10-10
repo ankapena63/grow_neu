@@ -210,12 +210,22 @@ class TuyaDoseManager:
             self.app_state.dose_relay_state = None
 
     async def shutdown(self) -> bool:
-        """Not-Aus beim Herunterfahren der Applikation."""
+        """Schaltet die Dose beim Herunterfahren aus und prüft den bestätigten Zustand."""
         try:
             await self._async_turn_off()
-            logger.info("✅ Not-Aus: Dose ausgeschaltet.")
-            return True
+            data = await self._async_status()
+            if data and "dps" in data and data["dps"].get("1") is False:
+                self.app_state.dose_relay_state = False
+                logger.info("✅ Not-Aus: Dose ausgeschaltet und Status bestätigt.")
+                return True
+
+            self.app_state.dose_relay_state = (
+                data.get("dps", {}).get("1") if data and "dps" in data else None
+            )
+            logger.error("❌ Not-Aus: Ausschalten konnte nicht bestätigt werden.")
+            return False
         except Exception:
+            self.app_state.dose_relay_state = None
             logger.exception("❌ Not-Aus: Dose konnte nicht ausgeschaltet werden.")
             return False
 
