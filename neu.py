@@ -34,6 +34,7 @@ def create_app():
 
 app = create_app()
 
+
 async def run_server() -> None:
     shutdown_event = app.extensions["server_shutdown_event"]
     loop = asyncio.get_running_loop()
