@@ -21,7 +21,8 @@ class SolaxServiceTests(unittest.IsolatedAsyncioTestCase):
         service = Solax(state)
         service.abfrage_cloud = AsyncMock(return_value={"acpower": 40})
 
-        await service.pruefe_cloud(20)
+        with patch("units.unit_solax.status_aktualisieren"):
+            await service.pruefe_cloud(20)
 
         service.abfrage_cloud.assert_awaited_once_with(
             {"acpower": 12},
@@ -45,7 +46,8 @@ class SolaxServiceTests(unittest.IsolatedAsyncioTestCase):
         service = Solax(state)
         service.abfrage_cloud = AsyncMock()
 
-        await service.pruefe_cloud(14)
+        with patch("units.unit_solax.status_aktualisieren"):
+            await service.pruefe_cloud(14)
 
         service.abfrage_cloud.assert_not_awaited()
 
@@ -64,7 +66,8 @@ class SolaxServiceTests(unittest.IsolatedAsyncioTestCase):
         service = Solax(state)
         service.abfrage_local = AsyncMock()
 
-        await service.pruefe_local(20)
+        with patch("units.unit_solax.status_aktualisieren"):
+            await service.pruefe_local(20)
 
         service.abfrage_local.assert_not_awaited()
         self.assertEqual(state.start_solax_l, 10)
