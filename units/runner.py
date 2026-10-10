@@ -134,7 +134,6 @@ async def sende_ntfy(session, nachricht: str, prio: int) -> bool:
         if response.status == 200:
             logger.info("✅ Push Prio: %s gesendet", prio)
             return True
-
         error_text = await response.text()
         logger.error(
             "❌ ntfy Fehler %s : %s",
