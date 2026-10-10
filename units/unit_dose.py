@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# ─── DAS PROTOKOLL BLEIBT DIREKT HIER ───
 class DoseDevice(Protocol):
     def status(self) -> Any: ...
     def turn_on(self) -> Any: ...
@@ -24,7 +23,6 @@ class DoseDevice(Protocol):
     def set_socketRetryLimit(self, limit: int) -> Any: ...
 
 class TuyaDoseManager:
-    """Manager zur Steuerung und Überwachung der Tuya-Steckdose."""
 
     def __init__(self, app_state: AppState) -> None:
         self.app_state = app_state

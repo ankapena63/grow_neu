@@ -1,8 +1,6 @@
-"""Configuration services."""
 from .config import DATA_DIR
 import aiohttp
 import csv
-#import hashlib
 import json
 import subprocess
 import logging

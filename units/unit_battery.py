@@ -4,7 +4,6 @@ import asyncio
 import time
 import hashlib
 from units.configuration import (
-   # password_get,
     mache_session
 )
 from units.calculations import (
@@ -26,17 +25,13 @@ class GrowattSessionManager:
         self.password = self.password_get(password)
         self.device_sn = device_sn
         self.token = token
-
         self.session = None
         self.logged_in = False
-
         self.last_noah_data = {}    #tolen meine
         self.akku_login_daten = {}
         self.akku_status_daten = {}
-         
         self.api_lock = asyncio.Lock() # Verhindert parallele API-Abfragen
         self.login_lock = asyncio.Lock()
-
         self.last_query = 0             # Zeitpunkt der letzten Abfrage
         self.cooldown = 30               # minimale Sekunden zwischen Abfragen
 
@@ -49,7 +44,6 @@ class GrowattSessionManager:
             takt = self.app_state.einstellungen.get("takt_akku_inactiv", 120)*3
         return takt
 
-    
     def password_get(self, klar_pass: str) -> str:
         md5_hash = hashlib.md5(klar_pass.encode("utf-8")).hexdigest()
         chars = list(md5_hash)
