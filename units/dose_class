@@ -246,3 +246,208 @@ async def set_temps():
     await speichere_einstellungen(manager.app_state, manager.app_state.einstellungen)
     await manager.control_loop()
     return "", 204
+
+
+
+
+
+# units/unit_dose.py
+from __future__ import annotations
+import asyncio
+from datetime import datetime
+import logging
+from typing import Any, Optional, Protocol, TYPE_CHECKING
+import tinytuya
+
+from units.unit_alle.configuration import speichere_einstellungen
+from units.unit_alle.calculations import status_aktualisieren, zeitstempel
+from units.unit_alle.history import schreibe_in_roh
+
+if TYPE_CHECKING:
+    from units.state import AppState
+
+logger = logging.getLogger(__name__)
+
+# ─── DAS PROTOKOLL BLEIBT DIREKT HIER ───
+class DoseDevice(Protocol):
+    def status(self) -> Any: ...
+    def turn_on(self) -> Any: ...
+    def turn_off(self) -> Any: ...
+    def set_version(self, version: float) -> Any: ...
+    def set_socketTimeout(self, timeout: float) -> Any: ...
+    def set_socketRetryLimit(self, limit: int) -> Any: ...
+
+
+# ─── DER MANAGER FÜR DIE STECKDOSE ───
+class TuyaDoseManager:
+    """Manager zur Steuerung und Überwachung der Tuya-Steckdose."""
+
+    def __init__(self, app_state: AppState) -> None:
+        self.app_state = app_state
+        if self.app_state.dose_device is None:
+            self._device = self._create_dose_device()
+
+    def _create_dose_device(self) -> DoseDevice:
+        """Erstellt den tinytuya-Client mit Protokoll-Typ."""
+        device: DoseDevice = tinytuya.OutletDevice(
+            "bfe769408c34e0dd06iuai",
+            "192.168.178.41",
+            "+k?nQL;':Lei5F)g",
+        )
+        device.set_version(3.4)
+        device.set_socketTimeout(2)
+        device.set_socketRetryLimit(1)
+        return device
+
+    @property
+    def _device(self) -> DoseDevice:
+        if self.app_state.dose_device is None:
+            logger.info("🔌 Dose nicht initialisiert. Reconnect...")
+            self.app_state.dose_device = self._create_dose_device()
+        return self.app_state.dose_device
+
+    @_device.setter
+    def _device(self, new_device: Optional[DoseDevice]) -> None:
+        self.app_state.dose_device = new_device
+
+    def _handle_disconnect(self) -> None:
+        logger.warning("🚨 Tuya-Verbindung verloren! Reset für Reconnect...")
+        self._device = None
+
+    async def _async_status(self) -> Any:
+        try:
+            return await asyncio.to_thread(self._device.status)
+        except Exception as e:
+            logger.error("Fehler beim Status-Abruf: %s", e)
+            self._handle_disconnect()
+            return None
+
+    async def _async_turn_on(self) -> Any:
+        try:
+            return await asyncio.to_thread(self._device.turn_on)
+        except Exception as e:
+            logger.error("Fehler beim Einschalten: %s", e)
+            self._handle_disconnect()
+            return None
+
+    async def _async_turn_off(self) -> Any:
+        try:
+            return await asyncio.to_thread(self._device.turn_off)
+        except Exception as e:
+            logger.error("Fehler beim Ausschalten: %s", e)
+            self._handle_disconnect()
+            return None
+
+    # (Hier folgen deine restlichen Logik-Methoden wie pruefe_dose, control_loop, etc.)
+
+
+
+# units/state.py
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    from units.unit_battery import GrowattSessionManager
+    from units.unit_hms import Hms
+    from units.unit_solax import Solax
+    from units.unit_strom import Strom
+    # Hier importieren wir das Protokoll NUR für den Typ-Prüfer:
+    from units.unit_dose import DoseDevice 
+
+class AppState:
+    growatt: GrowattSessionManager
+    hms: Hms
+    solax: Solax
+    strom: Strom
+    
+    # Der Zustand speichert das Gerät typsicher ab, ohne dass state.py echten Code importiert
+    dose_device: Optional[DoseDevice] = None
+    
+    # Deine weiteren globalen Variablen
+    dose_laeuft: bool = False
+    dose_relay_state: Optional[bool] = None
+    dose_watt: float = 0.0
+    dose_mode: str = "auto"
+    temperature: float = 0.0
+    einstellungen: dict[str, Any] = {}
+    alle_daten: dict[str, Any] = {}
+
+
+
+
+
+
+
+
+
+
+import asyncio
+import time
+from quart import Quart, current_app
+from units.state import AppState
+from units.unit_dose import TuyaDoseManager
+
+app = Quart(__name__)
+
+# 1. Den AppState global oder als App-Attribut bereitstellen
+app_state = AppState()
+
+# Falls noch nicht geschehen, Standardwerte initialisieren
+app_state.einstellungen = {"takt_dose": 300, "dose_t_start": 32, "dose_t_stop": 28}
+app_state.alle_daten = {"dose": {}, "akku": {}}
+app_state.temperature = 25.0
+
+# 2. Den TuyaDoseManager instanziieren und an den AppState binden
+dose_manager = TuyaDoseManager(app_state)
+
+
+# 3. Eine Hintergrundaufgabe für die regelmäßige Prüfung erstellen
+async def dose_background_loop(state: AppState, manager: TuyaDoseManager) -> None:
+    """Endlosschleife, die periodisch pruefe_dose aufruft."""
+    print("🚀 Hintergrundschleife für Tuya-Dose gestartet.")
+    while True:
+        try:
+            jetzt = time.time()
+            # Ruft deine Logik-Methode auf
+            await manager.pruefe_dose(jetzt)
+        except Exception as e:
+            print(f"Fehler in der Dosen-Hintergrundschleife: {e}")
+        
+        # Kurze Pause, um die CPU nicht zu belasten (z. B. alle 5 Sekunden prüfen,
+        # ob der große Takt von 300 Sekunden abgelaufen ist)
+        await asyncio.sleep(5)
+
+
+# 4. Quart-Lifespan nutzen, um die Schleife sauber zu starten und zu stoppen
+@app.while_serving
+async def lifespan():
+    # Startet die Hintergrundaufgabe beim Booten der App
+    bg_task = asyncio.create_task(dose_background_loop(app_state, dose_manager))
+    
+    yield  # Hier läuft die Quart-App und nimmt HTTP-Requests an
+    
+    # Stoppt die Aufgabe sauber, wenn die App beendet wird
+    bg_task.cancel()
+    try:
+        await bg_task
+    except asyncio.CancelledError:
+        print("🛑 Hintergrundschleife für Tuya-Dose beendet.")
+
+# --- Beispiel-Route für manuelle Steuerung ---
+@app.route("/dose/on")
+async def dose_on():
+    await dose_manager.relay_on()
+    return {"status": "Einschaltbefehl gesendet", "state": app_state.dose_relay_state}
+
+@app.route("/dose/off")
+async def dose_off():
+    await dose_manager.relay_off()
+    return {"status": "Ausschaltbefehl gesendet", "state": app_state.dose_relay_state}
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+
+
+
+
+

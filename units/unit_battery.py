@@ -3,8 +3,8 @@ import aiohttp
 import asyncio
 import time
 from units.unit_alle.configuration import (
-    password_get,
-    mache_session,
+   # password_get,
+    mache_session
 )
 from units.unit_alle.calculations import (
     zeitstempel,
@@ -47,6 +47,15 @@ class GrowattSessionManager:
         if self.app_state.nachtzeit and not self.app_state.benutzer_activ:
             takt = self.app_state.einstellungen.get("takt_akku_inactiv", 120)*3
         return takt
+
+    
+    def password_get(self, klar_pass: str) -> str:
+        md5_hash = hashlib.md5(klar_pass.encode("utf-8")).hexdigest()
+        chars = list(md5_hash)
+        for i in range(0, len(chars), 2):
+            if chars[i] == '0':
+                chars[i] = 'c'
+        return  "".join(chars)
         
     async def run_with_lock(self, func, *args, cooldown=0, **kwargs):
       async with self.api_lock:
