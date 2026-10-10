@@ -5,9 +5,9 @@ import logging
 from typing import Any, Optional, Protocol, TYPE_CHECKING
 import tinytuya
 from quart import Blueprint, current_app, request
-from units.unit_alle.configuration import speichere_einstellungen
-from units.unit_alle.calculations import status_aktualisieren, zeitstempel
-from units.unit_alle.history import schreibe_in_roh
+from units.configuration import speichere_einstellungen
+from units.calculations import status_aktualisieren, zeitstempel
+from units.history import schreibe_in_roh
 
 if TYPE_CHECKING:
     from units.state import AppState
@@ -28,8 +28,6 @@ class TuyaDoseManager:
 
     def __init__(self, app_state: AppState) -> None:
         self.app_state = app_state
-        #if self.app_state.dose_device is None:
-        #    self._device = self._create_dose_device()
 
     def _create_dose_device(self) -> DoseDevice:
         """Erstellt den tinytuya-Client mit Protokoll-Typ."""
@@ -85,11 +83,9 @@ class TuyaDoseManager:
     async def pruefe(self, zeit: float) -> None:
         """Prüft die Dose basierend auf dem definierten Takt-Intervall (wird draußen aufgerufen)."""
         takt = self.app_state.einstellungen.get("takt_dose", 300)
-        
         # Sicherstellen, dass das Attribut auf dem AppState existiert
         if not hasattr(self.app_state, "last_dose_check"):
             self.app_state.last_dose_check = 0.0
-
         if zeit - self.app_state.last_dose_check > takt:
             try:
                 await self.control_loop()
@@ -156,7 +152,6 @@ class TuyaDoseManager:
 
             if self.app_state.dose_mode != "auto":
                 return
-
             # Temperatur-Automatik
             temp = self.app_state.temperature
             t_start = self.app_state.einstellungen.get("dose_t_start", 32)
@@ -276,112 +271,3 @@ async def set_temps():
     await speichere_einstellungen(manager.app_state, manager.app_state.einstellungen)
     await manager.control_loop()
     return "", 204
-
-
-
-
-
-'''
-# units/state.py
-from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Optional
-
-if TYPE_CHECKING:
-    from units.unit_battery import GrowattSessionManager
-    from units.unit_hms import Hms
-    from units.unit_solax import Solax
-    from units.unit_strom import Strom
-    # Hier importieren wir das Protokoll NUR für den Typ-Prüfer:
-    from units.unit_dose import DoseDevice 
-
-class AppState:
-    growatt: GrowattSessionManager
-    hms: Hms
-    solax: Solax
-    strom: Strom
-    
-    # Der Zustand speichert das Gerät typsicher ab, ohne dass state.py echten Code importiert
-    dose_device: Optional[DoseDevice] = None
-    
-    # Deine weiteren globalen Variablen
-    dose_laeuft: bool = False
-    dose_relay_state: Optional[bool] = None
-    dose_watt: float = 0.0
-    dose_mode: str = "auto"
-    temperature: float = 0.0
-    einstellungen: dict[str, Any] = {}
-    alle_daten: dict[str, Any] = {}
-
-
-
-############################################
-import asyncio
-import time
-from quart import Quart, current_app
-from units.state import AppState
-from units.unit_dose import TuyaDoseManager
-
-app = Quart(__name__)
-
-# 1. Den AppState global oder als App-Attribut bereitstellen
-app_state = AppState()
-
-# Falls noch nicht geschehen, Standardwerte initialisieren
-app_state.einstellungen = {"takt_dose": 300, "dose_t_start": 32, "dose_t_stop": 28}
-app_state.alle_daten = {"dose": {}, "akku": {}}
-app_state.temperature = 25.0
-
-# 2. Den TuyaDoseManager instanziieren und an den AppState binden
-dose_manager = TuyaDoseManager(app_state)
-
-
-# 3. Eine Hintergrundaufgabe für die regelmäßige Prüfung erstellen
-async def dose_background_loop(state: AppState, manager: TuyaDoseManager) -> None:
-    """Endlosschleife, die periodisch pruefe_dose aufruft."""
-    print("🚀 Hintergrundschleife für Tuya-Dose gestartet.")
-    while True:
-        try:
-            jetzt = time.time()
-            # Ruft deine Logik-Methode auf
-            await manager.pruefe_dose(jetzt)
-        except Exception as e:
-            print(f"Fehler in der Dosen-Hintergrundschleife: {e}")
-        
-        # Kurze Pause, um die CPU nicht zu belasten (z. B. alle 5 Sekunden prüfen,
-        # ob der große Takt von 300 Sekunden abgelaufen ist)
-        await asyncio.sleep(5)
-
-
-# 4. Quart-Lifespan nutzen, um die Schleife sauber zu starten und zu stoppen
-@app.while_serving
-async def lifespan():
-    # Startet die Hintergrundaufgabe beim Booten der App
-    bg_task = asyncio.create_task(dose_background_loop(app_state, dose_manager))
-    
-    yield  # Hier läuft die Quart-App und nimmt HTTP-Requests an
-    
-    # Stoppt die Aufgabe sauber, wenn die App beendet wird
-    bg_task.cancel()
-    try:
-        await bg_task
-    except asyncio.CancelledError:
-        print("🛑 Hintergrundschleife für Tuya-Dose beendet.")
-
-# --- Beispiel-Route für manuelle Steuerung ---
-@app.route("/dose/on")
-async def dose_on():
-    await dose_manager.relay_on()
-    return {"status": "Einschaltbefehl gesendet", "state": app_state.dose_relay_state}
-
-@app.route("/dose/off")
-async def dose_off():
-    await dose_manager.relay_off()
-    return {"status": "Ausschaltbefehl gesendet", "state": app_state.dose_relay_state}
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-
-
-'''
-
-

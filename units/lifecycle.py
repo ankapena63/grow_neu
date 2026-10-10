@@ -5,14 +5,13 @@ import time
 import aiohttp
 from quart import Quart
 from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
-from units.unit_dose import shutdown_dose
-from units.unit_alle.calculations import astro_werte, get_nachtzeten
-from units.unit_alle.configuration import (
+from units.calculations import astro_werte, get_nachtzeten
+from units.configuration import (
     lade_einstellungen,
     lade_zugang,
 )
-from units.unit_alle.history import lade_aktuell_csv
-from units.unit_alle.runner import pruefe_48st, wiederholte_takt
+from units.history import lade_aktuell_csv
+from units.runner import pruefe_48st, wiederholte_takt
 from units.unit_battery import GrowattSessionManager
 from units.logg import setup_logging
 from units.state import AppState
@@ -76,8 +75,10 @@ def _load_configuration(app_state: AppState) -> None:
 
 async def _close_network_resources(app_state: AppState) -> bool:
     cleanup_succeeded = True
-    if not await shutdown_dose(app_state):
-        cleanup_succeeded = False
+    manager = getattr(app_state, "_dose_manager", None)
+    if manager is not None:
+        if not await manager.shutdown():
+            logger.warning("Dose konnte beim Shutdown nicht sicher ausgeschaltet werden.")
     growatt = getattr(app_state, "growatt", None)
     if growatt:
         try:

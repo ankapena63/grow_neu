@@ -2,14 +2,14 @@
 from . import routes, _app_state
 from datetime import date, datetime
 from quart import jsonify, request
-from units.unit_alle.calculations import (
+from units.calculations import (
     gereate_status,
     get_heute_werte,
     get_jahres_werte,
     get_monats_werte,
 )
-from units.unit_alle.configuration import speichere_einstellungen
-from units.unit_alle.history import lese_tageswerte0
+from units.configuration import speichere_einstellungen
+from units.history import lese_tageswerte0
 from units.web.dashboard import get_web_daten
 from units.logg import log_buffer
 from units.state import AppState

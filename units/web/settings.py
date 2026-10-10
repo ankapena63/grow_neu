@@ -2,14 +2,14 @@
 import asyncio
 from . import routes, _app_state
 from quart import current_app, flash, jsonify, redirect, render_template, request
-from units.unit_alle.configuration import (
+from units.configuration import (
     speichere_einstellungen,
     speichere_zugang,
 )
 from units.web.dashboard import get_web_daten
 from units.unit_battery import GrowattSessionManager
-from units.unit_alle.calculations import get_nachtzeten
-from units.unit_alle.runner import rechne_dazu
+from units.calculations import get_nachtzeten
+from units.runner import rechne_dazu
 from units.state import AppState
 import time
 import logging

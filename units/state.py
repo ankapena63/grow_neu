@@ -8,8 +8,7 @@ if TYPE_CHECKING:
     from units.unit_hms import Hms
     from units.unit_solax import Solax
     from units.unit_strom import Strom
-    # Hier importieren wir das Protokoll NUR für den Typ-Prüfer:
-    from units.dose_class import DoseDevice , TuyaDoseManager
+    from units.unit_dose import DoseDevice , TuyaDoseManager
 
 class AppState:
     growatt: GrowattSessionManager

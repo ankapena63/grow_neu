@@ -1,14 +1,14 @@
 import asyncio
 import logging
 import aiohttp
-from units.unit_alle.calculations import (
+from units.calculations import (
     haus_verbrauch_get,
     status_aktualisieren,
     zeitstempel,
 )
-from units.unit_alle.configuration import mache_session
-from units.unit_alle.history import schreibe_in_roh
-from units.unit_alle.history import speichere_aktuell_wert
+from units.configuration import mache_session
+from units.history import schreibe_in_roh
+from units.history import speichere_aktuell_wert
 
 logger = logging.getLogger(__name__)
 

@@ -2,17 +2,18 @@ import json
 import aiohttp
 import asyncio
 import time
-from units.unit_alle.configuration import (
+import hashlib
+from units.configuration import (
    # password_get,
     mache_session
 )
-from units.unit_alle.calculations import (
+from units.calculations import (
     zeitstempel,
     status_aktualisieren,
 )
-from units.unit_alle.history import schreibe_in_roh
-from units.unit_dose import dose_tuya
-from units.unit_alle.runner import rechne_dazu, sende_push
+from units.history import schreibe_in_roh
+#from units.unit_dose import dose_tuya
+from units.runner import rechne_dazu, sende_push
 from units.state import AppState
 import logging
 
@@ -22,7 +23,7 @@ class GrowattSessionManager:
     def __init__(self, username, password, device_sn, token, *, app_state):
         self.app_state = app_state
         self.username = username
-        self.password = password_get(password)
+        self.password = self.password_get(password)
         self.device_sn = device_sn
         self.token = token
 
@@ -137,8 +138,14 @@ class GrowattSessionManager:
                 }
                 status_aktualisieren(self.app_state, "akku_token", takt)
                 self.last_noah_data = werte
-                if self.app_state.dose_mode == "auto" and not self.app_state.dose_laeuft:
-                    asyncio.create_task(dose_tuya(self.app_state))
+                if (self.app_state.dose_mode == "auto"
+                    and not self.app_state.dose_laeuft):
+                    manager = getattr(self.app_state, "_dose_manager", None)
+                    if manager is None:
+                        logger.warning("[Dose in Growatt] Manager ist nicht initialisiert")
+                    else:
+                        await manager.pruefe(time.monotonic())
+
                 return werte     
             else:
                logger.error("Fehler von Growatt: %s (Code: %s)",

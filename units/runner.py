@@ -2,11 +2,10 @@
 from datetime import datetime
 import logging
 import time
-#from units.unit_dose import dose_tuya
-from units.unit_alle.history import speichere_aktuell_csv
-from units.unit_alle.calculations import reset_heute_werte
-from units.unit_alle.calculations import mittelwert_get
-from units.unit_alle.configuration import mache_session
+from units.history import speichere_aktuell_csv
+from units.calculations import reset_heute_werte
+from units.calculations import mittelwert_get
+from units.configuration import mache_session
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -187,24 +186,6 @@ def stunden_bis_nacht_get(app_state: AppState) -> float:
         )
     return stunden_bis_nacht
 
-async def pruefe_dose_alt(app_state: AppState, zeit: float) -> None:
-    takt = app_state.einstellungen.get("takt_dose", 300)
-    if zeit - app_state.last_dose_check > takt:
-        try:
-            await dose_tuya(app_state)
-        except Exception:
-            logger.exception("[Dose] Fehler")
-        finally:
-            app_state.last_dose_check = zeit
-
-
-async def pruefe_dose(app_state: AppState, zeit: float) -> None:
-    if app_state._dose_manager is None:
-        logger.warning("[Dose] Manager ist nicht initialisiert")
-        return
-    await app_state._dose_manager.pruefe(zeit)
-    
-
 async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
     soc = app_state.soc
     verbleibend = app_state.kochen_end - zeit
@@ -269,14 +250,18 @@ async def wiederholte_takt(app_state: AppState) -> None:
     )    
     pruefe_dazu_intervall(app_state, zeit_jetzt)
     await pruefe_48st(app_state, zeit_jetzt)
-    await pruefe_dose(app_state, zeit_jetzt)
+
+    if app_state._dose_manager is None:
+        logger.warning("[Dose] Manager ist nicht initialisiert")
+    else:
+        await app_state._dose_manager.pruefe(zeit_jetzt)
+    
     if app_state.kochen:
         await pruefe_kochen(app_state, zeit_jetzt)
-    await app_state.growatt.pruefe(zeit_jetzt)
 
+    await app_state.growatt.pruefe(zeit_jetzt)
     await app_state.solax.pruefe(zeit_jetzt)  #beide 
     await app_state.hms.pruefe(zeit_jetzt)
-    #await app_state.hms.pruefe_limit(zeit_jetzt)   in hms
     await app_state.strom.pruefe(zeit_jetzt)
     
     app_state.erste_abfrage = False

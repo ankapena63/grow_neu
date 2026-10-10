@@ -4,13 +4,13 @@ import json
 import logging
 import aiohttp
 from aiohttp import ClientTimeout
-from units.unit_alle.calculations import (
+from units.calculations import (
     mittelwert_get,
     status_aktualisieren,
     zeitstempel,
 )
-from units.unit_alle.configuration import mache_session
-from units.unit_alle.history import schreibe_in_roh, speichere_aktuell_wert
+from units.configuration import mache_session
+from units.history import schreibe_in_roh, speichere_aktuell_wert
 from units.state import AppState
 
 logger = logging.getLogger(__name__)

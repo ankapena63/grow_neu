@@ -1,20 +1,20 @@
 """Dashboard routes."""
 from . import routes, _app_state
 from quart import redirect, render_template, request
-from units.unit_alle.calculations import (
+from units.calculations import (
     get_heute_werte,
     get_jahres_werte,
     get_monats_werte,
 )
-from units.unit_alle.configuration import (
+from units.configuration import (
     load_tageswerte,
     run_sshd,
     speichere_einstellungen,
     start_sshd,
     stop_sshd,
 )
-from units.unit_alle.calculations import haus_verbrauch_get
-from units.unit_alle.runner import rechne_dazu
+from units.calculations import haus_verbrauch_get
+from units.runner import rechne_dazu
 from units.state import AppState
 import logging
 import time

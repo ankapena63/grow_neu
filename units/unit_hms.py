@@ -2,10 +2,10 @@ import asyncio
 import json
 import logging
 import aiohttp
-from units.unit_alle.calculations import status_aktualisieren, zeitstempel
-from units.unit_alle.configuration import mache_session
-from units.unit_alle.history import schreibe_in_roh
-from units.unit_alle.history import speichere_aktuell_wert
+from units.calculations import status_aktualisieren, zeitstempel
+from units.configuration import mache_session
+from units.history import schreibe_in_roh
+from units.history import speichere_aktuell_wert
 from units.state import AppState
 
 logger = logging.getLogger(__name__)

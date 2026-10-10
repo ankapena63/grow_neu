@@ -1,8 +1,8 @@
 """Configuration services."""
-from ..config import DATA_DIR
+from .config import DATA_DIR
 import aiohttp
 import csv
-import hashlib
+#import hashlib
 import json
 import subprocess
 import logging
@@ -39,7 +39,7 @@ async def mache_session(app_state, name, *, auth=None, headers=None, timeout=10)
             )
         )
         setattr(app_state, name, session)
-        logger.info(f"[Session] Neue Session erstellt: {name}")
+        logger.info(f"Neue Session erstellt: {name}")
     return session
 
 def load_tageswerte(name="tageswerte0.csv"):

@@ -1,4 +1,4 @@
-from ..config import DATA_DIR
+from .config import DATA_DIR
 import csv
 from datetime import datetime, date
 from collections import deque

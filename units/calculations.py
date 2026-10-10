@@ -5,8 +5,8 @@ from datetime import datetime, date, timedelta
 from astral.sun import sun
 import time
 from units.config import FELDREIHENFOLGE
-from units.unit_alle.configuration import speichere_einstellungen
-from units.unit_alle.history import rotate_logs, speichere_tageswerte
+from units.configuration import speichere_einstellungen
+from units.history import rotate_logs, speichere_tageswerte
 from units.state import AppState
 
 logger = logging.getLogger(__name__)

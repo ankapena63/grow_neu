@@ -3,10 +3,11 @@ from datetime import datetime
 import logging
 import tinytuya
 from quart import Blueprint, current_app, request
-from units.unit_alle.configuration import speichere_einstellungen
-from units.unit_alle.calculations import status_aktualisieren, zeitstempel
-from units.unit_alle.history import schreibe_in_roh
-from units.state import AppState, DoseDevice
+from units.configuration import speichere_einstellungen
+from units.calculations import status_aktualisieren, zeitstempel
+from units.history import schreibe_in_roh
+from units.state import AppState#, DoseDevice
+from units.unit_dose import DoseDevice
 
 logger = logging.getLogger(__name__)
 
