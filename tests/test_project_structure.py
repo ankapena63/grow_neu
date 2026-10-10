@@ -39,9 +39,8 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertIsNot(first_state.solax, second_state.solax)
 
     def test_app_state_owns_one_hms_device(self):
-        with patch("neu.create_dose_device", return_value=object()):
-            first_app = neu.create_app()
-            second_app = neu.create_app()
+        first_app = neu.create_app()
+        second_app = neu.create_app()
 
         first_state = first_app.extensions["app_state"]
         second_state = second_app.extensions["app_state"]
@@ -50,9 +49,8 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertIsNot(first_state.hms, second_state.hms)
 
     def test_app_state_owns_one_strom_device(self):
-        with patch("neu.create_dose_device", return_value=object()):
-            first_app = neu.create_app()
-            second_app = neu.create_app()
+        first_app = neu.create_app()
+        second_app = neu.create_app()
 
         first_state = first_app.extensions["app_state"]
         second_state = second_app.extensions["app_state"]
