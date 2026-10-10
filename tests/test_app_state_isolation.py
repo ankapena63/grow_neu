@@ -61,6 +61,7 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
 
         state_one = app_one.extensions["app_state"]
         state_two = app_two.extensions["app_state"]
+        self.assertIsNot(state_one._dose_manager, state_two._dose_manager)
         device_one = FakeDoseDevice()
         device_two = FakeDoseDevice()
         state_one.dose_device = device_one
