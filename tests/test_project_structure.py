@@ -29,9 +29,8 @@ class ProjectStructureTests(unittest.TestCase):
                 self.assertEqual(STANDARD_ZUGANG[field], "")
 
     def test_app_state_owns_one_solax_device(self):
-        with patch("neu.create_dose_device", return_value=object()):
-            first_app = neu.create_app()
-            second_app = neu.create_app()
+        first_app = neu.create_app()
+        second_app = neu.create_app()
 
         first_state = first_app.extensions["app_state"]
         second_state = second_app.extensions["app_state"]
@@ -108,8 +107,7 @@ class ProjectStructureTests(unittest.TestCase):
             "dose.set_mode": ("/dose/set_mode", {"POST"}),
             "dose.set_temps": ("/dose/set_temps", {"POST"}),
         }
-        with patch("neu.create_dose_device", return_value=object()):
-            app = neu.create_app()
+        app = neu.create_app()
 
         self.assertEqual(
             [hook.__name__ for hook in app.before_serving_funcs],
@@ -206,8 +204,7 @@ class DashboardAssetsTests(unittest.IsolatedAsyncioTestCase):
     async def test_dashboard_renders_with_external_assets(self):
         from units.web import dashboard as dashboard_routes
 
-        with patch("neu.create_dose_device", return_value=object()):
-            app = neu.create_app()
+        app = neu.create_app()
 
         state = app.extensions["app_state"]
         state.alle_daten["akku"] = {"soc": 0}
