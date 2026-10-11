@@ -6,7 +6,7 @@ from astral.sun import sun
 import time
 from units.config import FELDREIHENFOLGE
 from units.configuration import speichere_einstellungen
-from units.history import rotate_logs, speichere_tageswerte
+from units.history import TageshistorieManager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -259,7 +259,7 @@ class TageswerteManager:
             "growatt_0": akku,
             "solax_0": solax,
         }
-        await speichere_tageswerte(
+        await TageshistorieManager.speichere_tageswerte(
             werte_neu,
             dateiname="tageswerte0.csv",
             feldreihenfolge=FELDREIHENFOLGE,
@@ -293,7 +293,7 @@ class TageswerteManager:
         SonnenManager.get_nachtzeten(app_state)
         await speichere_einstellungen(app_state, app_state.einstellungen)
         logger.info("Start neuerTag. Tagesstartwerte zurückgesetzt:")
-        rotate_logs()
+        TageshistorieManager.rotate_logs()
 
 
 def get_tageswerte_manager(app_state: AppState) -> TageswerteManager:
