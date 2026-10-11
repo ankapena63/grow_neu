@@ -17,15 +17,16 @@ class ZeitManager:
             app_state.startnacht <= now
             or now <= app_state.endnacht
         )
-        app_state.stunden_bis_nacht = self.stunden_bis_nacht_get()
+        app_state.stunden_bis_nacht = self.stunden_bis_nacht_get(jetzt)
         app_state.benutzer_activ = (
             zeit_monotonic - app_state.last_activity
             < app_state.einstellungen.get("takt_benutzrer_activ", 10)
         )
 
-    def stunden_bis_nacht_get(self) -> float:
+    def stunden_bis_nacht_get(self, jetzt: datetime | None = None) -> float:
         app_state = self.app_state
-        jetzt = datetime.now()
+        if jetzt is None:
+            jetzt = datetime.now()
         max_s = app_state.einstellungen.get("max_soc", 99)
         soc = app_state.soc
         app_state.brauche_watt = round((max_s - soc) * app_state.einstellungen.get("watt_max", 4000) / 100, 2)
