@@ -6,7 +6,7 @@ from units.configuration import (
     speichere_einstellungen,
     speichere_zugang,
 )
-from units.web.dashboard import get_web_daten
+from units.web.web_data import web_data_manager
 from units.unit_battery import GrowattSessionManager
 from units.calculations import get_nachtzeten
 from units.runner import rechne_dazu
@@ -178,7 +178,7 @@ class SettingsManager:
         return await render_template("einstellungen.html", 
                                      einstellungen=state.einstellungen, 
                                      daten=state.alle_daten,
-                                     web=get_web_daten(_app_state())
+                                     web=web_data_manager.get_web_daten(_app_state())
         )
 
     async def update_settings(self,):
