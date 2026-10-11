@@ -208,3 +208,18 @@ async def reset_heute_werte(app_state: AppState):
     await speichere_einstellungen(app_state, app_state.einstellungen)
     logger.info("Start neuerTag. Tagesstartwerte zurückgesetzt:")
     rotate_logs()
+
+
+
+class TageswerteManager:
+    """Kapselt den Tageswechsel für einen AppState.
+
+    Die bestehende Funktion reset_heute_werte bleibt als kompatible Schnittstelle
+    für andere Module und Tests erhalten.
+    """
+
+    def __init__(self, app_state: AppState):
+        self.app_state = app_state
+
+    async def reset_heute_werte(self) -> None:
+        await reset_heute_werte(self.app_state)
