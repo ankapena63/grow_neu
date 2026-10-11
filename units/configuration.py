@@ -132,25 +132,46 @@ def lade_zugang(alte_einstellungen):
         "Alte Einstellungen bleiben erhalten.", INIT_ZUGANG)
     return alte_einstellungen
 
+class SshManager:
+    """Kapselt das Starten, Stoppen und Prüfen des SSH-Servers."""
+
+    @staticmethod
+    def start(app_state):
+        try:
+            subprocess.run(["termux-wake-lock"])
+            subprocess.Popen(["sshd"])
+        except FileNotFoundError:
+            logger.error("SSHD kann unter Windows nicht gestartet werden.")
+        app_state.einstellungen["server_sshd"] = True
+
+    @staticmethod
+    def stop(app_state):
+        try:
+            subprocess.run(["pkill", "sshd"])
+        except FileNotFoundError:
+            logger.error("SSHD kann unter Windows nicht gestoppt werden.")
+        app_state.einstellungen["server_sshd"] = False
+
+    @staticmethod
+    def laeuft(app_state):
+        try:
+            result = subprocess.run(["pgrep", "sshd"], stdout=subprocess.PIPE)
+            return result.returncode == 0
+        except FileNotFoundError:
+            # Windows oder kein pgrep vorhanden
+            return app_state.einstellungen.get("server_sshd", False)
+
+
 def start_sshd(app_state):
-    try:
-        subprocess.run(["termux-wake-lock"])
-        subprocess.Popen(["sshd"])
-    except FileNotFoundError:
-        logger.error("SSHD kann unter Windows nicht gestartet werden.")
-    app_state.einstellungen["server_sshd"] = True
+    """Kompatibilität für bestehende Aufrufer."""
+    return SshManager.start(app_state)
+
 
 def stop_sshd(app_state):
-    try:
-        subprocess.run(["pkill", "sshd"])
-    except FileNotFoundError:
-        logger.error("SSHD kann unter Windows nicht gestoppt werden.")
-    app_state.einstellungen["server_sshd"] = False
+    """Kompatibilität für bestehende Aufrufer."""
+    return SshManager.stop(app_state)
+
 
 def run_sshd(app_state):
-    try:
-        result = subprocess.run(["pgrep", "sshd"], stdout=subprocess.PIPE)
-        return result.returncode == 0
-    except FileNotFoundError:
-        # Windows oder kein pgrep vorhanden
-        return app_state.einstellungen.get("server_sshd", False)
+    """Kompatibilität für bestehende Aufrufer."""
+    return SshManager.laeuft(app_state)
