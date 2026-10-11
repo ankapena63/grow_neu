@@ -52,6 +52,15 @@ async def pruefe_48st(app_state: AppState, zeit: float) -> None:
     await manager.pruefe_48st(zeit)
 
 
+def get_app_runner(app_state: AppState) -> "AppRunner":
+    """Liefert den dauerhaft verwendeten Runner für diesen AppState."""
+    runner = getattr(app_state, "_app_runner", None)
+    if runner is None:
+        runner = AppRunner(app_state)
+        app_state._app_runner = runner
+    return runner
+
+
 class AppRunner:
     def __init__(self, app_state: AppState):
         self.app_state = app_state
@@ -105,5 +114,5 @@ class AppRunner:
 
 async def wiederholte_takt(app_state: AppState):
     """Übergang für bestehende Aufrufer."""
-    runner = AppRunner(app_state)
+    runner = get_app_runner(app_state)
     await runner.wiederholte_takt()
