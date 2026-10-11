@@ -79,21 +79,7 @@ class AppRunner:
         now = jetzt.strftime("%H:%M")
         zeit_jetzt = time.monotonic()
 
-        app_state.nachtzeit = (
-            app_state.startnacht <= now
-            or now <= app_state.endnacht
-        )
-
-        app_state.stunden_bis_nacht = (
-            stunden_bis_nacht_get(app_state)
-        )
-
-        app_state.benutzer_activ = (
-            zeit_jetzt - app_state.last_activity
-            < app_state.einstellungen.get(
-                "takt_benutzrer_activ", 10
-            )
-        )
+        ZeitManager(app_state).aktualisiere_zeitstatus(jetzt, zeit_jetzt)
 
         pruefe_dazu_intervall(app_state, zeit_jetzt)
         await pruefe_48st(app_state, zeit_jetzt)
