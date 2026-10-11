@@ -160,7 +160,7 @@ class StatusManager:
         if geraet not in app_state.status_html:
             app_state.status_html[geraet] = {}
         if zeit:
-            app_state.status_html[geraet]["zeit_meine"] = zeitstempel()
+            app_state.status_html[geraet]["zeit_meine"] = ZeitstempelManager.zeitstempel()
         app_state.status_html[geraet]["takt"] = takt
 
     @staticmethod
@@ -241,7 +241,7 @@ class TageswerteManager:
         hms = hms_daten.get("gesamt", 0)
         akku = akku_daten.get("eacTotal", 0)
         solax = solax_daten.get("gesamt", 0)
-        werte_alt = get_heute_werte(
+        werte_alt = EnergiewerteManager.get_heute_werte(
             app_state.alle_daten,
             app_state.einstellungen,
         ) or {}
@@ -289,8 +289,8 @@ class TageswerteManager:
         app_state.einstellungen.update(werte_neu)
         app_state.einstellungen["heute"] = date.today().strftime("%d.%m.%Y")
         app_state.einstellungen["tag_0"] = aktueller_tag
-        astro_werte(app_state)
-        get_nachtzeten(app_state)
+        SonnenManager.astro_werte(app_state)
+        SonnenManager.get_nachtzeten(app_state)
         await speichere_einstellungen(app_state, app_state.einstellungen)
         logger.info("Start neuerTag. Tagesstartwerte zurückgesetzt:")
         rotate_logs()
