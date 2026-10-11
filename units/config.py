@@ -34,7 +34,7 @@ STANDARD_ZUGANG= {
     "ip_iobroker": 57,
 
     # Smart Dose – Zugangsdaten aus data/init_zugang.json
-    "dose_device_id": "",
+    "dose_device_id": "bfe769408c34e0dd06iuai",
     "dose_ip": "192.168.178.41",
     "dose_local_key": ""
 }
