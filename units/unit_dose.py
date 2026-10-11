@@ -5,8 +5,8 @@ import logging
 from typing import Any, Optional, Protocol, TYPE_CHECKING
 import tinytuya
 from quart import Blueprint, current_app, request
-from units.configuration import speichere_einstellungen
-from units.calculations import status_aktualisieren, zeitstempel
+from units.configuration import EinstellungenManager
+from units.calculations import StatusManager, ZeitstempelManager
 from units.history import schreibe_in_roh
 
 if TYPE_CHECKING:
@@ -114,9 +114,9 @@ class TuyaDoseManager:
             takt = self.app_state.einstellungen.get("takt_dose", 300)
 
             dose_daten = self.app_state.alle_daten.setdefault("dose", {})
-            dose_daten["zeit_meine"] = zeitstempel()
+            dose_daten["zeit_meine"] = ZeitstempelManager.zeitstempel()
             dose_daten["takt_dose"] = takt
-            status_aktualisieren(self.app_state, "dose", takt)
+            StatusManager.status_aktualisieren(self.app_state, "dose", takt)
             return is_on
         except Exception:
             logger.exception("❌ Dose Fehler beim Status-Abruf:")
@@ -284,6 +284,6 @@ async def set_temps():
     manager.app_state.einstellungen["dose_t_start"] = start
     manager.app_state.einstellungen["dose_t_stop"] = stop
 
-    await speichere_einstellungen(manager.app_state, manager.app_state.einstellungen)
+    await EinstellungenManager.speichere_einstellungen(manager.app_state, manager.app_state.einstellungen)
     await manager.control_loop()
     return "", 204
