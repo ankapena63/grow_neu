@@ -19,64 +19,108 @@ from units.state import AppState
 import logging
 import time
 
+
+class DashboardManager:
+    """Verwaltet Dashboard- und Anzeigefunktionen."""
+
+    def get_web_daten(self, app_state: AppState) -> dict:
+        return {
+            "dazu": app_state.dazu,
+            "haus_verbrauch": haus_verbrauch_get(app_state),
+            "stunden_bis_nacht": app_state.stunden_bis_nacht,
+            "brauche_watt": app_state.brauche_watt,
+            "pro_stunde": app_state.pro_stunde,
+            "akku_sanft_zeit": app_state.akku_sanft_zeit,
+            "dazu_intervall": app_state.dazu_intervall,
+            "dazu_sanft_soc": app_state.dazu_sanft_soc,
+            "sonnenaufgang": app_state.sonnenaufgang,
+            "sonnenuntergang": app_state.sonnenuntergang,
+            "tageslange": app_state.tageslange,
+            "startnacht": app_state.startnacht,
+            "endnacht": app_state.endnacht,
+            "nachtzeit": app_state.nachtzeit,
+            "dose_mode": app_state.dose_mode,
+            "dose_relay_state": app_state.dose_relay_state,
+            "dose_watt": app_state.dose_watt,
+            "solax_l_mittelwert": app_state.solax_l_mittelwert,
+            "ppv_mittelwert": app_state.ppv_mittelwert,
+            "temperature": app_state.temperature,
+        }
+
+    async def tageswerte(self):
+        state: AppState = _app_state()
+        return await render_template(
+            "tageswerte.html",
+            web=self.get_web_daten(state),
+            einstellungen=state.einstellungen,
+            datei_daten0=load_tageswerte("tageswerte0.csv"),
+            headers=["Tag", "E🏠", "V🏠", "HMS", "🔋", "Sol"],
+        )
+
+    async def dashboard(self):
+        state: AppState = _app_state()
+        state.einstellungen["server_sshd"] = run_sshd(state)
+        return await render_template(
+            "dashboard.html",
+            daten=state.alle_daten,
+            tag_daten=get_heute_werte(
+                state.alle_daten, state.einstellungen
+            ),
+            monat_daten=get_monats_werte(
+                state.alle_daten, state.einstellungen
+            ),
+            jahr_daten=get_jahres_werte(
+                state.alle_daten, state.einstellungen
+            ),
+            einstellungen=state.einstellungen,
+            version=state.version,
+            web=self.get_web_daten(state),
+            solax_local=state.solax_local,
+        )
+
+    async def server_sshd(self):
+        state = _app_state()
+        if run_sshd(state):
+            stop_sshd(state)
+        else:
+            start_sshd(state)
+        return redirect("/")
+
+    async def diagramm(self):
+        return await render_template("diagramm.html")
+
+    async def aktuell(self):
+        return await render_template("aktuell.html")
+
+    async def stat(self):
+        return await render_template("stat.html")
+
+    async def log_seite(self):
+        return await render_template("log.html")
+
+
+dashboard_manager = DashboardManager()
+
+
 def get_web_daten(app_state: AppState) -> dict:
-    return {
-        "dazu": app_state.dazu,
-        "haus_verbrauch": haus_verbrauch_get(app_state),
-        "stunden_bis_nacht": app_state.stunden_bis_nacht,
-        "brauche_watt": app_state.brauche_watt,
-        "pro_stunde": app_state.pro_stunde,
-        "akku_sanft_zeit": app_state.akku_sanft_zeit,
-        "dazu_intervall": app_state.dazu_intervall,
-        "dazu_sanft_soc": app_state.dazu_sanft_soc,
-        "sonnenaufgang": app_state.sonnenaufgang,
-        "sonnenuntergang": app_state.sonnenuntergang,
-        "tageslange": app_state.tageslange,
-        "startnacht": app_state.startnacht,
-        "endnacht": app_state.endnacht,
-        "nachtzeit": app_state.nachtzeit,
-        "dose_mode": app_state.dose_mode,
-        "dose_relay_state": app_state.dose_relay_state,
-        "dose_watt": app_state.dose_watt,
-        "solax_l_mittelwert": app_state.solax_l_mittelwert,
-        "ppv_mittelwert": app_state.ppv_mittelwert,
-        "temperature": app_state.temperature,
-    }
+    """Kompatibilitätswrapper für bestehende Importe."""
+    return dashboard_manager.get_web_daten(app_state)
+
 
 @routes.route("/tageswerte")
 async def tageswerte():
-    state: AppState = _app_state()
-    return await render_template(
-        'tageswerte.html',
-        web           = get_web_daten(_app_state()),
-        einstellungen = state.einstellungen,
-        datei_daten0  = load_tageswerte("tageswerte0.csv"),
-        headers       =["Tag", "E🏠", "V🏠", "HMS", "🔋", "Sol"]
-    )
+    return await dashboard_manager.tageswerte()
+
 
 @routes.route("/")
 async def dashboard():
-    state: AppState = _app_state()
-    state.einstellungen["server_sshd"] = run_sshd(_app_state())
-    return await render_template(
-        "dashboard.html",
-        daten          = state.alle_daten,
-        tag_daten      = get_heute_werte(state.alle_daten,state.einstellungen),
-        monat_daten    = get_monats_werte(state.alle_daten,state.einstellungen),
-        jahr_daten     = get_jahres_werte(state.alle_daten,state.einstellungen),
-        einstellungen  = state.einstellungen, 
-        version        = state.version,
-        web            = get_web_daten(_app_state()),
-        solax_local    = state.solax_local
-    )
+    return await dashboard_manager.dashboard()
+
 
 @routes.route("/server_sshd", methods=["POST"])
 async def server_sshd():
-    if run_sshd(_app_state()):
-        stop_sshd(_app_state())
-    else:
-        start_sshd(_app_state())
-    return redirect("/")
+    return await dashboard_manager.server_sshd()
+
 
 @routes.route("/kochen_start", methods=["POST"])
 async def kochen_start():
@@ -132,6 +176,7 @@ async def kochen_start():
         "kochen_soc_min": state.einstellungen["kochen_soc_min"], 
         "kochen_wert": state.einstellungen["kochen_wert"] }
 
+
 @routes.route("/kochen_stop", methods=["POST"])
 async def kochen_stop():
     state: AppState = _app_state()
@@ -143,18 +188,22 @@ async def kochen_stop():
     return {"ok": True,
             "kochen": False}
 
+
 @routes.route("/dia")
 async def diagramm():
-    return await render_template("diagramm.html")
+    return await dashboard_manager.diagramm()
+
 
 @routes.route("/aktuell")
 async def aktuell():
-    return await render_template("aktuell.html")
+    return await dashboard_manager.aktuell()
+
 
 @routes.route("/stat")
 async def stat():
-    return await render_template("stat.html")
+    return await dashboard_manager.stat()
+
 
 @routes.get("/log")
 async def log_seite():
-    return await render_template("log.html")
+    return await dashboard_manager.log_seite()
