@@ -7,7 +7,7 @@ from quart import Quart
 
 from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
 from units.calculations import astro_werte, get_nachtzeten
-from units.configuration import lade_einstellungen, lade_zugang, mache_session
+from units.configuration import EinstellungenManager, mache_session
 from units.history import lade_aktuell_csv
 from units.runner import get_app_runner, pruefe_48st
 from units.unit_battery import GrowattSessionManager
@@ -37,7 +37,7 @@ class LifecycleManager:
     def load_configuration(self, app_state: AppState) -> None:
         """Lädt Einstellungen, Zugangsdaten und Growatt-Zugang."""
         try:
-            app_state.einstellungen = lade_einstellungen(
+            app_state.einstellungen = EinstellungenManager.lade_einstellungen(
                 STANDARD_EINSTELLUNGEN
             )
         except Exception:
@@ -59,7 +59,7 @@ class LifecycleManager:
         )
 
         try:
-            app_state.zugang = lade_zugang(STANDARD_ZUGANG)
+            app_state.zugang = EinstellungenManager.lade_zugang(STANDARD_ZUGANG)
         except Exception:
             logger.exception(
                 "[Fehler beim Laden der Zugangsdaten] "
