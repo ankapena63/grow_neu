@@ -2,7 +2,7 @@
 import logging
 import time
 
-from units.calculations import mittelwert_get
+from units.calculations import MittelwertManager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ class DazuManager:
         akku = app_state.alle_daten.get("akku", {})
         ppv = akku.get("ppv", 0)
         app_state.ppv_mittelwert = int(
-            mittelwert_get(ppv, app_state.ppv_werte) + 0.5
+            MittelwertManager.mittelwert_get(ppv, app_state.ppv_werte) + 0.5
         )
         dazu_sanft_soc = 0
         dazu = 0
