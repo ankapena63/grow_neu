@@ -5,7 +5,7 @@ import time
 from units.history import speichere_aktuell_csv
 from units.calculations import reset_heute_werte
 from units.calculations import mittelwert_get
-from units.configuration import mache_session
+from units.push import PushManager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -120,44 +120,20 @@ async def rechne_dazu(app_state: AppState):
     await sende_dazu(app_state, dazu)
 
 async def sende_ntfy(session, nachricht: str, prio: int) -> bool:
-    headers = {
-        "Priority": str(prio),
-        "Title": "Solar-Monitor",
-        "Tags": "warning" if prio >= 4 else "info",
-    }
-    url = "https://ntfy.sh/SolaxHmsGrowattvvv"
-    async with session.post(
-        url,
-        data=nachricht.encode("utf-8"),
-        headers=headers,
-    ) as response:
-        if response.status == 200:
-            logger.info("✅ Push Prio: %s gesendet", prio)
-            return True
-        error_text = await response.text()
-        logger.error(
-            "❌ ntfy Fehler %s : %s",
-            response.status,
-            error_text,
-        )
-        return False
+    """Kompatibilität für bisherige Aufrufer."""
+    return await PushManager.sende_ntfy(session, nachricht, prio)
 
-async def sende_push(app_state, nachricht, pause: int = 3600, prio: int = 3):
-    if not app_state.einstellungen.get("nachricht_app", False):
-        return
-    jetzt = time.time()
-    if not hasattr(app_state, "letzte_push_zeiten"):
-        app_state.letzte_push_zeiten = {}
-    letzte_zeit = app_state.letzte_push_zeiten.get(prio, 0)
-    if jetzt - letzte_zeit < pause:
-        return
 
-    session = await mache_session(app_state, "session_push")
-    try:
-        if await sende_ntfy(session, nachricht, prio):
-            app_state.letzte_push_zeiten[prio] = jetzt
-    except Exception:
-        logger.exception("❌ Push-Verbindung fehlgeschlagen")
+async def sende_push(
+    app_state,
+    nachricht,
+    pause: int = 3600,
+    prio: int = 3,
+):
+    """Kompatibilität für bisherige Aufrufer."""
+    manager = PushManager(app_state)
+    await manager.sende_push(nachricht, pause, prio)
+
 
 def stunden_bis_nacht_get(app_state: AppState) -> float:
     jetzt = datetime.now()
