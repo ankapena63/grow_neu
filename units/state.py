@@ -2,7 +2,7 @@ from __future__ import annotations
 from collections import deque
 import asyncio
 import time
-from typing import TYPE_CHECKING#, Any, Protocol, Optional
+from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from units.unit_battery import GrowattSessionManager
     from units.unit_hms import Hms
@@ -20,14 +20,14 @@ class AppState:
     def __init__(self):
         self.version = "10-10-2026"
         self.save_lock = asyncio.Lock()
-        self.alle_daten = {
+        self.alle_daten: dict[str, dict[str, Any]] = {
             "akku": {},
             "hms": {},
             "solax": {},
             "strom": {},
             "dose": {}
         }
-        self.roh = {
+        self.roh: dict[str, dict[str, Any]] = {
             "tasmota": {"Fehler": "Noch kine daten"},
             "hms": {"Fehler": "Noch kine daten"},
             "akku_login": {"Fehler": "Noch kine daten"},
@@ -39,22 +39,22 @@ class AppState:
             "sml": {"Fehler": "Noch kine daten"},
             "iobrocker": {"Fehler": "Noch kine daten"}
         }
-        self.einstellungen = {}
-        self.zugang = {}
-        self.solax_local = {}
+        self.einstellungen: dict[str, Any] = {}
+        self.zugang: dict[str, Any] = {}
+        self.solax_local: dict[str, Any] = {}
 
-        self.ppv_werte = deque(maxlen=2)
-        self.solax_l_werte = deque(maxlen=3)
+        self.ppv_werte: deque[Any] = deque(maxlen=2)
+        self.solax_l_werte: deque[Any] = deque(maxlen=3)
         self.solax_l_mittelwert = 0.0
         self.ppv_mittelwert = 0.0
-        self.letzte_push_zeiten = {1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0}
-        self.aktuell_werte = {
+        self.letzte_push_zeiten: dict[int, float] = {1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0}
+        self.aktuell_werte: dict[str, deque[Any]] = {
             "strom": deque(maxlen=28800),
             "hms": deque(maxlen=28800),
             "solax": deque(maxlen=28800)
         }
         self.aktuell_letztes_speichern = 0.0
-        self.aktuell_csv_letzter_zeitpunkt = {
+        self.aktuell_csv_letzter_zeitpunkt: dict[str, float] = {
             "strom": 0.0,
             "hms": 0.0,
             "solax": 0.0
@@ -69,7 +69,7 @@ class AppState:
         self.session_growatt = None
 
         self.erste_abfrage = True
-        self.status_html = {
+        self.status_html: dict[str, dict[str, Any]] = {
             "hms": {"zeit_meine": 0, "takt": 10},
             "solax_l": {"zeit_meine": 0, "takt": 10},
             "solax_c": {"zeit_meine": 0, "takt": 10},
@@ -86,7 +86,7 @@ class AppState:
         self.start_solax_l = jetzt
         self.start_strom = jetzt
         self.start_dazu_senden = jetzt
-        self.takte = {}
+        self.takte: dict[str, Any] = {}
         self.benutzer_activ = False
         self.start_hms0 = 10
 
@@ -129,6 +129,6 @@ class AppState:
         self.soc = 0
         self.log_level = "INFO"
 
-        self.takt_48_datei = 3600*2
+        self.takt_48_datei = 3600 * 2
         self.takt_48 = 60
 
