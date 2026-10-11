@@ -55,7 +55,18 @@ async def sende_push(
 
 async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
     """Kompatibilität für bisherige Aufrufer und Tests."""
-    manager = KochenManager(app_state, rechne_dazu=rechne_dazu)
+    runner = getattr(app_state, "_app_runner", None)
+    if runner is not None:
+        manager = runner.kochen_manager
+    else:
+        manager = getattr(app_state, "_kochen_manager", None)
+        if manager is None:
+            manager = KochenManager(
+                app_state,
+                rechne_dazu=lambda state: rechne_dazu(state),
+            )
+            app_state._kochen_manager = manager
+
     await manager.pruefe_kochen(zeit)
 
 
