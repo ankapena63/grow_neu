@@ -9,7 +9,7 @@ from units.configuration import (
 from units.calculations import StatusManager, ZeitstempelManager
 from units.history import schreibe_in_roh
 #from units.unit_dose import dose_tuya
-from units.runner import rechne_dazu, sende_push
+from units.runner import get_dazu_manager, get_push_manager
 from units.state import AppState
 import logging
 
@@ -386,10 +386,10 @@ class GrowattSessionManager:
         if temp1 > 44 or temp2 > 44:
             max_temp = max(temp1, temp2)
             message = (f"⚠️ Akku zu heiß: {max_temp}°C! Bitte für Kühlung/Schatten sorgen.")
-            await sende_push(self.app_state, message, 600, 5)
+            await get_push_manager(self.app_state).sende_push(message, 600, 5)
         status_akku = status.get("status", 1)
         if status_akku != 1:
-            await sende_push(self.app_state, f"Akku status: {status_akku}", 3600, 4)
+            await get_push_manager(self.app_state).sende_push(f"Akku status: {status_akku}", 3600, 4)
         return status
       except Exception as error:
         logger.exception("[Growatt] Fehler")
@@ -414,5 +414,5 @@ class GrowattSessionManager:
         self.app_state.solax_local = ( await self.app_state.solax.abfrage_local(takt))
         self.app_state.start_solax_l = zeit
       self.app_state.start_akku = zeit
-      await rechne_dazu(self.app_state)
+      await get_dazu_manager(self.app_state).rechne_dazu()
     
