@@ -1,11 +1,7 @@
 import asyncio
 import logging
 import aiohttp
-from units.calculations import (
-    haus_verbrauch_get,
-    status_aktualisieren,
-    zeitstempel,
-)
+from units.calculations import StatusManager, ZeitstempelManager
 from units.configuration import mache_session
 from units.history import schreibe_in_roh
 from units.history import speichere_aktuell_wert
@@ -51,9 +47,9 @@ class Strom:
                     "V3": smart_meter.get("V3", 0.0),
                     "vdazu": status_sns.get("vdazu", 0),
                     "takt": takt,
-                    "zeit_meine": zeitstempel(),
+                    "zeit_meine": ZeitstempelManager.zeitstempel(),
                 }
-                status_aktualisieren(app_state, "strom", takt)
+                StatusManager.status_aktualisieren(app_state, "strom", takt)
                 logger.info("Tasmota Aufruf✅ %s Sek", takt)
                 logger.debug("Daten %s", result)
                 return result
@@ -70,7 +66,7 @@ class Strom:
         result = (alt_daten or {}).copy()
         result.update({
             "fehler": fehler or "Unbekannter Fehler",
-            "zeit_fehler": zeitstempel(),
+            "zeit_fehler": ZeitstempelManager.zeitstempel(),
         })
         return result
 
@@ -91,8 +87,8 @@ class Strom:
                     response.raise_for_status()
                     data = await response.json()
                     data["takt"] = takt
-                    data["zeit_meine"] = zeitstempel()
-                    status_aktualisieren(app_state, "strom", takt)
+                    data["zeit_meine"] = ZeitstempelManager.zeitstempel()
+                    StatusManager.status_aktualisieren(app_state, "strom", takt)
                     logger.info("[Strom] OK bei Versuch %s", versuch + 1)
                     return data
             except (aiohttp.ClientError, asyncio.TimeoutError) as error:
@@ -110,7 +106,7 @@ class Strom:
         result = (alt_daten or {}).copy()
         result.update({
             "fehler": f"Strom API {url} nicht erreichbar",
-            "zeit_fehler": zeitstempel(),
+            "zeit_fehler": ZeitstempelManager.zeitstempel(),
         })
         logger.error("[Strom] Alle Versuche fehlgeschlagen. Rückfall auf alt_daten.")
         return result
@@ -127,7 +123,7 @@ class Strom:
         ppv = app_state.alle_daten.get("akku", {}).get("ppv", 0) or 0
         hms = app_state.alle_daten.get("hms", {}).get("aktuell", 0) or 0
         solax = app_state.alle_daten.get("solax", {}).get("acpower", 0) or 0
-        haus = haus_verbrauch_get(app_state)
+        haus = StatusManager.haus_verbrauch_get(app_state)
         nullen = app_state.einstellungen.get("hms_bekommt_null", False)
         hms0 = 0 if nullen else 1
         url = (
@@ -226,7 +222,7 @@ class Strom:
     async def pruefe(self, zeit: float) -> None:
         app_state = self.app_state
         takt = self.takt
-        status_aktualisieren(app_state, "strom", takt,False)
+        StatusManager.status_aktualisieren(app_state, "strom", takt,False)
         if zeit - app_state.start_strom <= takt and not app_state.erste_abfrage:
             return
         logger.debug("Strom %s Sek", takt)
