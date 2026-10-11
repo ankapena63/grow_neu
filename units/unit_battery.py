@@ -6,10 +6,7 @@ import hashlib
 from units.configuration import (
     mache_session
 )
-from units.calculations import (
-    zeitstempel,
-    status_aktualisieren,
-)
+from units.calculations import StatusManager, ZeitstempelManager
 from units.history import schreibe_in_roh
 #from units.unit_dose import dose_tuya
 from units.runner import rechne_dazu, sende_push
@@ -128,9 +125,9 @@ class GrowattSessionManager:
                         "status": int(obj.get("status", -1)) ,
                         "zeit_Noah": obj.get("timeStr"),
                         "takt" : takt,
-                        "zeit_meine": zeitstempel()                
+                        "zeit_meine": ZeitstempelManager.zeitstempel()                
                 }
-                status_aktualisieren(self.app_state, "akku_token", takt)
+                StatusManager.status_aktualisieren(self.app_state, "akku_token", takt)
                 self.last_noah_data = werte
                 if (self.app_state.dose_mode == "auto"
                     and not self.app_state.dose_laeuft):
@@ -286,9 +283,9 @@ class GrowattSessionManager:
                         "daten_von": "Growatt",
                         "status": int(obj.get("status" , -1)),
                         "takt" : takt,
-                        "zeit_meine": zeitstempel()
+                        "zeit_meine": ZeitstempelManager.zeitstempel()
                 } 
-                status_aktualisieren(self.app_state, "akku_login", takt)
+                StatusManager.status_aktualisieren(self.app_state, "akku_login", takt)
                 self.akku_status_daten = res
                 return res
         except Exception:
@@ -382,7 +379,7 @@ class GrowattSessionManager:
                 status = status1
         else:
             status = await self.app_state.growatt.get_iobroker() or {}
-            status["zeit_meine"] = zeitstempel()
+            status["zeit_meine"] = ZeitstempelManager.zeitstempel()
 
         temp1 = status.get("battery1Temp", 0)
         temp2 = status.get("battery2Temp", 0)
@@ -398,13 +395,13 @@ class GrowattSessionManager:
         logger.exception("[Growatt] Fehler")
         alt_daten = alt_daten or {}
         alt_daten["fehler"] = str(error)
-        alt_daten["zeit_fehler"] = zeitstempel()
+        alt_daten["zeit_fehler"] = ZeitstempelManager.zeitstempel()
         return alt_daten
 
     async def pruefe( self, zeit: float) -> None:
       takt = self.takt
-      status_aktualisieren(self.app_state, "akku_token", takt,False)
-      status_aktualisieren(self.app_state, "akku_login", takt,False)
+      StatusManager.status_aktualisieren(self.app_state, "akku_token", takt,False)
+      StatusManager.status_aktualisieren(self.app_state, "akku_login", takt,False)
 
       if zeit - self.app_state.start_akku <= takt and not self.app_state.erste_abfrage:
         return
