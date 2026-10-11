@@ -103,7 +103,7 @@ class AppRunner:
         self.backup_manager = get_backup_manager(app_state)
         self.dazu_manager = get_dazu_manager(app_state)
         self.kochen_manager = KochenManager(
-            app_state, rechne_dazu=self._rechne_dazu
+            app_state, dazu_manager=self.dazu_manager
         )
 
         # Die vorhandenen Geräteobjekte werden direkt übergeben.
@@ -113,9 +113,6 @@ class AppRunner:
             app_state.hms,
             app_state.strom,
         )
-
-    async def _rechne_dazu(self, app_state: AppState) -> None:
-        await self.dazu_manager.rechne_dazu()
 
     async def wiederholte_takt(self):
         app_state = self.app_state
