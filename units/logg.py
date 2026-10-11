@@ -27,6 +27,8 @@ class LogManager:
     @classmethod
     def normalize_level(cls, level):
         """Liefert einen unterstützten Levelnamen; unbekannte Werte werden INFO."""
+        if isinstance(level, int):
+            level = logging.getLevelName(level)
         if isinstance(level, str):
             level = level.upper()
         return level if level in cls.LEVELS else "INFO"
