@@ -78,49 +78,69 @@ def get_jahres_werte(daten, einst):
     werte["solax"] = round(  max(0,  daten.get("solax", {}).get("gesamt", 0)  - einst.get("solax_jahr_0", 0)),2)
     return werte
 
+class StatusManager:
+    """Kapselt Status- und Verbrauchsberechnungen."""
+
+    @staticmethod
+    def status_aktualisieren(app_state, geraet, takt, zeit: bool = True):
+        if geraet not in app_state.status_html:
+            app_state.status_html[geraet] = {}
+        if zeit:
+            app_state.status_html[geraet]["zeit_meine"] = zeitstempel()
+        app_state.status_html[geraet]["takt"] = takt
+
+    @staticmethod
+    def gereate_status(status_html):
+        status = {}
+        jetzt = time.time()
+        for key, info in status_html.items():
+            zeit = info.get("zeit_meine", 0)
+            takt = info.get("takt", 10)
+            if not zeit:
+                status[key] = 0
+                continue
+            try:
+                if isinstance(zeit, str):
+                    zeit = datetime.strptime(
+                        zeit, "%Y-%m-%d %H:%M:%S"
+                    ).timestamp()
+                diff = jetzt - zeit
+                if diff < 0:
+                    diff = 0
+            except (ValueError, TypeError):
+                status[key] = 0
+                continue
+            if diff > takt * 10:
+                status[key] = 0
+            elif diff <= takt:
+                status[key] = 1
+            elif diff <= takt * 4:
+                status[key] = 2
+            else:
+                status[key] = 3
+        return status
+
+    @staticmethod
+    def haus_verbrauch_get(app_state):
+        solax = app_state.alle_daten.get("solax", {}).get("acpower", 0) or 0
+        hms = app_state.alle_daten.get("hms", {}).get("aktuell", 0) or 0
+        strom = app_state.alle_daten.get("strom", {}).get("Actuel", 0) or 0
+        return round(solax + hms + strom)
+
+
 def status_aktualisieren(app_state, geraet, takt, zeit: bool = True):
-    if geraet not in app_state.status_html:
-        app_state.status_html[geraet] = {}
-    if zeit:
-        app_state.status_html[geraet]["zeit_meine"] = zeitstempel()
-    app_state.status_html[geraet]["takt"] = takt
+    """Kompatibilität für bestehende Aufrufer."""
+    StatusManager.status_aktualisieren(app_state, geraet, takt, zeit)
+
 
 def gereate_status(status_html):
-    status ={}
-    jetzt = time.time()
-    for key, info in status_html.items():
-        zeit = info.get("zeit_meine", 0)
-        takt = info.get("takt", 10)
-        if not zeit:
-            status[key] = 0
-            continue
-        try:
-            if isinstance(zeit, str):
-                zeit = datetime.strptime(
-                    zeit, "%Y-%m-%d %H:%M:%S"
-                ).timestamp()
-            diff = jetzt - zeit
-            if diff < 0:
-               diff = 0
-        except (ValueError, TypeError):
-            status[key] = 0
-            continue
-        if diff > takt*10:
-            status[key] = 0
-            continue
-        if diff <= takt:
-            status[key] = 1
-        elif diff <= takt * 4:
-            status[key] = 2
-        else:
-            status[key] = 3
-    return status
+    """Kompatibilität für bestehende Aufrufer."""
+    return StatusManager.gereate_status(status_html)
 
-def haus_verbrauch_get (app_state):
-    solax = app_state.alle_daten.get("solax", {}).get("acpower", 0) or 0
-    hms   = app_state.alle_daten.get("hms", {}).get("aktuell", 0) or 0
-    strom = app_state.alle_daten.get("strom", {}).get("Actuel", 0) or 0
-    return  round(solax + hms + strom)
+
+def haus_verbrauch_get(app_state):
+    """Kompatibilität für bestehende Aufrufer."""
+    return StatusManager.haus_verbrauch_get(app_state)
 
 def get_nachtzeten(app_state: AppState):
     try:
