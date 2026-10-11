@@ -19,7 +19,7 @@ def create_app():
     app.secret_key = (
         os.environ.get("QUART_SECRET_KEY")
         or os.environ.get("SECRET_KEY")
-        or "geheimnis123"
+        or os.urandom(32)
     )
     app.register_blueprint(routes)
     app.register_blueprint(dose_bp)
