@@ -2,7 +2,7 @@
 from datetime import datetime
 import logging
 import time
-from units.history import speichere_aktuell_csv
+from units.backup_manager import BackupManager
 from units.calculations import reset_heute_werte
 from units.dazu import DazuManager
 from units.zeit_manager import ZeitManager
@@ -74,21 +74,13 @@ def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
     manager.pruefe_dazu_intervall(zeit)
 
 
-async def pruefe_48st(app_state: AppState,zeit: float) -> None:
-    if not app_state.einstellungen.get("aktuell_aktiv", True):
-        return
-    takt =  app_state.takt_48_datei
-    if zeit == 0 or zeit - app_state.aktuell_letztes_speichern >= takt:
-        try:
-            logger.info("💾 [Backup]  Speichere 2 stündliches Aktuell-Daten-Backup...")
-            await speichere_aktuell_csv(app_state)
-        except Exception:
-            logger.error("❌ Fehler beim Backup-CSV-Speichern")
-        finally:
-            if zeit != 0:
-                app_state.aktuell_letztes_speichern = zeit
+aasync def pruefe_48st(app_state: AppState, zeit: float) -> None:
+    """Kompatibilität für bisherige Aufrufer."""
+    manager = BackupManager(app_state)
+    await manager.pruefe_48st(zeit)
 
-class AppRunner:
+
+lass AppRunner:
     """Steuert den regelmäßigen Ablauf der Geräteabfragen."""
 
     def __init__(self, app_state: AppState):
