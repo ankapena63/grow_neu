@@ -15,7 +15,32 @@ class HtmlLogHandler(logging.Handler):
 
 
 class LogManager:
-    """Kapselt die Einrichtung der Logging-Ausgabe."""
+    """Kapselt Einrichtung und Laufzeitänderung der Logging-Ausgabe."""
+
+    LEVELS = {
+        "ERROR": logging.ERROR,
+        "WARNING": logging.WARNING,
+        "INFO": logging.INFO,
+        "DEBUG": logging.DEBUG,
+    }
+
+    @classmethod
+    def normalize_level(cls, level):
+        """Liefert einen unterstützten Levelnamen; unbekannte Werte werden INFO."""
+        if isinstance(level, str):
+            level = level.upper()
+        return level if level in cls.LEVELS else "INFO"
+
+    @classmethod
+    def set_level(cls, level):
+        """Setzt Root-Logger und Handler auf denselben Level."""
+        level_name = cls.normalize_level(level)
+        log_level = cls.LEVELS[level_name]
+        root = logging.getLogger()
+        root.setLevel(log_level)
+        for handler in root.handlers:
+            handler.setLevel(log_level)
+        return level_name
 
     @staticmethod
     def setup(level=logging.INFO):
@@ -34,7 +59,7 @@ class LogManager:
         root.handlers.clear()
         root.addHandler(html_handler)
         root.addHandler(console_handler)
-        root.setLevel(level)
+        LogManager.set_level(level)
 
 
 def setup_logging(level=logging.INFO):
