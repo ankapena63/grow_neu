@@ -29,11 +29,18 @@ class TuyaDoseManager:
 
     def _create_dose_device(self) -> DoseDevice:
         """Erstellt den tinytuya-Client mit Protokoll-Typ."""
-        device: DoseDevice = tinytuya.OutletDevice(
-            "bfe769408c34e0dd06iuai",
-            "192.168.178.41",
-            "+k?nQL;':Lei5F)g",
-        )
+        zugang = self.app_state.zugang
+        device_id = zugang.get("dose_device_id", "")
+        ip = zugang.get("dose_ip", "192.168.178.41")
+        local_key = zugang.get("dose_local_key", "")
+
+        if not device_id or not local_key:
+            raise RuntimeError(
+                "Tuya-Dose: dose_device_id und dose_local_key fehlen in "
+                "data/init_zugang.json."
+            )
+
+        device: DoseDevice = tinytuya.OutletDevice(device_id, ip, local_key)
         device.set_version(3.4)
         device.set_socketTimeout(2)
         device.set_socketRetryLimit(1)
