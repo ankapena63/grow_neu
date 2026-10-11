@@ -23,15 +23,11 @@ import time
 class DashboardManager:
     """Verwaltet Dashboard- und Anzeigefunktionen."""
 
-    def get_web_daten(self, app_state: AppState) -> dict:
-        """Kompatibilität: gemeinsame Datenstruktur zentral erzeugen."""
-        return web_data_manager.get_web_daten(app_state)
-
     async def tageswerte(self):
         state: AppState = _app_state()
         return await render_template(
             "tageswerte.html",
-            web=self.get_web_daten(state),
+            web=web_data_manager.get_web_daten(state),
             einstellungen=state.einstellungen,
             datei_daten0=load_tageswerte("tageswerte0.csv"),
             headers=["Tag", "E🏠", "V🏠", "HMS", "🔋", "Sol"],
@@ -54,7 +50,7 @@ class DashboardManager:
             ),
             einstellungen=state.einstellungen,
             version=state.version,
-            web=self.get_web_daten(state),
+            web=web_data_manager.get_web_daten(state),
             solax_local=state.solax_local,
         )
 
@@ -145,8 +141,8 @@ dashboard_manager = DashboardManager()
 
 
 def get_web_daten(app_state: AppState) -> dict:
-    """Kompatibilitätswrapper für bestehende Importe."""
-    return dashboard_manager.get_web_daten(app_state)
+    """Kompatibilität für bestehende Importe."""
+    return web_data_manager.get_web_daten(app_state)
 
 
 @routes.route("/tageswerte")
