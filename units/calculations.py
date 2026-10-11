@@ -232,88 +232,84 @@ def get_nachtzeten(app_state: AppState):
     except Exception:
         logger.exception("Nachtfenster konnte nicht berechnet werden")
 
-async def reset_heute_werte(app_state: AppState):
-    letzter_reset = app_state.einstellungen.get("tag_0", 0)
-    aktueller_tag = date.today().timetuple().tm_yday
-    if letzter_reset == aktueller_tag:
-        return
-    heute = date.today()
-    aktueller_monat = heute.month
-    aktuelles_jahr = heute.year
-    strom_daten = app_state.alle_daten.get("strom", {})
-    hms_daten = app_state.alle_daten.get("hms", {})
-    akku_daten = app_state.alle_daten.get("akku", {})
-    solax_daten = app_state.alle_daten.get("solax", {})
-    einspeise = strom_daten.get("Einspeise", 0)
-    gesamt = strom_daten.get("Gesamt", 0)
-    hms = hms_daten.get("gesamt", 0)
-    akku = akku_daten.get("eacTotal", 0)
-    solax = solax_daten.get("gesamt", 0)
-    werte_alt = get_heute_werte(
-        app_state.alle_daten,
-        app_state.einstellungen,
-    ) or {}
-    werte_alt["datum"] = (
-        date.today() - timedelta(days=1)
-    ).strftime("%d.%m.%y")
-    werte_alt["tag_t"] = letzter_reset
-    datum_alt = heute - timedelta(days=1)
-    werte_neu = {
-        "datum": datum_alt.strftime("%d.%m.%y"),
-        "tag_0": letzter_reset,
-        "einspeise_0": einspeise,
-        "gesamt_0": gesamt,
-        "hms_0": hms,
-        "growatt_0": akku,
-        "solax_0": solax,
-    }
-    await speichere_tageswerte(
-        werte_neu,
-        dateiname="tageswerte0.csv",
-        feldreihenfolge=FELDREIHENFOLGE,
-    )
-    if app_state.einstellungen.get("monat_0") != aktueller_monat:
-        logger.info("📅 Neuer Monat – Monatsstartwerte setzen")
-        monat_start = {
-            "monat_0": aktueller_monat,
-            "einspeise_monat_0": einspeise,
-            "gesamt_monat_0": gesamt,
-            "hms_monat_0": hms,
-            "growatt_monat_0": akku,
-            "solax_monat_0": solax,
-        }
-        app_state.einstellungen.update(monat_start)
-    if app_state.einstellungen.get("jahr_0") != aktuelles_jahr:
-        logger.info("🎉 Neues Jahr – Jahresstartwerte setzen")
-        jahr_start = {
-            "jahr_0": aktuelles_jahr,
-            "einspeise_jahr_0": einspeise,
-            "gesamt_jahr_0": gesamt,
-            "hms_jahr_0": hms,
-            "growatt_jahr_0": akku,
-            "solax_jahr_0": solax,
-        }
-        app_state.einstellungen.update(jahr_start)
-    app_state.einstellungen.update(werte_neu)
-    app_state.einstellungen["heute"] = date.today().strftime("%d.%m.%Y")
-    app_state.einstellungen["tag_0"] = aktueller_tag
-    astro_werte(app_state)
-    get_nachtzeten(app_state)
-    await speichere_einstellungen(app_state, app_state.einstellungen)
-    logger.info("Start neuerTag. Tagesstartwerte zurückgesetzt:")
-    rotate_logs()
-
-
-
 class TageswerteManager:
-    """Kapselt den Tageswechsel für einen AppState.
-
-    Die bestehende Funktion reset_heute_werte bleibt als kompatible Schnittstelle
-    für andere Module und Tests erhalten.
-    """
+    """Verwaltet Tages-, Monats- und Jahreswechsel für einen AppState."""
 
     def __init__(self, app_state: AppState):
         self.app_state = app_state
 
     async def reset_heute_werte(self) -> None:
-        await reset_heute_werte(self.app_state)
+        letzter_reset = app_state.einstellungen.get("tag_0", 0)
+        aktueller_tag = date.today().timetuple().tm_yday
+        if letzter_reset == aktueller_tag:
+            return
+        heute = date.today()
+        aktueller_monat = heute.month
+        aktuelles_jahr = heute.year
+        strom_daten = app_state.alle_daten.get("strom", {})
+        hms_daten = app_state.alle_daten.get("hms", {})
+        akku_daten = app_state.alle_daten.get("akku", {})
+        solax_daten = app_state.alle_daten.get("solax", {})
+        einspeise = strom_daten.get("Einspeise", 0)
+        gesamt = strom_daten.get("Gesamt", 0)
+        hms = hms_daten.get("gesamt", 0)
+        akku = akku_daten.get("eacTotal", 0)
+        solax = solax_daten.get("gesamt", 0)
+        werte_alt = get_heute_werte(
+            app_state.alle_daten,
+            app_state.einstellungen,
+        ) or {}
+        werte_alt["datum"] = (
+            date.today() - timedelta(days=1)
+        ).strftime("%d.%m.%y")
+        werte_alt["tag_t"] = letzter_reset
+        datum_alt = heute - timedelta(days=1)
+        werte_neu = {
+            "datum": datum_alt.strftime("%d.%m.%y"),
+            "tag_0": letzter_reset,
+            "einspeise_0": einspeise,
+            "gesamt_0": gesamt,
+            "hms_0": hms,
+            "growatt_0": akku,
+            "solax_0": solax,
+        }
+        await speichere_tageswerte(
+            werte_neu,
+            dateiname="tageswerte0.csv",
+            feldreihenfolge=FELDREIHENFOLGE,
+        )
+        if app_state.einstellungen.get("monat_0") != aktueller_monat:
+            logger.info("📅 Neuer Monat – Monatsstartwerte setzen")
+            monat_start = {
+                "monat_0": aktueller_monat,
+                "einspeise_monat_0": einspeise,
+                "gesamt_monat_0": gesamt,
+                "hms_monat_0": hms,
+                "growatt_monat_0": akku,
+                "solax_monat_0": solax,
+            }
+            app_state.einstellungen.update(monat_start)
+        if app_state.einstellungen.get("jahr_0") != aktuelles_jahr:
+            logger.info("🎉 Neues Jahr – Jahresstartwerte setzen")
+            jahr_start = {
+                "jahr_0": aktuelles_jahr,
+                "einspeise_jahr_0": einspeise,
+                "gesamt_jahr_0": gesamt,
+                "hms_jahr_0": hms,
+                "growatt_jahr_0": akku,
+                "solax_jahr_0": solax,
+            }
+            app_state.einstellungen.update(jahr_start)
+        app_state.einstellungen.update(werte_neu)
+        app_state.einstellungen["heute"] = date.today().strftime("%d.%m.%Y")
+        app_state.einstellungen["tag_0"] = aktueller_tag
+        astro_werte(app_state)
+        get_nachtzeten(app_state)
+        await speichere_einstellungen(app_state, app_state.einstellungen)
+        logger.info("Start neuerTag. Tagesstartwerte zurückgesetzt:")
+        rotate_logs()
+
+
+async def reset_heute_werte(app_state: AppState):
+    """Kompatibilität für bestehende Aufrufer."""
+    await TageswerteManager(app_state).reset_heute_werte()
