@@ -38,45 +38,67 @@ def astro_werte(app_state):
     app_state.tageslange       = str((sunset - sunrise)).split('.')[0]
     return
 
-def get_heute_werte(daten,einst):
-    werte = {}
-    werte["datum"] = date.today().strftime("%d.%m.%Y")  
-    werte["tag_t"] = date.today().timetuple().tm_yday  
-    if "strom" in daten:
-        if "Einspeise" in daten["strom"]:
-            werte["einspeise_t"] = round(max(0, daten["strom"]["Einspeise"] - einst.get("einspeise_0", 0)),2)
-        if "Gesamt" in daten["strom"]:
-            werte["gesamt_t"] = round(max(0, daten["strom"]["Gesamt"] - einst.get("gesamt_0", 0)),3)
-    if "hms" in daten:
-        if "gesamt" in daten["hms"]:
-            werte["hms_t"] =round(max(0, daten["hms"]["gesamt"] - einst.get("hms_0", 0)),3)
-    if "akku" in daten: 
-        if "eacTotal" in daten["akku"]:
-            werte["growatt_t"] =round(max(0, daten["akku"]["eacTotal"] - einst.get("growatt_0", 0)),3)
-    if "solax" in daten:
-        if "gesamt" in daten["solax"]:
-            werte["solax_t"] =round(max(0, daten["solax"]["gesamt"] - einst.get("solax_0", 0)),3)
-    return werte
+class EnergiewerteManager:
+    """Kapselt die Berechnung der Tages-, Monats- und Jahreswerte."""
+
+    @staticmethod
+    def get_heute_werte(daten, einst):
+        werte = {}
+        werte["datum"] = date.today().strftime("%d.%m.%Y")
+        werte["tag_t"] = date.today().timetuple().tm_yday
+        if "strom" in daten:
+            if "Einspeise" in daten["strom"]:
+                werte["einspeise_t"] = round(max(0, daten["strom"]["Einspeise"] - einst.get("einspeise_0", 0)), 2)
+            if "Gesamt" in daten["strom"]:
+                werte["gesamt_t"] = round(max(0, daten["strom"]["Gesamt"] - einst.get("gesamt_0", 0)), 3)
+        if "hms" in daten:
+            if "gesamt" in daten["hms"]:
+                werte["hms_t"] = round(max(0, daten["hms"]["gesamt"] - einst.get("hms_0", 0)), 3)
+        if "akku" in daten:
+            if "eacTotal" in daten["akku"]:
+                werte["growatt_t"] = round(max(0, daten["akku"]["eacTotal"] - einst.get("growatt_0", 0)), 3)
+        if "solax" in daten:
+            if "gesamt" in daten["solax"]:
+                werte["solax_t"] = round(max(0, daten["solax"]["gesamt"] - einst.get("solax_0", 0)), 3)
+        return werte
+
+    @staticmethod
+    def get_monats_werte(daten, einst):
+        werte = {}
+        werte["monat"] = date.today().month
+        werte["einspeise"] = round(max(0, daten.get("strom", {}).get("Einspeise", 0) - einst.get("einspeise_monat_0", 0)), 2)
+        werte["gesamt"] = round(max(0, daten.get("strom", {}).get("Gesamt", 0) - einst.get("gesamt_monat_0", 0)), 2)
+        werte["hms"] = round(max(0, daten.get("hms", {}).get("gesamt", 0) - einst.get("hms_monat_0", 0)), 2)
+        werte["growatt"] = round(max(0, daten.get("akku", {}).get("eacTotal", 0) - einst.get("growatt_monat_0", 0)), 2)
+        werte["solax"] = round(max(0, daten.get("solax", {}).get("gesamt", 0) - einst.get("solax_monat_0", 0)), 2)
+        return werte
+
+    @staticmethod
+    def get_jahres_werte(daten, einst):
+        werte = {}
+        werte["jahr"] = date.today().year
+        werte["einspeise"] = round(max(0, daten.get("strom", {}).get("Einspeise", 0) - einst.get("einspeise_jahr_0", 0)), 2)
+        werte["gesamt"] = round(max(0, daten.get("strom", {}).get("Gesamt", 0) - einst.get("gesamt_jahr_0", 0)), 2)
+        werte["hms"] = round(max(0, daten.get("hms", {}).get("gesamt", 0) - einst.get("hms_jahr_0", 0)), 2)
+        werte["growatt"] = round(max(0, daten.get("akku", {}).get("eacTotal", 0) - einst.get("growatt_jahr_0", 0)), 2)
+        werte["solax"] = round(max(0, daten.get("solax", {}).get("gesamt", 0) - einst.get("solax_jahr_0", 0)), 2)
+        return werte
+
+
+def get_heute_werte(daten, einst):
+    """Kompatibilität für bestehende Aufrufer."""
+    return EnergiewerteManager.get_heute_werte(daten, einst)
+
 
 def get_monats_werte(daten, einst):
-    werte = {}
-    werte["monat"] = date.today().month
-    werte["einspeise"] = round(max(0, daten.get("strom",{}).get("Einspeise", 0) - einst.get("einspeise_monat_0", 0)), 2)
-    werte["gesamt"] = round(max(0, daten.get("strom", {}).get("Gesamt", 0) - einst.get("gesamt_monat_0", 0)), 2)
-    werte["hms"] = round( max(0, daten.get("hms", {}).get("gesamt", 0)- einst.get("hms_monat_0", 0)), 2)
-    werte["growatt"] = round( max(0, daten.get("akku", {}).get("eacTotal", 0) - einst.get("growatt_monat_0", 0)), 2)
-    werte["solax"] = round( max(0, daten.get("solax", {}).get("gesamt", 0) - einst.get("solax_monat_0", 0)), 2)
-    return werte
+    """Kompatibilität für bestehende Aufrufer."""
+    return EnergiewerteManager.get_monats_werte(daten, einst)
+
 
 def get_jahres_werte(daten, einst):
-    werte = {}
-    werte["jahr"] = date.today().year
-    werte["einspeise"] = round( max(0, daten.get("strom", {}).get("Einspeise", 0) - einst.get("einspeise_jahr_0", 0)),2)
-    werte["gesamt"] = round(  max( 0, daten.get("strom", {}).get("Gesamt", 0)  - einst.get("gesamt_jahr_0", 0)),2)
-    werte["hms"] = round(max(0,  daten.get("hms", {}).get("gesamt", 0)  - einst.get("hms_jahr_0", 0)),2)
-    werte["growatt"] = round( max(0,  daten.get("akku", {}).get("eacTotal", 0)  - einst.get("growatt_jahr_0", 0)),2)
-    werte["solax"] = round(  max(0,  daten.get("solax", {}).get("gesamt", 0)  - einst.get("solax_jahr_0", 0)),2)
-    return werte
+    """Kompatibilität für bestehende Aufrufer."""
+    return EnergiewerteManager.get_jahres_werte(daten, einst)
+
 
 class StatusManager:
     """Kapselt Status- und Verbrauchsberechnungen."""
