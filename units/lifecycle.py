@@ -28,7 +28,6 @@ class LifecycleManager:
         log_level = LogManager.LEVELS[app_state.log_level]
 
         setup_logging(log_level)
-        LogManager.set_level(log_level)
 
         logging.getLogger("tinytuya").setLevel(logging.WARNING)
         logging.getLogger("asyncio").setLevel(logging.ERROR)
