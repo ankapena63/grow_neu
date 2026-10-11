@@ -3,8 +3,7 @@ import logging
 import aiohttp
 from units.calculations import StatusManager, ZeitstempelManager
 from units.configuration import mache_session
-from units.history import schreibe_in_roh
-from units.history import speichere_aktuell_wert
+from units.history import get_history_manager
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ class Strom:
             async with session.get(url, timeout=5) as response:
                 response.raise_for_status()
                 json_data = await response.json()
-                schreibe_in_roh(app_state, "tasmota", json_data)
+                get_history_manager(app_state).schreibe_in_roh("tasmota", json_data)
                 status_sns = json_data.get("StatusSNS", {})
                 smart_meter = status_sns.get("SM", {})
                 if not smart_meter:
@@ -238,7 +237,7 @@ class Strom:
                     takt)
             app_state.alle_daten["strom"] = strom
             if app_state.einstellungen.get("aktuell_aktiv", True):
-                speichere_aktuell_wert( app_state,"strom",strom.get("Actuel", 0),)
+                get_history_manager(app_state).speichere_aktuell_wert("strom",strom.get("Actuel", 0),)
         except Exception:
             logger.exception("[Fehler] ❌ Stromabfrage fehlgeschlagen")
         finally:
