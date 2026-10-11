@@ -5,7 +5,7 @@ from datetime import datetime, date, timedelta
 from astral.sun import sun
 import time
 from units.config import FELDREIHENFOLGE
-from units.configuration import speichere_einstellungen
+from units.configuration import EinstellungenManager
 from units.history import TageshistorieManager
 from units.state import AppState
 
@@ -291,7 +291,7 @@ class TageswerteManager:
         app_state.einstellungen["tag_0"] = aktueller_tag
         SonnenManager.astro_werte(app_state)
         SonnenManager.get_nachtzeten(app_state)
-        await speichere_einstellungen(app_state, app_state.einstellungen)
+        await EinstellungenManager.speichere_einstellungen(app_state, app_state.einstellungen)
         logger.info("Start neuerTag. Tagesstartwerte zurückgesetzt:")
         TageshistorieManager.rotate_logs()
 
