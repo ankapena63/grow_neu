@@ -42,7 +42,7 @@ class KochenManager:
             logger.info("KOCHEN AUS:Nachts nur 0 Einp.")
             app_state.kochen = False
             app_state.kochen_zeit = 0.0
-            await DazuManager(app_state).rechne_dazu()
+            await self._rechne_dazu()
             return
 
         app_state.kochen_zeit = round(verbleibend / 60, 2)
