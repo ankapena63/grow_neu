@@ -78,6 +78,7 @@ async def _close_network_resources(app_state: AppState) -> bool:
     manager = getattr(app_state, "_dose_manager", None)
     if manager is not None:
         if not await manager.shutdown():
+            cleanup_succeeded = False
             logger.warning("Dose konnte beim Shutdown nicht sicher ausgeschaltet werden.")
     growatt = getattr(app_state, "growatt", None)
     if growatt:
