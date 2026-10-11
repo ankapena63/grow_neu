@@ -70,9 +70,18 @@ async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
     await manager.pruefe_kochen(zeit)
 
 
+def get_backup_manager(app_state: AppState) -> BackupManager:
+    """Liefert den dauerhaft verwendeten BackupManager dieses AppState."""
+    manager = getattr(app_state, "_backup_manager", None)
+    if manager is None:
+        manager = BackupManager(app_state)
+        app_state._backup_manager = manager
+    return manager
+
+
 async def pruefe_48st(app_state: AppState, zeit: float) -> None:
     """Kompatibilität für bisherige Aufrufer."""
-    manager = BackupManager(app_state)
+    manager = get_backup_manager(app_state)
     await manager.pruefe_48st(zeit)
 
 
@@ -91,7 +100,7 @@ class AppRunner:
 
         self.tageswerte_manager = TageswerteManager(app_state)
         self.zeit_manager = ZeitManager(app_state)
-        self.backup_manager = BackupManager(app_state)
+        self.backup_manager = get_backup_manager(app_state)
         self.dazu_manager = get_dazu_manager(app_state)
         self.kochen_manager = KochenManager(
             app_state, rechne_dazu=self._rechne_dazu
