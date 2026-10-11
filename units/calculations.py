@@ -311,6 +311,15 @@ class TageswerteManager:
         rotate_logs()
 
 
+def get_tageswerte_manager(app_state: AppState) -> TageswerteManager:
+    """Liefert den dauerhaft verwendeten TageswerteManager dieses AppState."""
+    manager = getattr(app_state, "_tageswerte_manager", None)
+    if manager is None:
+        manager = TageswerteManager(app_state)
+        app_state._tageswerte_manager = manager
+    return manager
+
+
 async def reset_heute_werte(app_state: AppState):
     """Kompatibilität für bestehende Aufrufer."""
-    await TageswerteManager(app_state).reset_heute_werte()
+    await get_tageswerte_manager(app_state).reset_heute_werte()
