@@ -3,24 +3,18 @@ import os
 from quart import Quart
 import signal
 from units.web import routes
-from units.unit_hms import Hms
 from units.lifecycle import register_lifecycle
-from units.unit_solax import Solax
 from units.state import AppState
-from units.unit_strom import Strom
-from units.unit_dose import TuyaDoseManager, bp as dose_bp
+from units.device_factory import initialisiere_geraete
+from units.unit_dose import bp as dose_bp
 
 def create_app():
     app = Quart(__name__)
     app_state = AppState()
-    # Geräte initialisieren
-    app_state.hms = Hms(app_state)
-    app_state.solax = Solax(app_state)
-    app_state.strom = Strom(app_state)
+    # Geräte zentral initialisieren
+    initialisiere_geraete(app_state)
     # AppState für Web-Routen bereitstellen
     app.extensions["app_state"] = app_state
-    # Dose-Manager genau einmal erzeugen
-    app_state._dose_manager = TuyaDoseManager(app_state)
     app.extensions["server_shutdown_event"] = asyncio.Event()
     app.secret_key = (
         os.environ.get("QUART_SECRET_KEY")
