@@ -3,12 +3,11 @@ import logging
 import os
 import time
 
-import aiohttp
 from quart import Quart
 
 from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
 from units.calculations import astro_werte, get_nachtzeten
-from units.configuration import lade_einstellungen, lade_zugang
+from units.configuration import lade_einstellungen, lade_zugang, mache_session
 from units.history import lade_aktuell_csv
 from units.runner import get_app_runner, pruefe_48st
 from units.unit_battery import GrowattSessionManager
@@ -157,7 +156,7 @@ class LifecycleManager:
 
                 logger.info("Starte Hintergrund-Task (einmalig).")
                 app_state.is_shutting_down = False
-                app_state.session_push = aiohttp.ClientSession()
+                await mache_session(app_state, "session_push", timeout=10)
 
                 await app_state.growatt.init_session()
                 astro_werte(app_state)
