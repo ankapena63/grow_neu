@@ -4,11 +4,7 @@ import json
 import logging
 import aiohttp
 from aiohttp import ClientTimeout
-from units.calculations import (
-    mittelwert_get,
-    status_aktualisieren,
-    zeitstempel,
-)
+from units.calculations import MittelwertManager, StatusManager, ZeitstempelManager
 from units.configuration import mache_session
 from units.history import schreibe_in_roh, speichere_aktuell_wert
 from units.state import AppState
@@ -60,9 +56,9 @@ class Solax:
                             ),
                             "upload_zeit": data.get("uploadTime"),
                             "takt": takt,
-                            "zeit_meine": zeitstempel(),
+                            "zeit_meine": ZeitstempelManager.zeitstempel(),
                         }
-                        status_aktualisieren(app_state, "solax_c", takt)
+                        StatusManager.status_aktualisieren(app_state, "solax_c", takt)
                         return normalized
 
                     logger.error(
@@ -84,7 +80,7 @@ class Solax:
 
         alt_daten = alt_daten or {}
         alt_daten["fehler"] = "Solax API nicht erreichbar"
-        alt_daten["zeit_fehler"] = zeitstempel()
+        alt_daten["zeit_fehler"] = ZeitstempelManager.zeitstempel()
         logger.error(
             "[Solax C] Alle Versuche fehlgeschlagen. Rückfall auf alt_daten."
         )
@@ -118,18 +114,18 @@ class Solax:
                         schreibe_in_roh( app_state,"solax_l",json.loads(text) )
                         logger.info("Solax L✅ %s Sek V:%s", takt, versuch + 1)
                         aktuell = int(data[5]) if len(data) > 5 else -1
-                        app_state.solax_l_mittelwert = int( round(mittelwert_get( aktuell, app_state.solax_l_werte,  ), 0, ))
+                        app_state.solax_l_mittelwert = int( round(MittelwertManager.mittelwert_get( aktuell, app_state.solax_l_werte,  ), 0, ))
                         result = {
                             "sn": ( data[0][7:17] if len(data) > 0 and len(data[0]) >= 17  else "?" ),
                             "aktuell": aktuell,
                             "gesamt": (float(data[14]) / 10 if len(data) > 14  else -1),
                             "heute": ( float(data[16]) / 10    if len(data) > 16  else -1),
                             "takt": takt,
-                            "zeit_meine": zeitstempel(),
+                            "zeit_meine": ZeitstempelManager.zeitstempel(),
                         }
                         if app_state.einstellungen.get("aktuell_aktiv", True):
                             speichere_aktuell_wert( app_state, "solax", aktuell, )
-                        status_aktualisieren(app_state, "solax_l", takt)
+                        StatusManager.status_aktualisieren(app_state, "solax_l", takt)
                         app_state.solax_local = result
                         return result
                     logger.error("[Solax Local] HTTP %s bei Versuch %s",response.status,versuch + 1,  )
@@ -146,13 +142,13 @@ class Solax:
         #app_state.solax_l_mittelwert = 0
         result = app_state.solax_local.copy() if app_state.solax_local else {}
         result["fehler"] = f"Locale Solax-API nicht erreichbar ({url})"
-        result["zeit_fehler"] = zeitstempel()
+        result["zeit_fehler"] = ZeitstempelManager.zeitstempel()
         return result
 
     async def pruefe_local(self, zeit: float) -> None:
         app_state = self.app_state
         takt = self.takt_local
-        status_aktualisieren(app_state, "solax_l", takt,False)
+        StatusManager.status_aktualisieren(app_state, "solax_l", takt,False)
         if ( zeit - app_state.start_solax_l > takt
             or app_state.erste_abfrage
         ):
@@ -163,12 +159,12 @@ class Solax:
             app_state.solax_local["fehler"] = (
                 "Locale Solax-API zu lang nicht erreichbar"
             )
-            app_state.solax_local["zeit_fehler"] = zeitstempel()
+            app_state.solax_local["zeit_fehler"] = ZeitstempelManager.zeitstempel()
 
     async def pruefe_cloud(self, zeit: float) -> None:
         app_state = self.app_state
         takt = self.takt_cloud
-        status_aktualisieren(app_state, "solax_c", takt,False)
+        StatusManager.status_aktualisieren(app_state, "solax_c", takt,False)
         if zeit - app_state.start_solax_c > takt or app_state.erste_abfrage:
             logger.info("☁️ Solax C✅ %s Sek", takt)
             app_state.alle_daten["solax"] = await self.abfrage_cloud(
