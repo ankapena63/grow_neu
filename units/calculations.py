@@ -11,8 +11,17 @@ from units.state import AppState
 
 logger = logging.getLogger(__name__)
 
+class ZeitstempelManager:
+    """Kapselt die Erzeugung einheitlicher Zeitstempel."""
+
+    @staticmethod
+    def zeitstempel():
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def zeitstempel():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    """Kompatibilität für bestehende Aufrufer."""
+    return ZeitstempelManager.zeitstempel()
 
 class MittelwertManager:
     """Kapselt die laufende Mittelwertberechnung."""
