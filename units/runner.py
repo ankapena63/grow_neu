@@ -13,6 +13,7 @@ from units.state import AppState
 
 logger = logging.getLogger(__name__)
 
+
 async def sende_dazu(app_state: AppState, wert):
     """Kompatibilität für bisherige Aufrufer."""
     manager = DazuManager(app_state)
@@ -46,6 +47,7 @@ async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
     manager = KochenManager(app_state, rechne_dazu=rechne_dazu)
     await manager.pruefe_kochen(zeit)
 
+
 async def pruefe_48st(app_state: AppState, zeit: float) -> None:
     """Kompatibilität für bisherige Aufrufer."""
     manager = BackupManager(app_state)
@@ -61,8 +63,16 @@ class AppRunner:
         self.tageswerte_manager = TageswerteManager(app_state)
         self.zeit_manager = ZeitManager(app_state)
         self.backup_manager = BackupManager(app_state)
-        self.kochen_manager = KochenManager(app_state)
+        self.dazu_manager = DazuManager(app_state)
+        self.kochen_manager = KochenManager(
+            app_state,
+            rechne_dazu=self._rechne_dazu,
+        )
         self.geraete_manager = GeraeteManager(app_state)
+
+    async def _rechne_dazu(self, app_state: AppState) -> None:
+        """Verwendet den bereits angelegten DazuManager für Kochen-Abschaltungen."""
+        await self.dazu_manager.rechne_dazu()
 
     async def wiederholte_takt(self) -> None:
         app_state = self.app_state
@@ -77,7 +87,7 @@ class AppRunner:
         self.zeit_manager.pruefe_dazu_intervall(zeit_jetzt)
         await self.backup_manager.pruefe_48st(zeit_jetzt)
 
-        # Dose bleibt unverändert.
+        # Dose wird über den vorhandenen Manager geprüft.
         if app_state._dose_manager is None:
             logger.warning(
                 "[Dose] Manager ist nicht initialisiert"
@@ -85,7 +95,7 @@ class AppRunner:
         else:
             await app_state._dose_manager.pruefe(zeit_jetzt)
 
-        # Kochen bleibt unverändert.
+        # Kochen bleibt in der bisherigen Reihenfolge.
         if app_state.kochen:
             await self.kochen_manager.pruefe_kochen(zeit_jetzt)
 
