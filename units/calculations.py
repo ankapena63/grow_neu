@@ -239,6 +239,7 @@ class TageswerteManager:
         self.app_state = app_state
 
     async def reset_heute_werte(self) -> None:
+        app_state = self.app_state
         letzter_reset = app_state.einstellungen.get("tag_0", 0)
         aktueller_tag = date.today().timetuple().tm_yday
         if letzter_reset == aktueller_tag:
