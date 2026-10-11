@@ -41,16 +41,20 @@ async def sende_ntfy(session, nachricht: str, prio: int) -> bool:
     return await PushManager.sende_ntfy(session, nachricht, prio)
 
 
-async def sende_push(
-    app_state, nachricht, pause: int = 3600, prio: int = 3
-):
-    """Kompatibilität für bisherige Aufrufer mit dauerhaftem PushManager."""
+def get_push_manager(app_state: AppState) -> PushManager:
+    """Liefert den dauerhaft verwendeten PushManager dieses AppState."""
     manager = getattr(app_state, "_push_manager", None)
     if manager is None:
         manager = PushManager(app_state)
         app_state._push_manager = manager
+    return manager
 
-    await manager.sende_push(nachricht, pause, prio)
+
+async def sende_push(
+    app_state, nachricht, pause: int = 3600, prio: int = 3
+):
+    """Kompatibilität für bisherige Aufrufer."""
+    await get_push_manager(app_state).sende_push(nachricht, pause, prio)
 
 
 async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
