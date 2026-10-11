@@ -45,8 +45,13 @@ class SessionManager:
 
 
 async def mache_session(app_state, name, *, auth=None, headers=None, timeout=10):
-    """Kompatibilität für bestehende Aufrufer."""
-    return await SessionManager(app_state).erstelle(
+    """Kompatibilität für bestehende Aufrufer mit dauerhaftem SessionManager."""
+    manager = getattr(app_state, "_session_manager", None)
+    if manager is None:
+        manager = SessionManager(app_state)
+        app_state._session_manager = manager
+
+    return await manager.erstelle(
         name, auth=auth, headers=headers, timeout=timeout
     )
 
