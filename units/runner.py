@@ -74,13 +74,13 @@ def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
     manager.pruefe_dazu_intervall(zeit)
 
 
-aasync def pruefe_48st(app_state: AppState, zeit: float) -> None:
+async def pruefe_48st(app_state: AppState, zeit: float) -> None:
     """Kompatibilität für bisherige Aufrufer."""
     manager = BackupManager(app_state)
     await manager.pruefe_48st(zeit)
 
 
-lass AppRunner:
+class AppRunner:
     """Steuert den regelmäßigen Ablauf der Geräteabfragen."""
 
     def __init__(self, app_state: AppState):
