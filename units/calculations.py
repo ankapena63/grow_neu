@@ -14,12 +14,21 @@ logger = logging.getLogger(__name__)
 def zeitstempel():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-def mittelwert_get(wert,werte):
-    if wert is not None:
-        werte.append(wert)
-    if not werte:
-        return 0  # oder ein sinnvoller Standardwert wie 100
-    return sum(werte) / len(werte)
+class MittelwertManager:
+    """Kapselt die laufende Mittelwertberechnung."""
+
+    @staticmethod
+    def mittelwert_get(wert, werte):
+        if wert is not None:
+            werte.append(wert)
+        if not werte:
+            return 0
+        return sum(werte) / len(werte)
+
+
+def mittelwert_get(wert, werte):
+    """Kompatibilität für bestehende Aufrufer."""
+    return MittelwertManager.mittelwert_get(wert, werte)
 
 class SonnenManager:
     """Kapselt Sonnenaufgang, Sonnenuntergang und das Nachtfenster."""
