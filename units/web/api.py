@@ -10,7 +10,7 @@ from units.calculations import (
 )
 from units.configuration import speichere_einstellungen
 from units.history import lese_tageswerte0
-from units.web.dashboard import get_web_daten
+from units.web.web_data import web_data_manager
 from units.logg import log_buffer
 from units.state import AppState
 import logging
@@ -51,7 +51,7 @@ class ApiManager:
             ),
             "status": gereate_status(state.status_html),
             "solax_local": state.solax_local,
-            "web": get_web_daten(_app_state()),
+            "web": web_data_manager.get_web_daten(_app_state()),
             "akku_login": state.growatt.akku_login_daten,
             "kochen": kochen_web,
             "einstellungen": state.einstellungen,
@@ -129,7 +129,7 @@ class ApiManager:
 
         return jsonify({
             "Seite": "parameter_zugang",
-            "web_daten": get_web_daten(state),
+            "web_daten": web_data_manager.get_web_daten(state),
             "zugang": zugang_anzeigen,
         })
 
