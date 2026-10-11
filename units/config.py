@@ -31,7 +31,12 @@ STANDARD_ZUGANG= {
     "hms_name": "",
     "hms_pas": "",
 
-    "ip_iobroker": 57
+    "ip_iobroker": 57,
+
+    # Smart Dose – Zugangsdaten aus data/init_zugang.json
+    "dose_device_id": "",
+    "dose_ip": "192.168.178.41",
+    "dose_local_key": ""
 }
 
 STANDARD_EINSTELLUNGEN = {
