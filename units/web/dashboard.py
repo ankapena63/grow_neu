@@ -2,19 +2,9 @@
 from . import routes, _app_state
 from .web_data import web_data_manager
 from quart import redirect, render_template, request
-from units.calculations import (
-    get_heute_werte,
-    get_jahres_werte,
-    get_monats_werte,
-)
-from units.configuration import (
-    load_tageswerte,
-    run_sshd,
-    speichere_einstellungen,
-    start_sshd,
-    stop_sshd,
-)
-from units.runner import rechne_dazu
+from units.calculations import EnergiewerteManager
+from units.configuration import TagesdatenManager, SshManager, EinstellungenManager
+from units.runner import get_dazu_manager
 from units.state import AppState
 import logging
 import time
@@ -29,23 +19,23 @@ class DashboardManager:
             "tageswerte.html",
             web=web_data_manager.get_web_daten(state),
             einstellungen=state.einstellungen,
-            datei_daten0=load_tageswerte("tageswerte0.csv"),
+            datei_daten0=TagesdatenManager.laden("tageswerte0.csv"),
             headers=["Tag", "E🏠", "V🏠", "HMS", "🔋", "Sol"],
         )
 
     async def dashboard(self):
         state: AppState = _app_state()
-        state.einstellungen["server_sshd"] = run_sshd(state)
+        state.einstellungen["server_sshd"] = SshManager.laeuft(state)
         return await render_template(
             "dashboard.html",
             daten=state.alle_daten,
-            tag_daten=get_heute_werte(
+            tag_daten=EnergiewerteManager.get_heute_werte(
                 state.alle_daten, state.einstellungen
             ),
-            monat_daten=get_monats_werte(
+            monat_daten=EnergiewerteManager.get_monats_werte(
                 state.alle_daten, state.einstellungen
             ),
-            jahr_daten=get_jahres_werte(
+            jahr_daten=EnergiewerteManager.get_jahres_werte(
                 state.alle_daten, state.einstellungen
             ),
             einstellungen=state.einstellungen,
@@ -56,10 +46,10 @@ class DashboardManager:
 
     async def server_sshd(self):
         state = _app_state()
-        if run_sshd(state):
-            stop_sshd(state)
+        if SshManager.laeuft(state):
+            SshManager.stop(state)
         else:
-            start_sshd(state)
+            SshManager.start(state)
         return redirect("/")
 
     async def kochen_start(self):
@@ -99,13 +89,13 @@ class DashboardManager:
         state.einstellungen["kochen_soc_min"] = kochen_soc_min
         state.einstellungen["kochen_wert"] = kochen_wert
         if alt_soc_min != kochen_soc_min or alt_wert != kochen_wert:
-            await speichere_einstellungen(state, state.einstellungen)
+            await EinstellungenManager.speichere_einstellungen(state, state.einstellungen)
 
         state.kochen = True
         logging.info("KOCHEN An: für: %s min %s Watt", interval, kochen_wert)
         state.kochen_zeit = interval
         state.kochen_end = time.monotonic() + interval * 60
-        await rechne_dazu(state)
+        await get_dazu_manager(state).rechne_dazu()
         return {
             "ok": True,
             "kochen": True,
@@ -120,7 +110,7 @@ class DashboardManager:
         state.kochen = False
         state.kochen_zeit = 0.0
         state.kochen_end = 0.0
-        await rechne_dazu(state)
+        await get_dazu_manager(state).rechne_dazu()
         logging.info("KOCHEN Ausgeschaltet")
         return {"ok": True, "kochen": False}
 
