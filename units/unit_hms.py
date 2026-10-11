@@ -4,8 +4,7 @@ import logging
 import aiohttp
 from units.calculations import StatusManager, ZeitstempelManager
 from units.configuration import mache_session
-from units.history import schreibe_in_roh
-from units.history import speichere_aktuell_wert
+from units.history import get_history_manager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -40,7 +39,7 @@ class Hms:
                 ) as response:
                     response.raise_for_status()
                     data = await response.json()
-                    schreibe_in_roh(app_state, "hms", data)
+                    get_history_manager(app_state).schreibe_in_roh("hms", data)
                     total = data.get("total", {})
                     inverters = data.get("inverters", [])
                     inverter = inverters[0] if inverters else {}
@@ -155,10 +154,9 @@ class Hms:
             app_state.alle_daten["hms"] = await self.abfrage(app_state.alle_daten.get("hms", {}),takt)
             app_state.start_hms = zeit
             if app_state.einstellungen.get("aktuell_aktiv", True):
-                speichere_aktuell_wert(
-                    app_state,
+                get_history_manager(app_state).speichere_aktuell_wert(
                     "hms",
-                    app_state.alle_daten["hms"].get("aktuell", 0)
+                    app_state.alle_daten["hms"].get("aktuell", 0),
                 )
 
     async def pruefe_limit(self, zeit: float) -> None:
