@@ -10,8 +10,15 @@ logger = logging.getLogger(__name__)
 class KochenManager:
     """Prüft Laufzeit, Mindest-SOC und Nachtabschaltung beim Kochen."""
 
-    def __init__(self, app_state: AppState):
+    def __init__(self, app_state: AppState, rechne_dazu=None):
         self.app_state = app_state
+        self._rechne_dazu_callback = rechne_dazu
+
+    async def _rechne_dazu(self) -> None:
+        if self._rechne_dazu_callback is not None:
+            await self._rechne_dazu_callback(self.app_state)
+        else:
+            await DazuManager(self.app_state).rechne_dazu()
 
     async def pruefe_kochen(self, zeit: float) -> None:
         app_state = self.app_state
@@ -24,7 +31,7 @@ class KochenManager:
         ):
             app_state.kochen = False
             app_state.kochen_zeit = 0.0
-            await DazuManager(app_state).rechne_dazu()
+            await self._rechne_dazu()
             logger.info("KOCHEN AUS: SOC zu niedrig oder _Zeit abgelaufen")
             return
 
