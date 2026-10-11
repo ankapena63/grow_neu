@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 import aiohttp
-from units.calculations import status_aktualisieren, zeitstempel
+from units.calculations import StatusManager, ZeitstempelManager
 from units.configuration import mache_session
 from units.history import schreibe_in_roh
 from units.history import speichere_aktuell_wert
@@ -53,9 +53,9 @@ class Hms:
                         "reachable": inverter.get("reachable", False),
                         "takt": takt,
                         "serial": inverter.get("serial", ""),
-                        "zeit_meine": zeitstempel(),
+                        "zeit_meine": ZeitstempelManager.zeitstempel(),
                     }
-                    status_aktualisieren(app_state, "hms", takt)
+                    StatusManager.status_aktualisieren(app_state, "hms", takt)
                     return result
             except (aiohttp.ClientError, asyncio.TimeoutError) as error:
                 logger.warning(
@@ -71,7 +71,7 @@ class Hms:
         result = (alt_daten or {}).copy()
         result.update({
             "fehler": "HMS API nicht erreichbar",
-            "zeit_fehler": zeitstempel(),
+            "zeit_fehler": ZeitstempelManager.zeitstempel(),
         })
         logger.error("[HMS] Alle Versuche fehlgeschlagen.")
         return result
@@ -146,7 +146,7 @@ class Hms:
     async def pruefe(self, zeit: float) -> None:
         app_state = self.app_state
         takt=self.takt
-        status_aktualisieren(app_state, "hms", takt,False)
+        StatusManager.status_aktualisieren(app_state, "hms", takt,False)
 
         await self.pruefe_limit(zeit) 
         
