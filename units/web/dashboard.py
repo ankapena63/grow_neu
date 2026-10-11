@@ -1,5 +1,6 @@
 """Dashboard routes."""
 from . import routes, _app_state
+from .web_data import web_data_manager
 from quart import redirect, render_template, request
 from units.calculations import (
     get_heute_werte,
@@ -13,7 +14,6 @@ from units.configuration import (
     start_sshd,
     stop_sshd,
 )
-from units.calculations import haus_verbrauch_get
 from units.runner import rechne_dazu
 from units.state import AppState
 import logging
@@ -24,28 +24,8 @@ class DashboardManager:
     """Verwaltet Dashboard- und Anzeigefunktionen."""
 
     def get_web_daten(self, app_state: AppState) -> dict:
-        return {
-            "dazu": app_state.dazu,
-            "haus_verbrauch": haus_verbrauch_get(app_state),
-            "stunden_bis_nacht": app_state.stunden_bis_nacht,
-            "brauche_watt": app_state.brauche_watt,
-            "pro_stunde": app_state.pro_stunde,
-            "akku_sanft_zeit": app_state.akku_sanft_zeit,
-            "dazu_intervall": app_state.dazu_intervall,
-            "dazu_sanft_soc": app_state.dazu_sanft_soc,
-            "sonnenaufgang": app_state.sonnenaufgang,
-            "sonnenuntergang": app_state.sonnenuntergang,
-            "tageslange": app_state.tageslange,
-            "startnacht": app_state.startnacht,
-            "endnacht": app_state.endnacht,
-            "nachtzeit": app_state.nachtzeit,
-            "dose_mode": app_state.dose_mode,
-            "dose_relay_state": app_state.dose_relay_state,
-            "dose_watt": app_state.dose_watt,
-            "solax_l_mittelwert": app_state.solax_l_mittelwert,
-            "ppv_mittelwert": app_state.ppv_mittelwert,
-            "temperature": app_state.temperature,
-        }
+        """Kompatibilität: gemeinsame Datenstruktur zentral erzeugen."""
+        return web_data_manager.get_web_daten(app_state)
 
     async def tageswerte(self):
         state: AppState = _app_state()
