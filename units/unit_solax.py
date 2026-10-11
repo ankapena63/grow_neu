@@ -111,7 +111,7 @@ class Solax:
                         if len(data) < 17:
                             logger.error("[Solax Local] Daten unvollständig (Länge %s)",len(data))
                             continue
-                        schreibe_in_roh( app_state,"solax_l",json.loads(text) )
+                        get_history_manager(app_state).schreibe_in_roh("solax_l", json.loads(text))
                         logger.info("Solax L✅ %s Sek V:%s", takt, versuch + 1)
                         aktuell = int(data[5]) if len(data) > 5 else -1
                         app_state.solax_l_mittelwert = int( round(MittelwertManager.mittelwert_get( aktuell, app_state.solax_l_werte,  ), 0, ))
