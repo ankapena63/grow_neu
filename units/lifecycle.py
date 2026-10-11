@@ -11,7 +11,7 @@ from units.configuration import lade_einstellungen, lade_zugang, mache_session
 from units.history import lade_aktuell_csv
 from units.runner import get_app_runner, pruefe_48st
 from units.unit_battery import GrowattSessionManager
-from units.logg import setup_logging
+from units.logg import LogManager, setup_logging
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -22,25 +22,13 @@ class LifecycleManager:
 
     def configure_logging(self, app_state: AppState) -> None:
         """Richtet das Logging anhand der Einstellungen ein."""
-        levels = {
-            "ERROR": logging.ERROR,
-            "WARNING": logging.WARNING,
-            "INFO": logging.INFO,
-            "DEBUG": logging.DEBUG,
-        }
-
-        app_state.log_level = app_state.einstellungen.get(
-            "log_level", "INFO"
-        ).upper()
-        log_level = levels.get(app_state.log_level, logging.INFO)
+        app_state.log_level = LogManager.normalize_level(
+            app_state.einstellungen.get("log_level", "INFO")
+        )
+        log_level = LogManager.LEVELS[app_state.log_level]
 
         setup_logging(log_level)
-
-        root = logging.getLogger()
-        root.setLevel(log_level)
-
-        for handler in root.handlers:
-            handler.setLevel(log_level)
+        LogManager.set_level(log_level)
 
         logging.getLogger("tinytuya").setLevel(logging.WARNING)
         logging.getLogger("asyncio").setLevel(logging.ERROR)
