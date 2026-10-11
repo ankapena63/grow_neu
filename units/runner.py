@@ -5,6 +5,7 @@ import time
 from units.backup_manager import BackupManager
 from units.calculations import reset_heute_werte
 from units.dazu import DazuManager
+from units.kochen_manager import KochenManager
 from units.zeit_manager import ZeitManager
 from units.push import PushManager
 from units.state import AppState
@@ -46,27 +47,9 @@ def stunden_bis_nacht_get(app_state: AppState) -> float:
 
 
 async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
-    soc = app_state.soc
-    verbleibend = app_state.kochen_end - zeit
-    if (
-        soc < app_state.einstellungen.get("kochen_soc_min", 30)
-        or verbleibend <= 0
-    ):
-        app_state.kochen = False
-        app_state.kochen_zeit = 0.0
-        await rechne_dazu(app_state)
-        logger.info("KOCHEN AUS: SOC zu niedrig oder _Zeit abgelaufen")
-        return
-    if (
-        app_state.nachtzeit
-        and app_state.einstellungen.get("nacht_nur_0_schalter", False)
-    ):
-        logger.info("KOCHEN AUS:Nachts nur 0 Einp.")
-        app_state.kochen = False
-        app_state.kochen_zeit = 0.0
-        await rechne_dazu(app_state)
-        return
-    app_state.kochen_zeit = round(verbleibend / 60, 2)
+    """Kompatibilität für bisherige Aufrufer."""
+    manager = KochenManager(app_state)
+    await manager.pruefe_kochen(zeit)
 
 def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
     """Kompatibilität für bisherige Aufrufer."""
@@ -74,13 +57,13 @@ def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
     manager.pruefe_dazu_intervall(zeit)
 
 
-aasync def pruefe_48st(app_state: AppState, zeit: float) -> None:
+async def pruefe_48st(app_state: AppState, zeit: float) -> None:
     """Kompatibilität für bisherige Aufrufer."""
     manager = BackupManager(app_state)
     await manager.pruefe_48st(zeit)
 
 
-lass AppRunner:
+class AppRunner:
     """Steuert den regelmäßigen Ablauf der Geräteabfragen."""
 
     def __init__(self, app_state: AppState):
