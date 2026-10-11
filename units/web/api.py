@@ -98,10 +98,25 @@ async def get_parameter():
 @routes.route("/parameter_zugang", methods=["GET"])
 async def get_parameter_zugang():
     state: AppState = _app_state()
+
+    # Zugangsdaten niemals im Klartext über die JSON-Route ausgeben.
+    zugang_anzeigen = {}
+    for key, value in state.zugang.items():
+        name = key.lower()
+        ist_geheim = (
+            "password" in name
+            or "token" in name
+            or "secret" in name
+            or "local_key" in name
+            or name.endswith("_pas")
+        )
+        zugang_anzeigen[key] = "********" if ist_geheim and value else value
+
     return jsonify({
         "Seite": "parameter_zugang",
-        "web_daten" : get_web_daten(_app_state()),
-         "zugang"     :   state.zugang})
+        "web_daten": get_web_daten(state),
+        "zugang": zugang_anzeigen,
+    })
 
 @routes.route("/status", methods=["GET"])
 async def get_latest_status():
