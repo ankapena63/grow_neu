@@ -5,6 +5,7 @@ import time
 from units.history import speichere_aktuell_csv
 from units.calculations import reset_heute_werte
 from units.dazu import DazuManager
+from units.zeit_manager import ZeitManager
 from units.push import PushManager
 from units.state import AppState
 
@@ -39,30 +40,10 @@ async def sende_push(
 
 
 def stunden_bis_nacht_get(app_state: AppState) -> float:
-    jetzt = datetime.now()
-    max_s = app_state.einstellungen.get("max_soc", 99)
-    soc = app_state.soc
-    app_state.brauche_watt = round(
-        (max_s - soc) * app_state.einstellungen.get("watt_max", 4000) / 100,
-        2,
-    )
-    app_state.pro_stunde = app_state.brauche_watt
-    # 💡 Nutzt jetzt die im State berechnete Nachtzeit aus deiner Hauptschleife
-    if app_state.nachtzeit:
-        return 0.0
-    heute = jetzt.strftime("%Y-%m-%d")
-    start_zeit = datetime.strptime(
-        f"{heute} {app_state.startnacht}",
-        "%Y-%m-%d %H:%M",
-    )
-    diff = start_zeit - jetzt
-    stunden_bis_nacht = round(diff.total_seconds() / 3600, 2)
-    if stunden_bis_nacht > 1:
-        app_state.pro_stunde = round(
-            app_state.brauche_watt / stunden_bis_nacht,
-            2,
-        )
-    return stunden_bis_nacht
+    """Kompatibilität für bisherige Aufrufer."""
+    manager = ZeitManager(app_state)
+    return manager.stunden_bis_nacht_get()
+
 
 async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
     soc = app_state.soc
@@ -88,17 +69,10 @@ async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
     app_state.kochen_zeit = round(verbleibend / 60, 2)
 
 def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
-    verbleibend = round(
-        app_state.dazu_intervall_dauer * 60
-        - (zeit - app_state.dazu_intervall_start),
-        2,
-    )
-    if verbleibend <= 0:
-        app_state.dazu_intervall = 0.0
-        app_state.bool_dazu_intervall = False
-        app_state.akku_sanft_zeit = False
-    else:
-        app_state.dazu_intervall = round(verbleibend / 60, 2)
+    """Kompatibilität für bisherige Aufrufer."""
+    manager = ZeitManager(app_state)
+    manager.pruefe_dazu_intervall(zeit)
+
 
 async def pruefe_48st(app_state: AppState,zeit: float) -> None:
     if not app_state.einstellungen.get("aktuell_aktiv", True):
