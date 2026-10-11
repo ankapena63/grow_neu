@@ -2,6 +2,7 @@
 from datetime import datetime
 import logging
 import time
+
 from units.backup_manager import BackupManager
 from units.calculations import TageswerteManager
 from units.dazu import DazuManager
@@ -32,10 +33,7 @@ async def sende_ntfy(session, nachricht: str, prio: int) -> bool:
 
 
 async def sende_push(
-    app_state,
-    nachricht,
-    pause: int = 3600,
-    prio: int = 3,
+    app_state, nachricht, pause: int = 3600, prio: int = 3
 ):
     """Kompatibilität für bisherige Aufrufer."""
     manager = PushManager(app_state)
@@ -55,26 +53,29 @@ async def pruefe_48st(app_state: AppState, zeit: float) -> None:
 
 
 class AppRunner:
-    """Steuert den regelmäßigen Ablauf der Geräteabfragen."""
-
     def __init__(self, app_state: AppState):
         self.app_state = app_state
-        # Manager-Objekte einmal anlegen und über alle Takte wiederverwenden.
+
         self.tageswerte_manager = TageswerteManager(app_state)
         self.zeit_manager = ZeitManager(app_state)
         self.backup_manager = BackupManager(app_state)
         self.dazu_manager = DazuManager(app_state)
         self.kochen_manager = KochenManager(
-            app_state,
-            rechne_dazu=self._rechne_dazu,
+            app_state, rechne_dazu=self._rechne_dazu
         )
-        self.geraete_manager = GeraeteManager(app_state)
+
+        # Die vorhandenen Geräteobjekte werden direkt übergeben.
+        self.geraete_manager = GeraeteManager(
+            app_state.growatt,
+            app_state.solax,
+            app_state.hms,
+            app_state.strom,
+        )
 
     async def _rechne_dazu(self, app_state: AppState) -> None:
-        """Verwendet den bereits angelegten DazuManager für Kochen-Abschaltungen."""
         await self.dazu_manager.rechne_dazu()
 
-    async def wiederholte_takt(self) -> None:
+    async def wiederholte_takt(self):
         app_state = self.app_state
 
         await self.tageswerte_manager.reset_heute_werte()
@@ -82,30 +83,27 @@ class AppRunner:
         jetzt = datetime.now()
         zeit_jetzt = time.monotonic()
 
-        self.zeit_manager.aktualisiere_zeitstatus(jetzt, zeit_jetzt)
-
+        self.zeit_manager.aktualisiere_zeitstatus(
+            jetzt, zeit_jetzt
+        )
         self.zeit_manager.pruefe_dazu_intervall(zeit_jetzt)
+
         await self.backup_manager.pruefe_48st(zeit_jetzt)
 
-        # Dose wird über den vorhandenen Manager geprüft.
         if app_state._dose_manager is None:
-            logger.warning(
-                "[Dose] Manager ist nicht initialisiert"
-            )
+            logger.warning("[Dose] Manager ist nicht initialisiert")
         else:
             await app_state._dose_manager.pruefe(zeit_jetzt)
 
-        # Kochen bleibt in der bisherigen Reihenfolge.
         if app_state.kochen:
             await self.kochen_manager.pruefe_kochen(zeit_jetzt)
 
-        # Geräteabfragen in der bisherigen Reihenfolge.
         await self.geraete_manager.pruefe_geraete(zeit_jetzt)
 
         app_state.erste_abfrage = False
 
 
-async def wiederholte_takt(app_state: AppState) -> None:
+async def wiederholte_takt(app_state: AppState):
     """Übergang für bestehende Aufrufer."""
     runner = AppRunner(app_state)
     await runner.wiederholte_takt()
