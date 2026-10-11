@@ -6,6 +6,7 @@ from units.backup_manager import BackupManager
 from units.calculations import reset_heute_werte
 from units.dazu import DazuManager
 from units.kochen_manager import KochenManager
+from units.geraete_manager import GeraeteManager
 from units.zeit_manager import ZeitManager
 from units.push import PushManager
 from units.state import AppState
@@ -110,10 +111,7 @@ class AppRunner:
             await pruefe_kochen(app_state, zeit_jetzt)
 
         # Geräteabfragen in der bisherigen Reihenfolge.
-        await app_state.growatt.pruefe(zeit_jetzt)
-        await app_state.solax.pruefe(zeit_jetzt)
-        await app_state.hms.pruefe(zeit_jetzt)
-        await app_state.strom.pruefe(zeit_jetzt)
+        await GeraeteManager(app_state).pruefe_geraete(zeit_jetzt)
 
         app_state.erste_abfrage = False
 
