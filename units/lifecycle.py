@@ -9,7 +9,7 @@ from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
 from units.calculations import SonnenManager
 from units.configuration import EinstellungenManager, mache_session
 from units.history import get_history_manager
-from units.runner import get_app_runner, pruefe_48st
+from units.runner import get_app_runner, get_backup_manager
 from units.unit_battery import GrowattSessionManager
 from units.logg import LogManager, setup_logging
 from units.state import AppState
@@ -193,7 +193,7 @@ class LifecycleManager:
             shutdown_succeeded = True
 
             try:
-                await pruefe_48st(app_state, 0)
+                await get_backup_manager(app_state).pruefe_48st(0)
             except Exception:
                 shutdown_succeeded = False
                 logger.exception("Fehler beim Speichern der 48h-Daten.")
