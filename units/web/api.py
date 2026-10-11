@@ -2,14 +2,9 @@
 from . import routes, _app_state
 from datetime import date, datetime
 from quart import jsonify, request
-from units.calculations import (
-    gereate_status,
-    get_heute_werte,
-    get_jahres_werte,
-    get_monats_werte,
-)
-from units.configuration import speichere_einstellungen
-from units.history import lese_tageswerte0
+from units.calculations import EnergiewerteManager, StatusManager
+from units.configuration import EinstellungenManager
+from units.history import TageshistorieManager
 from units.web.web_data import web_data_manager
 from units.logg import LogManager, log_buffer
 from units.state import AppState
@@ -40,16 +35,16 @@ class ApiManager:
 
         return {
             "daten": state.alle_daten,
-            "tag_daten": get_heute_werte(
+            "tag_daten": EnergiewerteManager.get_heute_werte(
                 state.alle_daten, state.einstellungen
             ),
-            "monat_daten": get_monats_werte(
+            "monat_daten": EnergiewerteManager.get_monats_werte(
                 state.alle_daten, state.einstellungen
             ),
-            "jahr_daten": get_jahres_werte(
+            "jahr_daten": EnergiewerteManager.get_jahres_werte(
                 state.alle_daten, state.einstellungen
             ),
-            "status": gereate_status(state.status_html),
+            "status": StatusManager.gereate_status(state.status_html),
             "solax_local": state.solax_local,
             "web": web_data_manager.get_web_daten(_app_state()),
             "akku_login": state.growatt.akku_login_daten,
@@ -147,9 +142,9 @@ class ApiManager:
     async def tages(self):
         state: AppState = _app_state()
         return jsonify(
-            get_heute_werte(state.alle_daten, state.einstellungen),
-            get_monats_werte(state.alle_daten, state.einstellungen),
-            get_jahres_werte(state.alle_daten, state.einstellungen),
+            EnergiewerteManager.get_heute_werte(state.alle_daten, state.einstellungen),
+            EnergiewerteManager.get_monats_werte(state.alle_daten, state.einstellungen),
+            EnergiewerteManager.get_jahres_werte(state.alle_daten, state.einstellungen),
         )
 
     def roh(self):
@@ -160,7 +155,7 @@ class ApiManager:
         jahr = int(request.args.get("jahr", date.today().year))
         monat = int(request.args.get("monat", date.today().month))
         modus = request.args.get("modus", "monat")
-        tageswerte = lese_tageswerte0()
+        tageswerte = TageshistorieManager.lese_tageswerte0()
 
         # Jahresansicht
         if modus == "jahr":
@@ -363,7 +358,7 @@ class ApiManager:
 
         state.log_level = level
         state.einstellungen["log_level"] = level
-        await speichere_einstellungen(
+        await EinstellungenManager.speichere_einstellungen(
             _app_state(), state.einstellungen
         )
 
