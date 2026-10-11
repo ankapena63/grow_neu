@@ -28,16 +28,16 @@ class AppState:
             "dose": {}
         }
         self.roh: dict[str, dict[str, Any]] = {
-            "tasmota": {"Fehler": "Noch kine daten"},
-            "hms": {"Fehler": "Noch kine daten"},
-            "akku_login": {"Fehler": "Noch kine daten"},
-            "akku_token": {"Fehler": "Noch kine daten"},
-            "akku_status": {"Fehler": "Noch kine daten"},
-            "solax_l": {"Fehler": "Noch kine daten"},
-            "solax_c": {"Fehler": "Noch kine daten"},
-            "dose": {"Fehler": "Noch kine daten"},
-            "sml": {"Fehler": "Noch kine daten"},
-            "iobrocker": {"Fehler": "Noch kine daten"}
+            "tasmota": {"Fehler": "Noch keine daten"},
+            "hms": {"Fehler": "Noch keine daten"},
+            "akku_login": {"Fehler": "Noch kiene daten"},
+            "akku_token": {"Fehler": "Noch keine daten"},
+            "akku_status": {"Fehler": "Noch keine daten"},
+            "solax_l": {"Fehler": "Noch kiene daten"},
+            "solax_c": {"Fehler": "Noch keine daten"},
+            "dose": {"Fehler": "Noch keine daten"},
+            "sml": {"Fehler": "Noch keine daten"},
+            "iobrocker": {"Fehler": "Noch keine daten"}
         }
         self.einstellungen: dict[str, Any] = {}
         self.zugang: dict[str, Any] = {}
