@@ -235,34 +235,62 @@ async def pruefe_48st(app_state: AppState,zeit: float) -> None:
             if zeit != 0:
                 app_state.aktuell_letztes_speichern = zeit
 
+class AppRunner:
+    """Steuert den regelmäßigen Ablauf der Geräteabfragen."""
+
+    def __init__(self, app_state: AppState):
+        self.app_state = app_state
+
+    async def wiederholte_takt(self) -> None:
+        app_state = self.app_state
+
+        await reset_heute_werte(app_state)
+
+        jetzt = datetime.now()
+        now = jetzt.strftime("%H:%M")
+        zeit_jetzt = time.monotonic()
+
+        app_state.nachtzeit = (
+            app_state.startnacht <= now
+            or now <= app_state.endnacht
+        )
+
+        app_state.stunden_bis_nacht = (
+            stunden_bis_nacht_get(app_state)
+        )
+
+        app_state.benutzer_activ = (
+            zeit_jetzt - app_state.last_activity
+            < app_state.einstellungen.get(
+                "takt_benutzrer_activ", 10
+            )
+        )
+
+        pruefe_dazu_intervall(app_state, zeit_jetzt)
+        await pruefe_48st(app_state, zeit_jetzt)
+
+        # Dose bleibt unverändert.
+        if app_state._dose_manager is None:
+            logger.warning(
+                "[Dose] Manager ist nicht initialisiert"
+            )
+        else:
+            await app_state._dose_manager.pruefe(zeit_jetzt)
+
+        # Kochen bleibt unverändert.
+        if app_state.kochen:
+            await pruefe_kochen(app_state, zeit_jetzt)
+
+        # Geräteabfragen in der bisherigen Reihenfolge.
+        await app_state.growatt.pruefe(zeit_jetzt)
+        await app_state.solax.pruefe(zeit_jetzt)
+        await app_state.hms.pruefe(zeit_jetzt)
+        await app_state.strom.pruefe(zeit_jetzt)
+
+        app_state.erste_abfrage = False
+
+
 async def wiederholte_takt(app_state: AppState) -> None:
-    await reset_heute_werte(app_state)
-    jetzt = datetime.now()
-    now = jetzt.strftime("%H:%M")
-    zeit_jetzt = time.monotonic()
-    #nullen = app_state.einstellungen.get("hms_bekommt_null", False)
-
-    app_state.nachtzeit = app_state.startnacht <= now or now <= app_state.endnacht
-    app_state.stunden_bis_nacht = stunden_bis_nacht_get(app_state)
-    app_state.benutzer_activ = (
-        zeit_jetzt - app_state.last_activity
-        < app_state.einstellungen.get("takt_benutzrer_activ", 10)
-    )    
-    pruefe_dazu_intervall(app_state, zeit_jetzt)
-    await pruefe_48st(app_state, zeit_jetzt)
-
-    if app_state._dose_manager is None:
-        logger.warning("[Dose] Manager ist nicht initialisiert")
-    else:
-        await app_state._dose_manager.pruefe(zeit_jetzt)
-    
-    if app_state.kochen:
-        await pruefe_kochen(app_state, zeit_jetzt)
-
-    await app_state.growatt.pruefe(zeit_jetzt)
-    await app_state.solax.pruefe(zeit_jetzt)  #beide 
-    await app_state.hms.pruefe(zeit_jetzt)
-    await app_state.strom.pruefe(zeit_jetzt)
-    
-    app_state.erste_abfrage = False
-
+    """Übergang für bestehende Aufrufer."""
+    runner = AppRunner(app_state)
+    await runner.wiederholte_takt()
