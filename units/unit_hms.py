@@ -148,7 +148,7 @@ class Hms:
         takt=self.takt
         status_aktualisieren(app_state, "hms", takt,False)
 
-        await app_state.hms.pruefe_limit(zeit) 
+        await self.pruefe_limit(zeit) 
         
         if zeit - app_state.start_hms > takt or app_state.erste_abfrage:
             logger.info("📡 HMS✅ %s Sek", takt)
