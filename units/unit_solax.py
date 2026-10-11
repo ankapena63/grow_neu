@@ -6,7 +6,7 @@ import aiohttp
 from aiohttp import ClientTimeout
 from units.calculations import MittelwertManager, StatusManager, ZeitstempelManager
 from units.configuration import mache_session
-from units.history import schreibe_in_roh, speichere_aktuell_wert
+from units.history import get_history_manager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class Solax:
                     result = await response.json()
 
                     if result.get("success") and "result" in result:
-                        schreibe_in_roh(app_state, "solax_c", result)
+                        get_history_manager(app_state).schreibe_in_roh("solax_c", result)
                         data = result["result"]
                         normalized = {
                             "heute": float(data.get("yieldtoday", 0.0)),
@@ -124,7 +124,7 @@ class Solax:
                             "zeit_meine": ZeitstempelManager.zeitstempel(),
                         }
                         if app_state.einstellungen.get("aktuell_aktiv", True):
-                            speichere_aktuell_wert( app_state, "solax", aktuell, )
+                            get_history_manager(app_state).speichere_aktuell_wert("solax", aktuell, )
                         StatusManager.status_aktualisieren(app_state, "solax_l", takt)
                         app_state.solax_local = result
                         return result
