@@ -216,21 +216,6 @@ def haus_verbrauch_get(app_state):
     """Kompatibilität für bestehende Aufrufer."""
     return StatusManager.haus_verbrauch_get(app_state)
 
-def get_nachtzeten(app_state: AppState):
-    try:
-        sunrise_str = app_state.sonnenaufgang
-        sunset_str = app_state.sonnenuntergang
-        if sunrise_str and sunset_str:
-            sunrise = datetime.strptime(sunrise_str, "%H:%M:%S")
-            sunset = datetime.strptime(sunset_str, "%H:%M:%S")
-            kor_aufgang = app_state.einstellungen.get("kor_aufgang", 0)
-            kor_unter = app_state.einstellungen.get("kor_unter", 0)
-            startnacht = sunset - timedelta(minutes=kor_unter)
-            endnacht = sunrise + timedelta(minutes=kor_aufgang)
-            app_state.startnacht = startnacht.strftime("%H:%M")
-            app_state.endnacht = endnacht.strftime("%H:%M")
-    except Exception:
-        logger.exception("Nachtfenster konnte nicht berechnet werden")
 
 class TageswerteManager:
     """Verwaltet Tages-, Monats- und Jahreswechsel für einen AppState."""
