@@ -13,17 +13,6 @@ from . import HOME_DIR
 logger = logging.getLogger(__name__)
 
 
-def safe_path(base, name):
-    base_path = Path(base).resolve()
-    target = (base_path / name).resolve()
-
-    # Schutz: nicht außerhalb des Basisordners
-    if base_path not in target.parents and base_path != target:
-        raise ValueError("Ungültiger Pfad!")
-
-    return target
-
-
 class ExplorerManager:
     """Verwaltet die Datei- und Ordneroperationen des Explorers."""
 
