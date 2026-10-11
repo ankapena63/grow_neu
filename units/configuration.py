@@ -8,37 +8,47 @@ logger = logging.getLogger(__name__)
 INIT_FILE   = DATA_DIR / "init.json"
 INIT_ZUGANG = DATA_DIR / "init_zugang.json"
 
-async def mache_session(app_state, name, *, auth=None, headers=None, timeout=10):
-    """
-    Universelle Session-Factory:
-    - name: Name des Session-Attributes im state
-    - auth: aiohttp.BasicAuth(...) oder None
-    - headers: Default-Header für alle Requests
-    - timeout: globaler Timeout für die Session
-    """
-    session = getattr(app_state, name, None)
-    if session is None or session.closed:
-        connector = aiohttp.TCPConnector(
-           limit=20,
-           keepalive_timeout=60,
-           limit_per_host=10,
-           ttl_dns_cache=300,
-           enable_cleanup_closed=True
-        )
-        session = aiohttp.ClientSession(
-            connector=connector,
-            auth=auth,
-            headers=headers,
-            timeout=aiohttp.ClientTimeout(
-                total=timeout,
-                connect=5,
-                sock_connect=5,
-                sock_read=5,
+class SessionManager:
+    """Kapselt die Erstellung und Wiederverwendung von aiohttp-Sessions."""
+
+    def __init__(self, app_state):
+        self.app_state = app_state
+
+    async def erstelle(self, name, *, auth=None, headers=None, timeout=10):
+        """
+        Gibt die benannte Session zurück oder erstellt sie bei Bedarf neu.
+        """
+        app_state = self.app_state
+        session = getattr(app_state, name, None)
+        if session is None or session.closed:
+            connector = aiohttp.TCPConnector(
+                limit=20,
+                keepalive_timeout=60,
+                limit_per_host=10,
+                ttl_dns_cache=300,
+                enable_cleanup_closed=True,
             )
-        )
-        setattr(app_state, name, session)
-        logger.info(f"Neue Session erstellt: {name}")
-    return session
+            session = aiohttp.ClientSession(
+                connector=connector,
+                auth=auth,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(
+                    total=timeout,
+                    connect=5,
+                    sock_connect=5,
+                    sock_read=5,
+                ),
+            )
+            setattr(app_state, name, session)
+            logger.info("Neue Session erstellt: %s", name)
+        return session
+
+
+async def mache_session(app_state, name, *, auth=None, headers=None, timeout=10):
+    """Kompatibilität für bestehende Aufrufer."""
+    return await SessionManager(app_state).erstelle(
+        name, auth=auth, headers=headers, timeout=timeout
+    )
 
 def load_tageswerte(name="tageswerte0.csv"):
     dateiname = DATA_DIR / name
