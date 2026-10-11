@@ -41,22 +41,10 @@ async def sende_push(
     await manager.sende_push(nachricht, pause, prio)
 
 
-def stunden_bis_nacht_get(app_state: AppState) -> float:
-    """Kompatibilität für bisherige Aufrufer."""
-    manager = ZeitManager(app_state)
-    return manager.stunden_bis_nacht_get()
-
-
 async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
-    """Kompatibilität für bisherige Aufrufer."""
-    manager = KochenManager(app_state)
+    """Kompatibilität für bisherige Aufrufer und Tests."""
+    manager = KochenManager(app_state, rechne_dazu=rechne_dazu)
     await manager.pruefe_kochen(zeit)
-
-def pruefe_dazu_intervall(app_state: AppState, zeit: float) -> None:
-    """Kompatibilität für bisherige Aufrufer."""
-    manager = ZeitManager(app_state)
-    manager.pruefe_dazu_intervall(zeit)
-
 
 async def pruefe_48st(app_state: AppState, zeit: float) -> None:
     """Kompatibilität für bisherige Aufrufer."""
