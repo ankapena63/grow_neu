@@ -104,58 +104,66 @@ async def _close_network_resources(app_state: AppState) -> bool:
                 logger.exception("Fehler beim Schließen von %s", attr_name)
     return cleanup_succeeded
 
+class LifecycleManager:
+    """Kapselt Start und geordnetes Beenden der Quart-Anwendung."""
+
+    def register(self, app: Quart) -> None:
+        @app.before_serving
+        async def init_daten() -> None:
+            app_state = app.extensions["app_state"]
+            try:
+                _load_configuration(app_state)
+                if not ( os.environ.get("QUART_SECRET_KEY") or os.environ.get("SECRET_KEY")):
+                    logger.warning( "QUART_SECRET_KEY nicht gesetzt -verwende temporären Fallback-Wert.")
+                logger.info("Starte Hintergrund-Task (einmalig).")
+                app_state.is_shutting_down = False
+                app_state.session_push = aiohttp.ClientSession()
+                await app_state.growatt.init_session()
+                astro_werte(app_state)
+                get_nachtzeten(app_state)
+                await lade_aktuell_csv(app_state)
+                app_state.aktuell_letztes_speichern = time.monotonic()
+                runner = AppRunner(app_state)
+
+                async def safe_background_task() -> None:
+                    async with app.app_context():
+                        while True:
+                            try:
+                                await runner.wiederholte_takt()
+                            except Exception:
+                                logger.exception("[Hintergrundfehler_init]")
+                            await asyncio.sleep(
+                                app_state.einstellungen.get("intervall_takt", 5)
+                            )
+                app.add_background_task(safe_background_task)
+                logger.info("[Startup] Initialisierung & Hintergrund-Task laufen.")
+            except BaseException:
+                logger.exception("[Startup] Initialisierung fehlgeschlagen.")
+                await _close_network_resources(app_state)
+                raise
+
+        @app.after_serving
+        async def shutdown() -> None:
+            app_state = app.extensions["app_state"]
+            if getattr(app_state, "is_shutting_down", False):
+                return
+            app_state.is_shutting_down = True
+            logger.info("System-Shutdown eingeleitet.")
+            shutdown_succeeded = True
+            try:
+                await pruefe_48st(app_state, 0)
+            except Exception:
+                shutdown_succeeded = False
+                logger.exception("Fehler beim Speichern der 48h-Daten.")
+            logger.info("Schließe Netzwerk-Sessions...")
+            if not await _close_network_resources(app_state):
+                shutdown_succeeded = False
+            if shutdown_succeeded:
+                logger.info("Shutdown erfolgreich beendet.")
+            else:
+                logger.error("Shutdown beendet, aber nicht alle Schritte waren erfolgreich.")
+
+
 def register_lifecycle(app: Quart) -> None:
-    @app.before_serving
-    async def init_daten() -> None:
-        app_state = app.extensions["app_state"]
-        try:
-            _load_configuration(app_state)
-            if not ( os.environ.get("QUART_SECRET_KEY") or os.environ.get("SECRET_KEY")):
-                logger.warning( "QUART_SECRET_KEY nicht gesetzt -verwende temporären Fallback-Wert.")
-            logger.info("Starte Hintergrund-Task (einmalig).")
-            app_state.is_shutting_down = False
-            app_state.session_push = aiohttp.ClientSession()
-            await app_state.growatt.init_session()
-            astro_werte(app_state)
-            get_nachtzeten(app_state)
-            await lade_aktuell_csv(app_state)
-            app_state.aktuell_letztes_speichern = time.monotonic()
-            runner = AppRunner(app_state)
-
-            async def safe_background_task() -> None:
-                async with app.app_context():
-                    while True:
-                        try:
-                            await runner.wiederholte_takt()
-                        except Exception:
-                            logger.exception("[Hintergrundfehler_init]")
-                        await asyncio.sleep(
-                            app_state.einstellungen.get("intervall_takt", 5)
-                        )
-            app.add_background_task(safe_background_task)
-            logger.info("[Startup] Initialisierung & Hintergrund-Task laufen.")
-        except BaseException:
-            logger.exception("[Startup] Initialisierung fehlgeschlagen.")
-            await _close_network_resources(app_state)
-            raise
-
-    @app.after_serving
-    async def shutdown() -> None:
-        app_state = app.extensions["app_state"]
-        if getattr(app_state, "is_shutting_down", False):
-            return
-        app_state.is_shutting_down = True
-        logger.info("System-Shutdown eingeleitet.")
-        shutdown_succeeded = True
-        try:
-            await pruefe_48st(app_state, 0)
-        except Exception:
-            shutdown_succeeded = False
-            logger.exception("Fehler beim Speichern der 48h-Daten.")
-        logger.info("Schließe Netzwerk-Sessions...")
-        if not await _close_network_resources(app_state):
-            shutdown_succeeded = False
-        if shutdown_succeeded:
-            logger.info("Shutdown erfolgreich beendet.")
-        else:
-            logger.error("Shutdown beendet, aber nicht alle Schritte waren erfolgreich.")
+    """Kompatibilität für bestehende Aufrufer."""
+    LifecycleManager().register(app)
