@@ -2,13 +2,10 @@
 import asyncio
 from . import routes, _app_state
 from quart import current_app, flash, jsonify, redirect, render_template, request
-from units.configuration import (
-    speichere_einstellungen,
-    speichere_zugang,
-)
+from units.configuration import EinstellungenManager
 from units.web.web_data import web_data_manager
 from units.unit_battery import GrowattSessionManager
-from units.calculations import get_nachtzeten
+from units.calculations import SonnenManager
 from units.runner import rechne_dazu
 from units.state import AppState
 import time
@@ -60,7 +57,7 @@ class SettingsManager:
                         key = mapping[sid]
                         state.einstellungen[key] = status
                 # Alles dauerhaft in die Datei schreiben
-                await speichere_einstellungen(_app_state(), state.einstellungen)
+                await EinstellungenManager.speichere_einstellungen(state, state.einstellungen)
                 await rechne_dazu(_app_state())     #  auch mit smart sinchton           
                 return jsonify({"success": True,
                                 "nacht_nur_0_schalter": state.einstellungen.get('nacht_nur_0_schalter', False)})       
@@ -126,7 +123,7 @@ class SettingsManager:
                         }), 500
             # Erst nach erfolgreichem Setzen speichern
             state.einstellungen[field] = value
-            await speichere_einstellungen(_app_state(), state.einstellungen)
+            await EinstellungenManager.speichere_einstellungen(state, state.einstellungen)
             logger.info("[SOC] RESULTS: %r", results)
             logger.info("[SOC] TYPE: %s", type(results))
             return jsonify(results)
@@ -154,7 +151,7 @@ class SettingsManager:
                         pass
                  else:
                     state.zugang[key] = value
-            await speichere_zugang(_app_state(), state.zugang)
+            await EinstellungenManager.speichere_zugang(state, state.zugang)
             
     # Alte Session schließen, falls schon existiert
             if hasattr(state, "growatt") and state.growatt.session:
@@ -197,7 +194,7 @@ class SettingsManager:
            state.einstellungen["kor_unter"] = int(form.get("kor_unter", 60))
         except ValueError:
            state.einstellungen["kor_unter"] = 60
-        get_nachtzeten(_app_state())
+        SonnenManager.get_nachtzeten(state)
     
     # Sicheres Parsen der Checkbox (immer vorhanden durch hidden input)
         state.einstellungen["akku_entladen"] = "true" in form.getlist("akku_entladen")
@@ -269,7 +266,7 @@ class SettingsManager:
            flash(f"Ungültige Eingabe bei Akku-Parametern: {e}")
            return jsonify({"success": False, "message": f"Ungültige Eingabe bei Akku-Parametern: {e}"})
     
-        await speichere_einstellungen(_app_state(), state.einstellungen)
+        await EinstellungenManager.speichere_einstellungen(state, state.einstellungen)
         await rechne_dazu(_app_state())     #  auch mit smart sinchton
     
         # JSON zurückgeben, damit der Browser die Toasts anzeigen kann
@@ -285,7 +282,7 @@ class SettingsManager:
         state.einstellungen["aktuell_aktiv"] = status
         logger.info("Daten 48h Speicherng: %s",status)
         state.takt_geaendert =True
-        await speichere_einstellungen(_app_state(), state.einstellungen)
+        await EinstellungenManager.speichere_einstellungen(state, state.einstellungen)
         return jsonify({
             "aktuell_aktiv": status
         })
