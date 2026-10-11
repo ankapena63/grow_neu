@@ -132,7 +132,7 @@ class Solax:
                     await asyncio.sleep(basis_wartezeit * (2 ** versuch))
 
         logger.error("[Solax Local] Alle Versuche fehlgeschlagen. Fallback.")
-        app_state.solax_l_mittelwert = 0
+        #app_state.solax_l_mittelwert = 0
         result = app_state.solax_local.copy() if app_state.solax_local else {}
         result["fehler"] = f"Locale Solax-API nicht erreichbar ({url})"
         result["zeit_fehler"] = zeitstempel()
