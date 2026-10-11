@@ -15,15 +15,24 @@ from units.state import AppState
 logger = logging.getLogger(__name__)
 
 
+def get_dazu_manager(app_state: AppState) -> DazuManager:
+    """Liefert den dauerhaft verwendeten DazuManager dieses AppState."""
+    manager = getattr(app_state, "_dazu_manager", None)
+    if manager is None:
+        manager = DazuManager(app_state)
+        app_state._dazu_manager = manager
+    return manager
+
+
 async def sende_dazu(app_state: AppState, wert):
     """Kompatibilität für bisherige Aufrufer."""
-    manager = DazuManager(app_state)
+    manager = get_dazu_manager(app_state)
     await manager.sende_dazu(wert)
 
 
 async def rechne_dazu(app_state: AppState):
     """Kompatibilität für bisherige Aufrufer."""
-    manager = DazuManager(app_state)
+    manager = get_dazu_manager(app_state)
     await manager.rechne_dazu()
 
 
@@ -72,7 +81,7 @@ class AppRunner:
         self.tageswerte_manager = TageswerteManager(app_state)
         self.zeit_manager = ZeitManager(app_state)
         self.backup_manager = BackupManager(app_state)
-        self.dazu_manager = DazuManager(app_state)
+        self.dazu_manager = get_dazu_manager(app_state)
         self.kochen_manager = KochenManager(
             app_state, rechne_dazu=self._rechne_dazu
         )
