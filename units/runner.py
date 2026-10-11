@@ -67,7 +67,7 @@ async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
         if manager is None:
             manager = KochenManager(
                 app_state,
-                rechne_dazu=lambda state: rechne_dazu(state),
+                dazu_manager=get_dazu_manager(app_state),
             )
             app_state._kochen_manager = manager
 
