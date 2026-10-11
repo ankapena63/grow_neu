@@ -15,22 +15,24 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
-async def _stop_server_after_response(
-    shutdown_event: asyncio.Event,
-    delay: float = 0.5,
-) -> None:
-    await asyncio.sleep(delay)
-    shutdown_event.set()
-
 class SettingsManager:
+    """Kapselt Einstellungen und deren zugehörige Web-Aktionen."""
 
-    async def shutdown_server(self,):
+    async def _stop_server_after_response(
+        self,
+        shutdown_event: asyncio.Event,
+        delay: float = 0.5,
+    ) -> None:
+        await asyncio.sleep(delay)
+        shutdown_event.set()
+
+    async def shutdown_server(self):
         shutdown_event = current_app.extensions.get("server_shutdown_event")
         if shutdown_event is None:
             return jsonify({"success": False, "message": "Server-Abschaltung ist nicht verfügbar."}), 503
     
         current_app.add_background_task(
-            _stop_server_after_response,
+            self._stop_server_after_response,
             shutdown_event,
             5,
         )
