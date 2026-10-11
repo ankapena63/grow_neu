@@ -104,17 +104,18 @@ class TuyaDoseManager:
         try:
             data = await self._async_status()
             schreibe_in_roh(self.app_state, "dose", data)
-            
+
             if not data or "dps" not in data:
                 logger.error("Dose nicht erreichbar")
                 return None
-                
+
             is_on = data["dps"].get("1")
             self.app_state.dose_watt = float(data.get("dps", {}).get("22", 0)) / 10
             takt = self.app_state.einstellungen.get("takt_dose", 300)
-            
-            self.app_state.alle_daten["dose"]["zeit_meine"] = zeitstempel()
-            self.app_state.alle_daten["dose"]["takt_dose"] = takt
+
+            dose_daten = self.app_state.alle_daten.setdefault("dose", {})
+            dose_daten["zeit_meine"] = zeitstempel()
+            dose_daten["takt_dose"] = takt
             status_aktualisieren(self.app_state, "dose", takt)
             return is_on
         except Exception:
@@ -272,7 +273,7 @@ async def set_temps():
         stop = int(data.get("stop", 28))
     except ValueError:
         return "Ungültige Werte", 400
-    
+
     if not 20 <= start <= 45:
         return "Start muss zwischen 20 und 45°C liegen", 400
     if stop > start - 1:
@@ -282,7 +283,7 @@ async def set_temps():
 
     manager.app_state.einstellungen["dose_t_start"] = start
     manager.app_state.einstellungen["dose_t_stop"] = stop
-    
+
     await speichere_einstellungen(manager.app_state, manager.app_state.einstellungen)
     await manager.control_loop()
     return "", 204
