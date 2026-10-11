@@ -21,22 +21,56 @@ def mittelwert_get(wert,werte):
         return 0  # oder ein sinnvoller Standardwert wie 100
     return sum(werte) / len(werte)
 
+class SonnenManager:
+    """Kapselt Sonnenaufgang, Sonnenuntergang und das Nachtfenster."""
+
+    @staticmethod
+    def astro_werte(app_state):
+        aachen = LocationInfo(
+            name="Aachen",
+            region="Germany",
+            timezone="Europe/Berlin",
+            latitude=50.7753,
+            longitude=6.0839,
+        )
+        s = sun(
+            aachen.observer,
+            date=date.today(),
+            tzinfo=ZoneInfo("Europe/Berlin"),
+        )
+        sunrise = s["sunrise"]
+        sunset = s["sunset"]
+        app_state.sonnenaufgang = sunrise.strftime("%H:%M:%S")
+        app_state.sonnenuntergang = sunset.strftime("%H:%M:%S")
+        app_state.tageslange = str(sunset - sunrise).split(".")[0]
+
+    @staticmethod
+    def get_nachtzeten(app_state: AppState):
+        try:
+            sunrise_str = app_state.sonnenaufgang
+            sunset_str = app_state.sonnenuntergang
+            if sunrise_str and sunset_str:
+                sunrise = datetime.strptime(sunrise_str, "%H:%M:%S")
+                sunset = datetime.strptime(sunset_str, "%H:%M:%S")
+                kor_aufgang = app_state.einstellungen.get("kor_aufgang", 0)
+                kor_unter = app_state.einstellungen.get("kor_unter", 0)
+                startnacht = sunset - timedelta(minutes=kor_unter)
+                endnacht = sunrise + timedelta(minutes=kor_aufgang)
+                app_state.startnacht = startnacht.strftime("%H:%M")
+                app_state.endnacht = endnacht.strftime("%H:%M")
+        except Exception:
+            logger.exception("Nachtfenster konnte nicht berechnet werden")
+
+
 def astro_werte(app_state):
-    # Richtige Zeitzone setzen!
-    aachen = LocationInfo(
-        name="Aachen",
-        region="Germany",
-        timezone="Europe/Berlin",
-        latitude=50.7753,
-        longitude=6.0839
-    )
-    s = sun(aachen.observer, date=date.today(), tzinfo=ZoneInfo("Europe/Berlin"))
-    sunrise = s["sunrise"]
-    sunset = s["sunset"]
-    app_state.sonnenaufgang    = sunrise.strftime("%H:%M:%S")
-    app_state.sonnenuntergang  = sunset.strftime("%H:%M:%S")
-    app_state.tageslange       = str((sunset - sunrise)).split('.')[0]
-    return
+    """Kompatibilität für bestehende Aufrufer."""
+    return SonnenManager.astro_werte(app_state)
+
+
+def get_nachtzeten(app_state: AppState):
+    """Kompatibilität für bestehende Aufrufer."""
+    return SonnenManager.get_nachtzeten(app_state)
+
 
 class EnergiewerteManager:
     """Kapselt die Berechnung der Tages-, Monats- und Jahreswerte."""
