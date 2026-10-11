@@ -50,34 +50,43 @@ async def mache_session(app_state, name, *, auth=None, headers=None, timeout=10)
         name, auth=auth, headers=headers, timeout=timeout
     )
 
+class TagesdatenManager:
+    """Kapselt das Einlesen der gespeicherten Tageswerte."""
+
+    @staticmethod
+    def laden(name="tageswerte0.csv"):
+        dateiname = DATA_DIR / name
+        try:
+            with dateiname.open(newline="", encoding="utf-8") as csvfile:
+                reader = csv.reader(csvfile)
+                next(reader, None)
+                daten = []
+                for row in reader:
+                    if len(row) >= 6:
+                        try:
+                            neue_reihenfolge = [
+                                row[0],
+                                f"{float(row[1]):.2f}",
+                                f"{float(row[2]):.2f}",
+                                f"{float(row[3]):.2f}",
+                                f"{float(row[4]):.2f}",
+                                f"{float(row[5]):.2f}",
+                            ]
+                            daten.append(neue_reihenfolge)
+                        except ValueError:
+                            logger.exception(
+                                "Fehler beim Verarbeiten der Zeile: %s", row
+                            )
+        except FileNotFoundError:
+            logger.error("DATEI NICHT GEFUNDEN!")
+            return []
+        daten.reverse()
+        return daten
+
+
 def load_tageswerte(name="tageswerte0.csv"):
-    dateiname = DATA_DIR / name
-    try:
-        #with open(dateiname, newline="") as csvfile:
-        with dateiname.open(newline="", encoding="utf-8") as csvfile:
-            reader = csv.reader(csvfile)
-            next(reader, None)  # Überspringt die Kopfzeile
-            daten = []
-            for row in reader:
-                if len(row) >= 6:
-                    try:
-                         neue_reihenfolge = [
-                             row[0],  # tag_t
-                             f"{float(row[1]):.2f}",  # einspeise_
-                             f"{float(row[2]):.2f}",  # gesamt_
-                             f"{float(row[3]):.2f}",  # hms_
-                             f"{float(row[4]):.2f}",  # growatt_
-                             f"{float(row[5]):.2f}",  # solax_
-                         ]
-                         daten.append(neue_reihenfolge)
-                    except ValueError:
-                         logger.exception("Fehler beim Verarbeiten der Zeile:  %s", row)
-    except FileNotFoundError:
-        logger.error("DATEI NICHT GEFUNDEN!")
-        return []
-    # Neueste Zeile zuerst
-    daten.reverse()
-    return daten
+    """Kompatibilität für bestehende Aufrufer."""
+    return TagesdatenManager.laden(name)
 
 class EinstellungenManager:
     """Kapselt Laden und Speichern von Einstellungen und Zugangsdaten."""
