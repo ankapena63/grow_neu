@@ -11,7 +11,7 @@ from units.calculations import (
 from units.configuration import speichere_einstellungen
 from units.history import lese_tageswerte0
 from units.web.web_data import web_data_manager
-from units.logg import log_buffer
+from units.logg import LogManager, log_buffer
 from units.state import AppState
 import logging
 import time
@@ -356,27 +356,10 @@ class ApiManager:
     async def log_level(self):
         state = _app_state()
         data = await request.get_json()
-        level = data.get("level", "INFO").upper()
-
-        levels = {
-            "ERROR": logging.ERROR,
-            "WARNING": logging.WARNING,
-            "INFO": logging.INFO,
-            "DEBUG": logging.DEBUG,
-        }
-
-        if level not in levels:
-            level = "INFO"
-
-        log_level = levels[level]
-
-        # Root-Logger ändern
-        root = logging.getLogger()
-        root.setLevel(log_level)
-
-        # Alle Handler ebenfalls ändern
-        for handler in root.handlers:
-            handler.setLevel(log_level)
+        level = LogManager.normalize_level(
+            data.get("level", "INFO")
+        )
+        LogManager.set_level(level)
 
         state.log_level = level
         state.einstellungen["log_level"] = level
