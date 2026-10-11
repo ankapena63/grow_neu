@@ -11,7 +11,7 @@ from units.configuration import (
     lade_zugang,
 )
 from units.history import lade_aktuell_csv
-from units.runner import pruefe_48st, wiederholte_takt
+from units.runner import AppRunner, pruefe_48st
 from units.unit_battery import GrowattSessionManager
 from units.logg import setup_logging
 from units.state import AppState
@@ -119,11 +119,13 @@ def register_lifecycle(app: Quart) -> None:
             get_nachtzeten(app_state)
             await lade_aktuell_csv(app_state)
             app_state.aktuell_letztes_speichern = time.monotonic()
+            runner = AppRunner(app_state)
+
             async def safe_background_task() -> None:
                 async with app.app_context():
                     while True:
                         try:
-                            await wiederholte_takt(app_state)
+                            await runner.wiederholte_takt()
                         except Exception:
                             logger.exception("[Hintergrundfehler_init]")
                         await asyncio.sleep(
