@@ -10,7 +10,7 @@ from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
 from units.calculations import astro_werte, get_nachtzeten
 from units.configuration import lade_einstellungen, lade_zugang
 from units.history import lade_aktuell_csv
-from units.runner import AppRunner, pruefe_48st
+from units.runner import get_app_runner, pruefe_48st
 from units.unit_battery import GrowattSessionManager
 from units.logg import setup_logging
 from units.state import AppState
@@ -165,7 +165,7 @@ class LifecycleManager:
                 await lade_aktuell_csv(app_state)
 
                 app_state.aktuell_letztes_speichern = time.monotonic()
-                runner = AppRunner(app_state)
+                runner = get_app_runner(app_state)
 
                 async def safe_background_task() -> None:
                     async with app.app_context():
