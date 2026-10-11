@@ -6,7 +6,7 @@ import time
 from quart import Quart
 
 from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
-from units.calculations import astro_werte, get_nachtzeten
+from units.calculations import SonnenManager
 from units.configuration import EinstellungenManager, mache_session
 from units.history import get_history_manager
 from units.runner import get_app_runner, pruefe_48st
@@ -146,8 +146,8 @@ class LifecycleManager:
                 await mache_session(app_state, "session_push", timeout=10)
 
                 await app_state.growatt.init_session()
-                astro_werte(app_state)
-                get_nachtzeten(app_state)
+                SonnenManager.astro_werte(app_state)
+                SonnenManager.get_nachtzeten(app_state)
                 await get_history_manager(app_state).lade_aktuell_csv()
 
                 app_state.aktuell_letztes_speichern = time.monotonic()
