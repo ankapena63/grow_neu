@@ -35,8 +35,12 @@ async def sende_ntfy(session, nachricht: str, prio: int) -> bool:
 async def sende_push(
     app_state, nachricht, pause: int = 3600, prio: int = 3
 ):
-    """Kompatibilität für bisherige Aufrufer."""
-    manager = PushManager(app_state)
+    """Kompatibilität für bisherige Aufrufer mit dauerhaftem PushManager."""
+    manager = getattr(app_state, "_push_manager", None)
+    if manager is None:
+        manager = PushManager(app_state)
+        app_state._push_manager = manager
+
     await manager.sende_push(nachricht, pause, prio)
 
 
