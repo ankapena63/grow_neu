@@ -1,7 +1,7 @@
 """Verwaltung der Sicherung der letzten 48 Stunden."""
 import logging
 
-from units.history import speichere_aktuell_csv
+from units.history import get_history_manager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ class BackupManager:
                 logger.info(
                     "💾 [Backup] Speichere 2 stündliches Aktuell-Daten-Backup..."
                 )
-                await speichere_aktuell_csv(app_state)
+                await get_history_manager(app_state).speichere_aktuell_csv()
             except Exception:
                 logger.error("❌ Fehler beim Backup-CSV-Speichern")
             finally:
