@@ -79,58 +79,85 @@ def load_tageswerte(name="tageswerte0.csv"):
     daten.reverse()
     return daten
 
-async def speichere_einstellungen(app_state, daten):
-    async with app_state.save_lock:
-        INIT_FILE.parent.mkdir(parents=True, exist_ok=True)
+class EinstellungenManager:
+    """Kapselt Laden und Speichern von Einstellungen und Zugangsdaten."""
+
+    @staticmethod
+    async def speichere_einstellungen(app_state, daten):
+        async with app_state.save_lock:
+            INIT_FILE.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                with INIT_FILE.open("w", encoding="utf-8") as f:
+                    json.dump(daten, f, indent=4, ensure_ascii=False)
+                logger.info("Einstellungen gespeichert.")
+            except Exception:
+                logger.exception("Speicherfehler:")
+    
+    @staticmethod
+    def lade_einstellungen(alte_einstellungen):
+        """Lädt die Einstellungen aus INIT_FILE. Bei Fehlern bleiben die alten Einstellungen erhalten."""
         try:
-            with INIT_FILE.open("w", encoding="utf-8") as f:
-                json.dump(daten, f, indent=4, ensure_ascii=False)
-            logger.info("Einstellungen gespeichert.")
+            with INIT_FILE.open("r", encoding="utf-8") as f:
+                logger.info(f"Einstellungen erfolgreich von  {INIT_FILE} geladen.")
+                return json.load(f)
+        except FileNotFoundError:
+            logger.error(f"Fehler: Die Datei {INIT_FILE} wurde nicht gefunden. Alte Einstellungen bleiben erhalten.")
+        except json.JSONDecodeError:
+            logger.exception("[Fehler] Ungültiges JSON in %s",INIT_FILE)
+            #return alte_einstellungen
         except Exception:
-            logger.exception("Speicherfehler:")
+            logger.exception(
+            "Unerwarteter Fehler beim Laden von %s. "
+            "Alte Einstellungen bleiben erhalten.",INIT_FILE)
+        return alte_einstellungen
+    
+    @staticmethod
+    async def speichere_zugang(app_state, daten):
+        async with app_state.save_lock:
+            INIT_ZUGANG.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                with INIT_ZUGANG.open("w", encoding="utf-8") as f:
+                    json.dump(daten, f, indent=4, ensure_ascii=False)
+                logger.info("Zugangs Daten gespeichert.")
+            except Exception:
+                logger.exception("Speicherfehler  beim Speichern der Zugangsdaten.")
+    
+    @staticmethod
+    def lade_zugang(alte_einstellungen):
+        """Lädt die Einstellungen aus IINIT_ZUGANG Bei Fehlern bleiben die alten Einstellungen erhalten."""
+        try:
+            with INIT_ZUGANG.open("r", encoding="utf-8") as f:
+                logger.info(f" Zugang Einstellungen erfolgreich von  {INIT_ZUGANG} geladen.")
+                return json.load(f)
+        except FileNotFoundError:
+            logger.error(f"Fehler: Die Datei {INIT_ZUGANG} wurde nicht gefunden. Alte Einstellungen bleiben erhalten.")
+        except json.JSONDecodeError:
+            logger.exception("[Fehler] Ungültiges JSON in %s", INIT_ZUGANG)
+        except Exception:
+            logger.exception(
+            "Unerwarteter Fehler beim Laden von %s. "
+            "Alte Einstellungen bleiben erhalten.", INIT_ZUGANG)
+        return alte_einstellungen
+
+
+async def speichere_einstellungen(app_state, daten):
+    """Kompatibilität für bestehende Aufrufer."""
+    return await EinstellungenManager.speichere_einstellungen(app_state, daten)
+
 
 def lade_einstellungen(alte_einstellungen):
-    """Lädt die Einstellungen aus INIT_FILE. Bei Fehlern bleiben die alten Einstellungen erhalten."""
-    try:
-        with INIT_FILE.open("r", encoding="utf-8") as f:
-            logger.info(f"Einstellungen erfolgreich von  {INIT_FILE} geladen.")
-            return json.load(f)
-    except FileNotFoundError:
-        logger.error(f"Fehler: Die Datei {INIT_FILE} wurde nicht gefunden. Alte Einstellungen bleiben erhalten.")
-    except json.JSONDecodeError:
-        logger.exception("[Fehler] Ungültiges JSON in %s",INIT_FILE)
-        #return alte_einstellungen
-    except Exception:
-        logger.exception(
-        "Unerwarteter Fehler beim Laden von %s. "
-        "Alte Einstellungen bleiben erhalten.",INIT_FILE)
-    return alte_einstellungen
+    """Kompatibilität für bestehende Aufrufer."""
+    return EinstellungenManager.lade_einstellungen(alte_einstellungen)
+
 
 async def speichere_zugang(app_state, daten):
-    async with app_state.save_lock:
-        INIT_ZUGANG.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            with INIT_ZUGANG.open("w", encoding="utf-8") as f:
-                json.dump(daten, f, indent=4, ensure_ascii=False)
-            logger.info("Zugangs Daten gespeichert.")
-        except Exception:
-            logger.exception("Speicherfehler  beim Speichern der Zugangsdaten.")
+    """Kompatibilität für bestehende Aufrufer."""
+    return await EinstellungenManager.speichere_zugang(app_state, daten)
+
 
 def lade_zugang(alte_einstellungen):
-    """Lädt die Einstellungen aus IINIT_ZUGANG Bei Fehlern bleiben die alten Einstellungen erhalten."""
-    try:
-        with INIT_ZUGANG.open("r", encoding="utf-8") as f:
-            logger.info(f" Zugang Einstellungen erfolgreich von  {INIT_ZUGANG} geladen.")
-            return json.load(f)
-    except FileNotFoundError:
-        logger.error(f"Fehler: Die Datei {INIT_ZUGANG} wurde nicht gefunden. Alte Einstellungen bleiben erhalten.")
-    except json.JSONDecodeError:
-        logger.exception("[Fehler] Ungültiges JSON in %s", INIT_ZUGANG)
-    except Exception:
-        logger.exception(
-        "Unerwarteter Fehler beim Laden von %s. "
-        "Alte Einstellungen bleiben erhalten.", INIT_ZUGANG)
-    return alte_einstellungen
+    """Kompatibilität für bestehende Aufrufer."""
+    return EinstellungenManager.lade_zugang(alte_einstellungen)
 
 class SshManager:
     """Kapselt das Starten, Stoppen und Prüfen des SSH-Servers."""
