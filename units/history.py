@@ -29,78 +29,103 @@ class HistoryManager:
         await lade_aktuell_csv(self.app_state, dateiname)
 
 
-async def speichere_tageswerte(werte: dict,dateiname: str = "tageswerte0.csv",
+class TageshistorieManager:
+    """Kapselt CSV-Tageshistorie und Logrotation."""
+
+    @staticmethod
+    async def speichere_tageswerte(
+        werte: dict,
+        dateiname: str = "tageswerte0.csv",
+        feldreihenfolge: list = None,
+    ):
+        pfad = DATA_DIR / dateiname
+        pfad.parent.mkdir(parents=True, exist_ok=True)
+        if feldreihenfolge is None:
+            feldreihenfolge = list(werte.keys())
+        werte_vollstaendig = {
+            key: werte.get(key, 0) for key in feldreihenfolge
+        }
+        existiert = os.path.isfile(pfad)
+        with pfad.open("a", newline="", encoding="utf-8") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=feldreihenfolge)
+            if not existiert:
+                writer.writeheader()
+            writer.writerow(werte_vollstaendig)
+
+    @staticmethod
+    def rotate_logs():
+        log_neu = "neu.log"
+        log_vor = "neu_gestrn.log"
+        log_alt = "neu_alt.log"
+        try:
+            if os.path.exists(log_vor):
+                os.replace(log_vor, log_alt)
+            if os.path.exists(log_neu):
+                shutil.copy2(log_neu, log_vor)
+            with open(log_neu, "w") as f:
+                f.write(f"Log geleert am {datetime.now()}\\n")
+            logger.info("Logrotation durchgeführt: %s", datetime.now())
+        except Exception as e:
+            logger.error("Fehler bei der Logrotation: %s", e)
+
+    @staticmethod
+    def lese_tageswerte0():
+        pfad = DATA_DIR / "tageswerte0.csv"
+        tageswerte = []
+        if not pfad.exists():
+            return tageswerte
+        with pfad.open("r", encoding="utf-8", newline="") as csvfile:
+            reader = csv.DictReader(csvfile)
+            vorher = None
+            for zeile in reader:
+                try:
+                    datum = datetime.strptime(zeile["datum"].strip(), "%d.%m.%y")
+                    aktuelle = {
+                        "einspeise": float(zeile["einspeise_0"]),
+                        "gesamt": float(zeile["gesamt_0"]),
+                        "hms": float(zeile["hms_0"]),
+                        "growatt": float(zeile["growatt_0"]),
+                        "solax": float(zeile["solax_0"]),
+                    }
+                except (ValueError, KeyError) as e:
+                    logger.exception("[DIAGRAMM CSV FEHLER]: %s", e)
+                    continue
+                if all(wert == 0 for wert in aktuelle.values()):
+                    continue
+                if vorher is None:
+                    vorher = aktuelle
+                    continue
+                tageswerte.append({
+                    "datum": datum.strftime("%d.%m.%y"),
+                    "jahr": datum.year,
+                    "monat": datum.month,
+                    "tag": datum.day,
+                    "einspeise": round(max(0, aktuelle["einspeise"] - vorher["einspeise"]), 3),
+                    "gesamt": round(max(0, aktuelle["gesamt"] - vorher["gesamt"]), 3),
+                    "hms": round(max(0, aktuelle["hms"] - vorher["hms"]), 3),
+                    "growatt": round(max(0, aktuelle["growatt"] - vorher["growatt"]), 3),
+                    "solax": round(max(0, aktuelle["solax"] - vorher["solax"]), 3),
+                })
+                vorher = aktuelle
+        return tageswerte
+
+
+async def speichere_tageswerte(werte: dict, dateiname: str = "tageswerte0.csv",
                                feldreihenfolge: list = None):
-    pfad = DATA_DIR / dateiname
-    pfad.parent.mkdir(parents=True, exist_ok=True)
-   # Fehlende Felder mit 0 auffüllen
-    if feldreihenfolge is None:
-        feldreihenfolge = list(werte.keys())
-        # Wenn keine Reihenfolge vorgegeben, nimm vorhandene Reihenfolge
-    werte_vollständig = {key: werte.get(key, 0) for key in feldreihenfolge}
-    existiert = os.path.isfile(pfad)
-    with pfad.open("a", newline="", encoding="utf-8") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=feldreihenfolge)
-        if not existiert:
-            writer.writeheader()
-        writer.writerow(werte_vollständig)
+    """Kompatibilität für bestehende Aufrufer."""
+    return await TageshistorieManager.speichere_tageswerte(
+        werte, dateiname, feldreihenfolge
+    )
 
 
 def rotate_logs():
-    log_neu = "neu.log"
-    log_vor = "neu_gestrn.log"
-    log_alt = "neu_alt.log"
-    try:
-        if os.path.exists(log_vor):
-            os.replace(log_vor, log_alt)
-        if os.path.exists(log_neu):
-            shutil.copy2(log_neu, log_vor)
-        with open(log_neu, "w") as f:
-            f.write(f"Log geleert am {datetime.now()}\n")
-        logger.info("Logrotation durchgeführt: %s", datetime.now())
-    except Exception as e:
-        logger.error("Fehler bei der Logrotation: %s", e)
+    """Kompatibilität für bestehende Aufrufer."""
+    return TageshistorieManager.rotate_logs()
 
 
 def lese_tageswerte0():
-    pfad = DATA_DIR / "tageswerte0.csv"
-    tageswerte = []
-    if not pfad.exists():
-        return tageswerte
-    with pfad.open("r", encoding="utf-8", newline="") as csvfile:
-        reader = csv.DictReader(csvfile)
-        vorher = None
-        for zeile in reader:
-            try:
-                datum = datetime.strptime(zeile["datum"].strip(), "%d.%m.%y")
-                aktuelle = {
-                    "einspeise": float(zeile["einspeise_0"]),
-                    "gesamt": float(zeile["gesamt_0"]),
-                    "hms": float(zeile["hms_0"]),
-                    "growatt": float(zeile["growatt_0"]),
-                    "solax": float(zeile["solax_0"]),
-                }
-            except (ValueError, KeyError) as e:
-                logger.exception("[DIAGRAMM CSV FEHLER]: %s", e)
-                continue
-            if all(wert == 0 for wert in aktuelle.values()):
-                continue
-            if vorher is None:
-                vorher = aktuelle
-                continue
-            tageswerte.append({
-                "datum": datum.strftime("%d.%m.%y"),
-                "jahr": datum.year,
-                "monat": datum.month,
-                "tag": datum.day,
-                "einspeise": round(max(0, aktuelle["einspeise"] - vorher["einspeise"]), 3),
-                "gesamt": round(max(0, aktuelle["gesamt"] - vorher["gesamt"]), 3),
-                "hms": round(max(0, aktuelle["hms"] - vorher["hms"]), 3),
-                "growatt": round(max(0, aktuelle["growatt"] - vorher["growatt"]), 3),
-                "solax": round(max(0, aktuelle["solax"] - vorher["solax"]), 3),
-            })
-            vorher = aktuelle
-    return tageswerte
+    """Kompatibilität für bestehende Aufrufer."""
+    return TageshistorieManager.lese_tageswerte0()
 
 
 async def speichere_aktuell_csv(app_state, dateiname="aktuell.csv"):
