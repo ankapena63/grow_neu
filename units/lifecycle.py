@@ -8,7 +8,7 @@ from quart import Quart
 from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
 from units.calculations import astro_werte, get_nachtzeten
 from units.configuration import EinstellungenManager, mache_session
-from units.history import lade_aktuell_csv
+from units.history import get_history_manager
 from units.runner import get_app_runner, pruefe_48st
 from units.unit_battery import GrowattSessionManager
 from units.logg import LogManager, setup_logging
@@ -148,7 +148,7 @@ class LifecycleManager:
                 await app_state.growatt.init_session()
                 astro_werte(app_state)
                 get_nachtzeten(app_state)
-                await lade_aktuell_csv(app_state)
+                await get_history_manager(app_state).lade_aktuell_csv()
 
                 app_state.aktuell_letztes_speichern = time.monotonic()
                 runner = get_app_runner(app_state)
