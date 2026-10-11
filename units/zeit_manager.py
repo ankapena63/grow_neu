@@ -7,6 +7,22 @@ class ZeitManager:
     def __init__(self, app_state: AppState):
         self.app_state = app_state
 
+
+    def aktualisiere_zeitstatus(self, jetzt: datetime, zeit_monotonic: float) -> None:
+        """Aktualisiert Nachtzeit, Zeit bis zur Nacht und Benutzeraktivität."""
+        app_state = self.app_state
+        now = jetzt.strftime("%H:%M")
+
+        app_state.nachtzeit = (
+            app_state.startnacht <= now
+            or now <= app_state.endnacht
+        )
+        app_state.stunden_bis_nacht = self.stunden_bis_nacht_get()
+        app_state.benutzer_activ = (
+            zeit_monotonic - app_state.last_activity
+            < app_state.einstellungen.get("takt_benutzrer_activ", 10)
+        )
+
     def stunden_bis_nacht_get(self) -> float:
         app_state = self.app_state
         jetzt = datetime.now()
