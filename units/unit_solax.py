@@ -43,6 +43,7 @@ class Solax:
                 ) as response:
                     response.raise_for_status()
                     result = await response.json()
+
                     if result.get("success") and "result" in result:
                         schreibe_in_roh(app_state, "solax_c", result)
                         data = result["result"]
@@ -63,12 +64,22 @@ class Solax:
                         }
                         status_aktualisieren(app_state, "solax_c", takt)
                         return normalized
+
                     logger.error(
                         "[Solax] Ungültige Antwort erhalten (Versuch %s).",
                         versuch + 1,
                     )
+
             except Exception:
-                logger.warning("[Solax] Fehler Versuch %s", versuch + 1)
+                logger.warning(
+                    "[Solax] Fehler bei Cloud-Abfrage, Versuch %s/%s",
+                    versuch + 1,
+                    versuche,
+                    exc_info=True,
+                )
+
+            # Nur zwischen fehlgeschlagenen Versuchen warten.
+            if versuch < versuche - 1:
                 await asyncio.sleep(wartezeit)
 
         alt_daten = alt_daten or {}
