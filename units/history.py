@@ -29,6 +29,15 @@ class HistoryManager:
         await lade_aktuell_csv(self.app_state, dateiname)
 
 
+def get_history_manager(app_state):
+    """Liefert den dauerhaft verwendeten HistoryManager dieses AppState."""
+    manager = getattr(app_state, "_history_manager", None)
+    if manager is None:
+        manager = HistoryManager(app_state)
+        app_state._history_manager = manager
+    return manager
+
+
 class TageshistorieManager:
     """Kapselt CSV-Tageshistorie und Logrotation."""
 
