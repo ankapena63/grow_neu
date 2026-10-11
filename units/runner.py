@@ -3,7 +3,7 @@ from datetime import datetime
 import logging
 import time
 from units.backup_manager import BackupManager
-from units.calculations import reset_heute_werte
+from units.calculations import TageswerteManager
 from units.dazu import DazuManager
 from units.kochen_manager import KochenManager
 from units.geraete_manager import GeraeteManager
@@ -58,6 +58,7 @@ class AppRunner:
     def __init__(self, app_state: AppState):
         self.app_state = app_state
         # Manager-Objekte einmal anlegen und über alle Takte wiederverwenden.
+        self.tageswerte_manager = TageswerteManager(app_state)
         self.zeit_manager = ZeitManager(app_state)
         self.backup_manager = BackupManager(app_state)
         self.kochen_manager = KochenManager(app_state)
@@ -66,7 +67,7 @@ class AppRunner:
     async def wiederholte_takt(self) -> None:
         app_state = self.app_state
 
-        await reset_heute_werte(app_state)
+        await self.tageswerte_manager.reset_heute_werte()
 
         jetzt = datetime.now()
         zeit_jetzt = time.monotonic()
