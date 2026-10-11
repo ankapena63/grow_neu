@@ -69,6 +69,11 @@ class AppRunner:
 
     def __init__(self, app_state: AppState):
         self.app_state = app_state
+        # Manager-Objekte einmal anlegen und über alle Takte wiederverwenden.
+        self.zeit_manager = ZeitManager(app_state)
+        self.backup_manager = BackupManager(app_state)
+        self.kochen_manager = KochenManager(app_state)
+        self.geraete_manager = GeraeteManager(app_state)
 
     async def wiederholte_takt(self) -> None:
         app_state = self.app_state
@@ -76,13 +81,12 @@ class AppRunner:
         await reset_heute_werte(app_state)
 
         jetzt = datetime.now()
-        now = jetzt.strftime("%H:%M")
         zeit_jetzt = time.monotonic()
 
-        ZeitManager(app_state).aktualisiere_zeitstatus(jetzt, zeit_jetzt)
+        self.zeit_manager.aktualisiere_zeitstatus(jetzt, zeit_jetzt)
 
-        pruefe_dazu_intervall(app_state, zeit_jetzt)
-        await pruefe_48st(app_state, zeit_jetzt)
+        self.zeit_manager.pruefe_dazu_intervall(zeit_jetzt)
+        await self.backup_manager.pruefe_48st(zeit_jetzt)
 
         # Dose bleibt unverändert.
         if app_state._dose_manager is None:
@@ -94,10 +98,10 @@ class AppRunner:
 
         # Kochen bleibt unverändert.
         if app_state.kochen:
-            await pruefe_kochen(app_state, zeit_jetzt)
+            await self.kochen_manager.pruefe_kochen(zeit_jetzt)
 
         # Geräteabfragen in der bisherigen Reihenfolge.
-        await GeraeteManager(app_state).pruefe_geraete(zeit_jetzt)
+        await self.geraete_manager.pruefe_geraete(zeit_jetzt)
 
         app_state.erste_abfrage = False
 
