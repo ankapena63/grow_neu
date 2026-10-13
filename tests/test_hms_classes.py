@@ -70,6 +70,8 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
             patch("units.unit_hms.StatusManager.status_aktualisieren") as update_status,
             patch("units.unit_hms.ZeitstempelManager.zeitstempel", return_value="now"),
         ):
+            hms.session_manager = session_manager.return_value
+            hms.history_manager = get_history.return_value
             result = await hms.abfrage({"aktuell": 10}, 30)
 
         self.assertEqual(
@@ -112,6 +114,7 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
             "units.unit_hms.SessionManager.fuer",
             return_value=SimpleNamespace(erstelle=AsyncMock(return_value=session)),
         ) as session_manager:
+            hms.session_manager = session_manager.return_value
             result = await hms.setze_limit(100)
 
         self.assertTrue(result)
@@ -141,6 +144,7 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
             patch("units.unit_hms.StatusManager.status_aktualisieren"),
             patch("units.unit_hms.HistoryManager.fuer") as get_history,
         ):
+            service.history_manager = get_history.return_value
             await service.pruefe(20)
 
         service.abfrage.assert_awaited_once_with(
