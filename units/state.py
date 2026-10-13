@@ -4,11 +4,17 @@ import asyncio
 import time
 from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
+    from units.runner import AppRunner
+    from units.history import HistoryManager
+    from units.calculations import TageswerteManager
+    from units.dazu import DazuManager
+    from units.push import PushManager
+    from units.configuration import SessionManager
     from units.unit_battery import GrowattSessionManager
     from units.unit_hms import Hms
     from units.unit_solax import Solax
     from units.unit_strom import Strom
-    from units.unit_dose import DoseDevice , TuyaDoseManager
+    from units.unit_dose import DoseDevice, TuyaDoseManager
 
 class AppState:
     growatt: GrowattSessionManager
@@ -23,12 +29,12 @@ class AppState:
 
         # Gemeinsame Manager werden pro AppState genau einmal angelegt.
         # Any vermeidet Import-Zyklen zwischen state.py und den Manager-Modulen.
-        self._app_runner: Any = None
-        self._history_manager: Any = None
-        self._tageswerte_manager: Any = None
-        self._dazu_manager: Any = None
-        self._push_manager: Any = None
-        self._session_manager: Any = None
+        self._app_runner: AppRunner | None = None
+        self._history_manager: HistoryManager | None = None
+        self._tageswerte_manager: TageswerteManager | None = None
+        self._dazu_manager: DazuManager | None = None
+        self._push_manager: PushManager | None = None
+        self._session_manager: SessionManager | None = None
         self.alle_daten: dict[str, dict[str, Any]] = {
             "akku": {},
             "hms": {},
