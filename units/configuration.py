@@ -53,12 +53,6 @@ class SessionManager:
         return session
 
 
-async def mache_session(app_state, name, *, auth=None, headers=None, timeout=10):
-    """Liefert eine HTTP-Session über den gemeinsamen SessionManager."""
-    return await SessionManager.fuer(app_state).erstelle(
-        name, auth=auth, headers=headers, timeout=timeout
-    )
-
 
 class TagesdatenManager:
     """Kapselt das Einlesen der gespeicherten Tageswerte."""
