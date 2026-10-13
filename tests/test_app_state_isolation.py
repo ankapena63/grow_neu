@@ -93,6 +93,11 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
         state_one = app_one.extensions["app_state"]
         state_two = app_two.extensions["app_state"]
 
+        # Growatt wird erst nach dem Laden der Zugangsdaten im Lifecycle erzeugt.
+        # Für diesen reinen Manager-Test genügt ein Platzhalter-Gerät.
+        state_one.growatt = object()
+        state_two.growatt = object()
+
         runner_one = get_app_runner(state_one)
         runner_two = get_app_runner(state_two)
 
