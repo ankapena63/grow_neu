@@ -13,6 +13,16 @@ class PushManager:
     def __init__(self, app_state):
         self.app_state = app_state
 
+    @classmethod
+    def fuer(cls, app_state):
+        """Liefert den gemeinsamen Manager dieses AppState."""
+        manager = getattr(app_state, "_push_manager", None)
+        if manager is None:
+            manager = cls(app_state)
+            app_state._push_manager = manager
+        return manager
+
+
     @staticmethod
     async def sende_ntfy(session, nachricht: str, prio: int) -> bool:
         headers = {
@@ -64,13 +74,3 @@ class PushManager:
                 app_state.letzte_push_zeiten[prio] = jetzt
         except Exception:
             logger.exception("❌ Push-Verbindung fehlgeschlagen")
-
-
-
-def get_push_manager(app_state) -> PushManager:
-    """Liefert den dauerhaft verwendeten PushManager dieses AppState."""
-    manager = getattr(app_state, "_push_manager", None)
-    if manager is None:
-        manager = PushManager(app_state)
-        app_state._push_manager = manager
-    return manager
