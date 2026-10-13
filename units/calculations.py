@@ -79,11 +79,6 @@ class SonnenManager:
 
 
 
-def get_nachtzeten(app_state: AppState):
-    """Kompatibilität für bestehende Aufrufer."""
-    return SonnenManager.get_nachtzeten(app_state)
-
-
 class EnergiewerteManager:
     """Kapselt die Berechnung der Tages-, Monats- und Jahreswerte."""
 
