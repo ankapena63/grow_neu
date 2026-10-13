@@ -4,7 +4,7 @@ from .web_data import web_data_manager
 from quart import redirect, render_template, request
 from units.calculations import EnergiewerteManager
 from units.configuration import TagesdatenManager, SshManager, EinstellungenManager
-from units.runner import get_app_runner
+from units.runner import AppRunner
 from units.state import AppState
 import logging
 import time
@@ -95,7 +95,7 @@ class DashboardManager:
         logging.info("KOCHEN An: für: %s min %s Watt", interval, kochen_wert)
         state.kochen_zeit = interval
         state.kochen_end = time.monotonic() + interval * 60
-        await get_app_runner(state).dazu_manager.rechne_dazu()
+        await AppRunner.fuer(state).dazu_manager.rechne_dazu()
         return {
             "ok": True,
             "kochen": True,
@@ -110,7 +110,7 @@ class DashboardManager:
         state.kochen = False
         state.kochen_zeit = 0.0
         state.kochen_end = 0.0
-        await get_app_runner(state).dazu_manager.rechne_dazu()
+        await AppRunner.fuer(state).dazu_manager.rechne_dazu()
         logging.info("KOCHEN Ausgeschaltet")
         return {"ok": True, "kochen": False}
 
