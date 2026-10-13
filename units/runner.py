@@ -10,32 +10,10 @@ from units.dazu import get_dazu_manager
 from units.kochen_manager import KochenManager
 from units.geraete_manager import GeraeteManager
 from units.zeit_manager import ZeitManager
-from units.push import PushManager
+from units.push import get_push_manager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
-
-
-async def sende_ntfy(session, nachricht: str, prio: int) -> bool:
-    """Kompatibilität für bisherige Aufrufer."""
-    return await PushManager.sende_ntfy(session, nachricht, prio)
-
-
-def get_push_manager(app_state: AppState) -> PushManager:
-    """Liefert den dauerhaft verwendeten PushManager dieses AppState."""
-    manager = getattr(app_state, "_push_manager", None)
-    if manager is None:
-        manager = PushManager(app_state)
-        app_state._push_manager = manager
-    return manager
-
-
-async def sende_push(
-    app_state, nachricht, pause: int = 3600, prio: int = 3
-):
-    """Kompatibilität für bisherige Aufrufer."""
-    await get_push_manager(app_state).sende_push(nachricht, pause, prio)
-
 
 
 def get_app_runner(app_state: AppState) -> "AppRunner":
