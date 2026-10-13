@@ -5,7 +5,7 @@ import logging
 import aiohttp
 from aiohttp import ClientTimeout
 from units.calculations import MittelwertManager, StatusManager, ZeitstempelManager
-from units.configuration import mache_session
+from units.configuration import SessionManager
 from units.history import get_history_manager
 from units.state import AppState
 
@@ -24,7 +24,7 @@ class Solax:
         wartezeit: int = 5,
     ):
         app_state = self.app_state
-        session = await mache_session(app_state, "session_solax_c")
+        session = await SessionManager.fuer(app_state).erstelle("session_solax_c")
         url = app_state.zugang.get("solax_c_url")
         params = {
             "tokenId": app_state.zugang.get("solax_c_tokenId"),
@@ -93,7 +93,7 @@ class Solax:
         basis_wartezeit: int = 2,
     ) -> dict:
         app_state = self.app_state
-        session = await mache_session(app_state, "session_solax_l")
+        session = await SessionManager.fuer(app_state).erstelle("session_solax_l")
         url = app_state.zugang.get("solax_l_url")
         payload = "optType=ReadRealTimeData&pwd=" + str(app_state.zugang.get("solax_c_sn", ""))
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
