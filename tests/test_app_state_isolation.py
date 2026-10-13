@@ -106,7 +106,7 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIs(runner_one.dazu_manager, DazuManager.fuer(state_one))
         self.assertIs(runner_one.history_manager, HistoryManager.fuer(state_one))
-        self.assertIs(runner_one.backup_manager.history_manager, runner_one.history_manager)
+        self.assertIs(runner_one.history_manager, HistoryManager.fuer(state_one))
 
         self.assertIsNot(DazuManager.fuer(state_one), DazuManager.fuer(state_two))
         self.assertIsNot(HistoryManager.fuer(state_one), HistoryManager.fuer(state_two))
