@@ -5,7 +5,7 @@ import signal
 from quart import Quart
 
 from units.web import routes
-from units.lifecycle import register_lifecycle
+from units.lifecycle import LifecycleManager
 from units.state import AppState
 from units.device_factory import initialisiere_geraete
 from units.unit_dose import bp as dose_bp
@@ -38,7 +38,7 @@ class ApplicationManager:
         app.register_blueprint(routes)
         app.register_blueprint(dose_bp)
 
-        register_lifecycle(app)
+        LifecycleManager().register(app)
 
         self.app = app
         return app
