@@ -82,5 +82,31 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(device_two.actions, [])
 
 
+    def test_managers_are_shared_per_state_but_isolated_between_apps(self):
+        from units.dazu import get_dazu_manager
+        from units.history import get_history_manager
+        from units.push import get_push_manager
+        from units.runner import get_app_runner
+
+        app_one = neu.create_app()
+        app_two = neu.create_app()
+        state_one = app_one.extensions["app_state"]
+        state_two = app_two.extensions["app_state"]
+
+        runner_one = get_app_runner(state_one)
+        runner_two = get_app_runner(state_two)
+
+        self.assertIs(runner_one, get_app_runner(state_one))
+        self.assertIsNot(runner_one, runner_two)
+
+        self.assertIs(runner_one.dazu_manager, get_dazu_manager(state_one))
+        self.assertIs(runner_one.history_manager, get_history_manager(state_one))
+        self.assertIs(runner_one.backup_manager.history_manager, runner_one.history_manager)
+
+        self.assertIsNot(get_dazu_manager(state_one), get_dazu_manager(state_two))
+        self.assertIsNot(get_history_manager(state_one), get_history_manager(state_two))
+        self.assertIsNot(get_push_manager(state_one), get_push_manager(state_two))
+
+
 if __name__ == "__main__":
     unittest.main()
