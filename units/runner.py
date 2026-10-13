@@ -10,7 +10,6 @@ from units.dazu import get_dazu_manager
 from units.kochen_manager import KochenManager
 from units.geraete_manager import GeraeteManager
 from units.zeit_manager import ZeitManager
-from units.push import get_push_manager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -33,7 +32,6 @@ class AppRunner:
         self.history_manager = get_history_manager(app_state)
         self.zeit_manager = ZeitManager(app_state)
         self.backup_manager = BackupManager(app_state, self.history_manager)
-        app_state._backup_manager = self.backup_manager
         self.dazu_manager = get_dazu_manager(app_state)
         self.kochen_manager = KochenManager(
             app_state, dazu_manager=self.dazu_manager
@@ -73,4 +71,3 @@ class AppRunner:
         await self.geraete_manager.pruefe_geraete(zeit_jetzt)
 
         app_state.erste_abfrage = False
-
