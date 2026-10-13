@@ -172,8 +172,6 @@ class StatusManager:
         return round(solax + hms + strom)
 
 
-
-
 class TageswerteManager:
     """Verwaltet Tages-, Monats- und Jahreswechsel für einen AppState."""
 
