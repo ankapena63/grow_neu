@@ -4,7 +4,7 @@ from . import routes, _app_state
 from quart import current_app, flash, jsonify, redirect, render_template, request
 from units.configuration import EinstellungenManager
 from units.web.web_data import web_data_manager
-from units.unit_battery import GrowattSessionManager
+from units.device_factory import DeviceFactory
 from units.calculations import SonnenManager
 from units.runner import AppRunner
 from units.state import AppState
@@ -157,13 +157,7 @@ class SettingsManager:
             if hasattr(state, "growatt") and state.growatt.session:
                 await state.growatt.close()
     # Growatt-Session neu erzeugen
-            app_state.growatt = GrowattSessionManager(
-                state.zugang["username"],
-                state.zugang["password"],
-                state.zugang["deviceSn"],
-                state.zugang["token"],
-                app_state=app_state,
-            )
+            DeviceFactory.initialisiere_growatt(app_state)
             await app_state.growatt.init_session()  # Session öffnen          
             return redirect("/zugang")
     
