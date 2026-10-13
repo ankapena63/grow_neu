@@ -4,6 +4,7 @@ import asyncio
 import time
 from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
+    from aiohttp import ClientSession
     from units.runner import AppRunner
     from units.history import HistoryManager
     from units.calculations import TageswerteManager
@@ -75,15 +76,16 @@ class AppState:
             "solax": 0.0
         }
 
-        self.session_push = None
-        self.session_hms = None
-        self.session_tasmota = None
-        self.session_solax_l = None
-        self.session_strom = None
-        self.session_solax_c = None
-        self.session_growatt = None
+        # HTTP-Sessions werden zentral verwaltet und beim Start/Shutdown gesetzt.
+        self.session_push: ClientSession | None = None
+        self.session_hms: ClientSession | None = None
+        self.session_tasmota: ClientSession | None = None
+        self.session_solax_l: ClientSession | None = None
+        self.session_strom: ClientSession | None = None
+        self.session_solax_c: ClientSession | None = None
+        self.session_growatt: ClientSession | None = None
 
-        self.erste_abfrage = True
+        self.erste_abfrage: bool = True
         self.status_html: dict[str, dict[str, Any]] = {
             "hms": {"zeit_meine": 0, "takt": 10},
             "solax_l": {"zeit_meine": 0, "takt": 10},
@@ -103,7 +105,7 @@ class AppState:
         self.start_dazu_senden = jetzt
         self.takte: dict[str, Any] = {}
         self.benutzer_activ = False
-        self.start_hms0 = 10
+        self.start_hms0: int = 10
 
         self.dazu = 0.0
         self.last_dose_check = 0.0
@@ -114,7 +116,7 @@ class AppState:
         self.dose_device: DoseDevice | None = None
         self._dose_manager: TuyaDoseManager | None = None
 
-        self.is_shutting_down = False
+        self.is_shutting_down: bool = False
         self.kochen = False
         self.kochen_zeit = 0.0
         self.kochen_end = 0.0
