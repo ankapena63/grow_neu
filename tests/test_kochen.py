@@ -1,7 +1,7 @@
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
-from units.runner import pruefe_kochen
+from units.kochen_manager import KochenManager
 
 
 class FakeAppState:
@@ -18,50 +18,47 @@ class FakeAppState:
 
 
 class KochenTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.state = FakeAppState()
+        self.dazu_manager = AsyncMock()
+        self.manager = KochenManager(self.state, self.dazu_manager)
+
     async def test_stops_when_soc_falls_below_minimum(self):
-        state = FakeAppState()
-        state.soc = 29
+        self.state.soc = 29
 
-        with patch("units.runner.rechne_dazu", new_callable=AsyncMock) as recalc:
-            await pruefe_kochen(state, zeit=100.0)
+        await self.manager.pruefe_kochen(zeit=100.0)
 
-        self.assertFalse(state.kochen)
-        self.assertEqual(state.kochen_zeit, 0.0)
-        recalc.assert_awaited_once_with(state)
+        self.assertFalse(self.state.kochen)
+        self.assertEqual(self.state.kochen_zeit, 0.0)
+        self.dazu_manager.rechne_dazu.assert_awaited_once_with()
 
     async def test_stops_when_time_has_expired(self):
-        state = FakeAppState()
-        state.kochen_end = 100.0
+        self.state.kochen_end = 100.0
 
-        with patch("units.runner.rechne_dazu", new_callable=AsyncMock) as recalc:
-            await pruefe_kochen(state, zeit=100.0)
+        await self.manager.pruefe_kochen(zeit=100.0)
 
-        self.assertFalse(state.kochen)
-        self.assertEqual(state.kochen_zeit, 0.0)
-        recalc.assert_awaited_once_with(state)
+        self.assertFalse(self.state.kochen)
+        self.assertEqual(self.state.kochen_zeit, 0.0)
+        self.dazu_manager.rechne_dazu.assert_awaited_once_with()
 
     async def test_stops_at_night_when_only_zero_export_is_allowed(self):
-        state = FakeAppState()
-        state.nachtzeit = True
-        state.einstellungen["nacht_nur_0_schalter"] = True
+        self.state.nachtzeit = True
+        self.state.einstellungen["nacht_nur_0_schalter"] = True
 
-        with patch("units.runner.rechne_dazu", new_callable=AsyncMock) as recalc:
-            await pruefe_kochen(state, zeit=100.0)
+        await self.manager.pruefe_kochen(zeit=100.0)
 
-        self.assertFalse(state.kochen)
-        self.assertEqual(state.kochen_zeit, 0.0)
-        recalc.assert_awaited_once_with(state)
+        self.assertFalse(self.state.kochen)
+        self.assertEqual(self.state.kochen_zeit, 0.0)
+        self.dazu_manager.rechne_dazu.assert_awaited_once_with()
 
     async def test_keeps_cooking_and_updates_remaining_minutes(self):
-        state = FakeAppState()
-        state.kochen_end = 220.0
+        self.state.kochen_end = 220.0
 
-        with patch("units.runner.rechne_dazu", new_callable=AsyncMock) as recalc:
-            await pruefe_kochen(state, zeit=100.0)
+        await self.manager.pruefe_kochen(zeit=100.0)
 
-        self.assertTrue(state.kochen)
-        self.assertEqual(state.kochen_zeit, 2.0)
-        recalc.assert_not_awaited()
+        self.assertTrue(self.state.kochen)
+        self.assertEqual(self.state.kochen_zeit, 2.0)
+        self.dazu_manager.rechne_dazu.assert_not_awaited()
 
 
 if __name__ == "__main__":
