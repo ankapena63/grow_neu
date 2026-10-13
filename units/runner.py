@@ -53,23 +53,6 @@ async def sende_push(
     await get_push_manager(app_state).sende_push(nachricht, pause, prio)
 
 
-async def pruefe_kochen(app_state: AppState, zeit: float) -> None:
-    """Kompatibilität für bisherige Aufrufer und Tests."""
-    runner = getattr(app_state, "_app_runner", None)
-    if runner is not None:
-        manager = runner.kochen_manager
-    else:
-        manager = getattr(app_state, "_kochen_manager", None)
-        if manager is None:
-            manager = KochenManager(
-                app_state,
-                dazu_manager=get_dazu_manager(app_state),
-            )
-            app_state._kochen_manager = manager
-
-    await manager.pruefe_kochen(zeit)
-
-
 def get_backup_manager(app_state: AppState) -> BackupManager:
     """Liefert den dauerhaft verwendeten BackupManager dieses AppState."""
     manager = getattr(app_state, "_backup_manager", None)
