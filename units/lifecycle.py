@@ -100,24 +100,8 @@ class LifecycleManager:
                 cleanup_succeeded = False
                 logger.exception("Growatt schließen fehlgeschlagen.")
 
-        for attr_name in dir(app_state):
-            if "session" not in attr_name.lower():
-                continue
-
-            session = getattr(app_state, attr_name, None)
-            if (
-                session
-                and hasattr(session, "close")
-                and not getattr(session, "closed", True)
-            ):
-                logger.info("Schließe Session: %s", attr_name)
-                try:
-                    await session.close()
-                except Exception:
-                    cleanup_succeeded = False
-                    logger.exception(
-                        "Fehler beim Schließen von %s", attr_name
-                    )
+        if not await SessionManager.fuer(app_state).schliesse_alle():
+            cleanup_succeeded = False
 
         return cleanup_succeeded
 
