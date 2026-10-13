@@ -63,7 +63,3 @@ class LogManager:
         root.addHandler(console_handler)
         LogManager.set_level(level)
 
-
-def setup_logging(level=logging.INFO):
-    """Kompatibilität für bestehende Aufrufer."""
-    LogManager.setup(level)
