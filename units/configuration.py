@@ -14,6 +14,15 @@ class SessionManager:
     def __init__(self, app_state):
         self.app_state = app_state
 
+    @classmethod
+    def fuer(cls, app_state):
+        """Liefert den gemeinsamen SessionManager dieses AppState."""
+        manager = getattr(app_state, "_session_manager", None)
+        if manager is None:
+            manager = cls(app_state)
+            app_state._session_manager = manager
+        return manager
+
     async def erstelle(self, name, *, auth=None, headers=None, timeout=10):
         """
         Gibt die benannte Session zurück oder erstellt sie bei Bedarf neu.
@@ -43,17 +52,6 @@ class SessionManager:
             logger.info("Neue Session erstellt: %s", name)
         return session
 
-
-async def mache_session(app_state, name, *, auth=None, headers=None, timeout=10):
-    """Kompatibilität für bestehende Aufrufer mit dauerhaftem SessionManager."""
-    manager = getattr(app_state, "_session_manager", None)
-    if manager is None:
-        manager = SessionManager(app_state)
-        app_state._session_manager = manager
-
-    return await manager.erstelle(
-        name, auth=auth, headers=headers, timeout=timeout
-    )
 
 class TagesdatenManager:
     """Kapselt das Einlesen der gespeicherten Tageswerte."""
