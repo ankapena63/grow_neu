@@ -8,7 +8,6 @@ from quart import Quart
 from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
 from units.calculations import SonnenManager
 from units.configuration import EinstellungenManager, mache_session
-from units.history import get_history_manager
 from units.runner import get_app_runner
 from units.unit_battery import GrowattSessionManager
 from units.logg import LogManager, setup_logging
@@ -148,10 +147,12 @@ class LifecycleManager:
                 await app_state.growatt.init_session()
                 SonnenManager.astro_werte(app_state)
                 SonnenManager.get_nachtzeten(app_state)
-                await get_history_manager(app_state).lade_aktuell_csv()
+
+                # Der Runner besitzt den gemeinsamen HistoryManager.
+                runner = get_app_runner(app_state)
+                await runner.history_manager.lade_aktuell_csv()
 
                 app_state.aktuell_letztes_speichern = time.monotonic()
-                runner = get_app_runner(app_state)
 
                 async def safe_background_task() -> None:
                     async with app.app_context():
