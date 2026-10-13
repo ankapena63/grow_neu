@@ -4,7 +4,7 @@ import asyncio
 import time
 import hashlib
 from units.configuration import (
-    SessionManager
+    mache_session
 )
 from units.calculations import StatusManager, ZeitstempelManager
 from units.history import get_history_manager
@@ -224,7 +224,7 @@ class GrowattSessionManager:
         }
     
     async def init_session(self):
-        self.session = await SessionManager.fuer(self.app_state).erstelle("session_growatt", timeout=10)
+        self.session = await mache_session(self.app_state, "session_growatt", timeout=10)
 
     async def login(self):
         await self.init_session()
