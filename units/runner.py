@@ -1,6 +1,5 @@
 """Central scheduler for device polling and application control."""
 from datetime import datetime
-import logging
 import time
 
 from units.backup_manager import BackupManager
@@ -11,9 +10,6 @@ from units.kochen_manager import KochenManager
 from units.geraete_manager import GeraeteManager
 from units.zeit_manager import ZeitManager
 from units.state import AppState
-
-logger = logging.getLogger(__name__)
-
 
 class AppRunner:
     @classmethod
@@ -55,10 +51,7 @@ class AppRunner:
 
         await self.backup_manager.pruefe_48st(zeit_jetzt)
 
-        if app_state._dose_manager is None:
-            logger.warning("[Dose] Manager ist nicht initialisiert")
-        else:
-            await app_state._dose_manager.pruefe(zeit_jetzt)
+        await self.geraete_manager.pruefe_dose(zeit_jetzt)
 
         if app_state.kochen:
             await self.kochen_manager.pruefe_kochen(zeit_jetzt)
