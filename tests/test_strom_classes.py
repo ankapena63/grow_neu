@@ -31,10 +31,9 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
 
         with (
             patch(
-                "units.unit_strom.mache_session",
-                new_callable=AsyncMock,
-                return_value=session,
-            ) as make_session,
+                "units.unit_strom.SessionManager.fuer",
+                return_value=SimpleNamespace(erstelle=AsyncMock(return_value=session)),
+            ) as session_manager,
             patch("units.unit_strom.StatusManager.status_aktualisieren"),
             patch("units.unit_strom.ZeitstempelManager.zeitstempel", return_value="now"),
         ):
@@ -45,7 +44,7 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
             session.request[0],
             "http://host/smart-device/smartdaten",
         )
-        make_session.assert_awaited_once_with(state, "session_strom")
+        session_manager.return_value.erstelle.assert_awaited_once_with("session_strom")
 
     async def test_service_polls_tasmota_and_updates_measurement_history(self):
         state = SimpleNamespace(
