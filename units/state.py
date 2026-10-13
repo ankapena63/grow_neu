@@ -60,12 +60,13 @@ class AppState:
         self.zugang: dict[str, Any] = {}
         self.solax_local: dict[str, Any] = {}
 
-        self.ppv_werte: deque[Any] = deque(maxlen=2)
-        self.solax_l_werte: deque[Any] = deque(maxlen=3)
+        self.ppv_werte: deque[int | float] = deque(maxlen=2)
+        self.solax_l_werte: deque[int | float] = deque(maxlen=3)
         self.solax_l_mittelwert: float = 0.0
         self.ppv_mittelwert: float = 0.0
         self.letzte_push_zeiten: dict[int, float] = {1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0}
-        self.aktuell_werte: dict[str, deque[Any]] = {
+        # Historieneinträge bestehen aus (Unix-Zeitstempel, Messwert).
+        self.aktuell_werte: dict[str, deque[tuple[float, Any]]] = {
             "strom": deque(maxlen=28800),
             "hms": deque(maxlen=28800),
             "solax": deque(maxlen=28800)
