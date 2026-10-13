@@ -8,7 +8,7 @@ from quart import Quart
 from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
 from units.calculations import SonnenManager
 from units.configuration import EinstellungenManager, SessionManager
-from units.runner import get_app_runner
+from units.runner import AppRunner
 from units.unit_battery import GrowattSessionManager
 from units.logg import LogManager
 from units.state import AppState
@@ -149,7 +149,7 @@ class LifecycleManager:
                 SonnenManager.get_nachtzeten(app_state)
 
                 # Der Runner besitzt den gemeinsamen HistoryManager.
-                runner = get_app_runner(app_state)
+                runner = AppRunner.fuer(app_state)
                 await runner.history_manager.lade_aktuell_csv()
 
                 app_state.aktuell_letztes_speichern = time.monotonic()
@@ -194,7 +194,7 @@ class LifecycleManager:
             shutdown_succeeded = True
 
             try:
-                await get_app_runner(app_state).backup_manager.pruefe_48st(0)
+                await AppRunner.fuer(app_state).backup_manager.pruefe_48st(0)
             except Exception:
                 shutdown_succeeded = False
                 logger.exception("Fehler beim Speichern der 48h-Daten.")
