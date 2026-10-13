@@ -53,6 +53,8 @@ class SolaxDeviceTests(unittest.IsolatedAsyncioTestCase):
             patch("units.unit_solax.StatusManager.status_aktualisieren"),
             patch("units.unit_solax.ZeitstempelManager.zeitstempel", return_value="now"),
         ):
+            client.session_manager = session_manager.return_value
+            client.history_manager = get_history.return_value
             result = await client.abfrage_cloud(
                 {},
                 60,
@@ -101,12 +103,14 @@ class SolaxDeviceTests(unittest.IsolatedAsyncioTestCase):
             patch(
                 "units.unit_solax.SessionManager.fuer",
                 return_value=SimpleNamespace(erstelle=AsyncMock(return_value=session)),
-            ),
+            ) as session_manager,
             patch("units.unit_solax.HistoryManager.fuer") as get_history,
             patch("units.unit_solax.MittelwertManager.mittelwert_get", return_value=25),
             patch("units.unit_solax.StatusManager.status_aktualisieren"),
             patch("units.unit_solax.ZeitstempelManager.zeitstempel", return_value="now"),
         ):
+            client.session_manager = session_manager.return_value
+            client.history_manager = get_history.return_value
             result = await client.abfrage_local(takt=60, versuche=1)
 
         self.assertEqual(
