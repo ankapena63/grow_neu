@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 class Hms:
     def __init__(self, app_state):
         self.app_state = app_state
+        self.session_manager = SessionManager.fuer(app_state)
+        self.history_manager = HistoryManager.fuer(app_state)
 
     async def abfrage(
         self,
@@ -30,7 +32,7 @@ class Hms:
             app_state.zugang.get("hms_name"),
             app_state.zugang.get("hms_pas"),
         )
-        session = await SessionManager.fuer(app_state).erstelle( "session_hms", auth=auth)
+        session = await self.session_manager.erstelle( "session_hms", auth=auth)
         for versuch in range(versuche):
             try:
                 async with session.get(
@@ -39,7 +41,7 @@ class Hms:
                 ) as response:
                     response.raise_for_status()
                     data = await response.json()
-                    HistoryManager.fuer(app_state).schreibe_in_roh("hms", data)
+                    self.history_manager.schreibe_in_roh("hms", data)
                     total = data.get("total", {})
                     inverters = data.get("inverters", [])
                     inverter = inverters[0] if inverters else {}
@@ -93,7 +95,7 @@ class Hms:
                 "limit_type": 0,
                 "limit_value": limit_watt,
             }
-            session = await SessionManager.fuer(app_state).erstelle( 
+            session = await self.session_manager.erstelle( 
                 "session_hms",
                 auth=aiohttp.BasicAuth(
                     app_state.zugang.get("hms_name"),
@@ -153,7 +155,7 @@ class Hms:
             app_state.alle_daten["hms"] = await self.abfrage(app_state.alle_daten.get("hms", {}),takt)
             app_state.start_hms = zeit
             if app_state.einstellungen.get("aktuell_aktiv", True):
-                HistoryManager.fuer(app_state).speichere_aktuell_wert(
+                self.history_manager.speichere_aktuell_wert(
                     "hms",
                     app_state.alle_daten["hms"].get("aktuell", 0),
                 )
@@ -195,7 +197,7 @@ class Hms:
                 app_state.zugang.get("hms_name"),
                 app_state.zugang.get("hms_pas")
             )
-            session = await SessionManager.fuer(app_state).erstelle( 
+            session = await self.session_manager.erstelle( 
                 "session_hms",
                 auth=auth,
             )
@@ -237,7 +239,7 @@ class Hms:
                 app_state.zugang.get("hms_name"),
                 app_state.zugang.get("hms_pas"),
             )
-            session = await SessionManager.fuer(app_state).erstelle( 
+            session = await self.session_manager.erstelle( 
                 "session_hms",
                 auth=auth,
             )
@@ -272,7 +274,7 @@ class Hms:
                 app_state.zugang.get("hms_name"),
                 app_state.zugang.get("hms_pas"),
             )
-            session = await SessionManager.fuer(app_state).erstelle( 
+            session = await self.session_manager.erstelle( 
                 "session_hms",
                 auth=auth,
             )
@@ -326,7 +328,7 @@ class Hms:
                 app_state.zugang.get("hms_name"),
                 app_state.zugang.get("hms_pas"),
             )
-            session = await SessionManager.fuer(app_state).erstelle( 
+            session = await self.session_manager.erstelle( 
                 "session_hms",
                 auth=auth,
             )
