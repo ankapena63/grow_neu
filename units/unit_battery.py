@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 class GrowattSessionManager:
     def __init__(self, username, password, device_sn, token, *, app_state):
         self.app_state = app_state
+        # Gemeinsame Manager einmal übernehmen statt bei jedem API-Abruf
+        # erneut den zuständigen Manager über AppState nachzuschlagen.
+        self.history_manager = HistoryManager.fuer(app_state)
+        self.push_manager = PushManager.fuer(app_state)
+        self.dazu_manager = DazuManager.fuer(app_state)
         self.username = username
         self.password = self.password_get(password)
         self.device_sn = device_sn
@@ -88,7 +93,7 @@ class GrowattSessionManager:
                     return self.last_noah_data 
                 #self.akku_vom_token = noah
 
-                HistoryManager.fuer(self.app_state).schreibe_in_roh("akku_token",data)
+                self.history_manager.schreibe_in_roh("akku_token",data)
 
                 obj = noah[0]  # das erste Gerät
                 # Werte extrahieren
@@ -231,7 +236,7 @@ class GrowattSessionManager:
                 text = await response.text()
                 if response.status == 200 and "plantId" in text:
                     self.logged_in = True
-                    HistoryManager.fuer(self.app_state).schreibe_in_roh("akku_status",json.loads(text))
+                    self.history_manager.schreibe_in_roh("akku_status",json.loads(text))
                     logger.info("✅Growatt Login")
                 else:
                     self.logged_in = False
@@ -254,7 +259,7 @@ class GrowattSessionManager:
                     self.logged_in = False
                     return {}
                 result = await response.json()
-                HistoryManager.fuer(self.app_state).schreibe_in_roh("akku_login",result)
+                self.history_manager.schreibe_in_roh("akku_login",result)
                 
                 if "obj" not in result:
                     logger.error("[Growatt] ❌ Antwort ohne 'obj' %s", result)
@@ -376,10 +381,10 @@ class GrowattSessionManager:
         if temp1 > 44 or temp2 > 44:
             max_temp = max(temp1, temp2)
             message = (f"⚠️ Akku zu heiß: {max_temp}°C! Bitte für Kühlung/Schatten sorgen.")
-            await PushManager.fuer(self.app_state).sende_push(message, 600, 5)
+            await self.push_manager.sende_push(message, 600, 5)
         status_akku = status.get("status", 1)
         if status_akku != 1:
-            await PushManager.fuer(self.app_state).sende_push(f"Akku status: {status_akku}", 3600, 4)
+            await self.push_manager.sende_push(f"Akku status: {status_akku}", 3600, 4)
         return status
       except Exception as error:
         logger.exception("[Growatt] Fehler")
@@ -404,5 +409,5 @@ class GrowattSessionManager:
         self.app_state.solax_local = ( await self.app_state.solax.abfrage_local(takt))
         self.app_state.start_solax_l = zeit
       self.app_state.start_akku = zeit
-      await DazuManager.fuer(self.app_state).rechne_dazu()
+      await self.dazu_manager.rechne_dazu()
     
