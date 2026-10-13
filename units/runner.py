@@ -2,7 +2,6 @@
 from datetime import datetime
 import time
 
-from units.backup_manager import BackupManager
 from units.history import HistoryManager
 from units.calculations import TageswerteManager
 from units.dazu import DazuManager
@@ -27,7 +26,6 @@ class AppRunner:
         self.tageswerte_manager = TageswerteManager.fuer(app_state)
         self.history_manager = HistoryManager.fuer(app_state)
         self.zeit_manager = ZeitManager(app_state)
-        self.backup_manager = BackupManager(app_state, self.history_manager)
         self.dazu_manager = DazuManager.fuer(app_state)
         self.kochen_manager = KochenManager(
             app_state, dazu_manager=self.dazu_manager
@@ -49,7 +47,7 @@ class AppRunner:
         )
         self.zeit_manager.pruefe_dazu_intervall(zeit_jetzt)
 
-        await self.backup_manager.pruefe_48st(zeit_jetzt)
+        await self.history_manager.pruefe_48st(zeit_jetzt)
 
         await self.geraete_manager.pruefe_dose(zeit_jetzt)
 
