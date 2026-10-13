@@ -243,11 +243,11 @@ class DashboardAssetsTests(unittest.IsolatedAsyncioTestCase):
         }
 
         with (
-            patch.object(dashboard_routes, "run_sshd", return_value=False),
-            patch.object(dashboard_routes, "get_web_daten", return_value=web_data),
-            patch.object(dashboard_routes, "get_heute_werte", return_value={}),
-            patch.object(dashboard_routes, "get_monats_werte", return_value=period_data),
-            patch.object(dashboard_routes, "get_jahres_werte", return_value=period_data),
+            patch("units.web.dashboard.SshManager.laeuft", return_value=False),
+            patch("units.web.dashboard.web_data_manager.get_web_daten", return_value=web_data),
+            patch("units.web.dashboard.EnergiewerteManager.get_heute_werte", return_value={}),
+            patch("units.web.dashboard.EnergiewerteManager.get_monats_werte", return_value=period_data),
+            patch("units.web.dashboard.EnergiewerteManager.get_jahres_werte", return_value=period_data),
         ):
             client = app.test_client()
             response = await client.get("/")
