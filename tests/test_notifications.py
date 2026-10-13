@@ -58,6 +58,7 @@ class NotificationClientTests(unittest.IsolatedAsyncioTestCase):
             patch.object(manager, "sende_ntfy", new=notification_sender),
             patch("units.push.time.time", return_value=1000),
         ):
+            manager.session_manager = session_manager.return_value
             await manager.sende_push("Test", pause=600, prio=4)
             await manager.sende_push("Test", pause=600, prio=4)
         session_manager.return_value.erstelle.assert_awaited_once_with("session_push")
