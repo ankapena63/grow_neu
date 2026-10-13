@@ -7,7 +7,7 @@ from quart import Quart
 from units.web import routes
 from units.lifecycle import LifecycleManager
 from units.state import AppState
-from units.device_factory import initialisiere_geraete
+from units.device_factory import DeviceFactory
 from units.unit_dose import bp as dose_bp
 
 
@@ -23,7 +23,7 @@ class ApplicationManager:
         app_state = AppState()
 
         # Geräte zentral initialisieren
-        initialisiere_geraete(app_state)
+        DeviceFactory.initialisiere_geraete(app_state)
 
         # AppState für Web-Routen bereitstellen
         app.extensions["app_state"] = app_state
