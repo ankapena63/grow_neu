@@ -83,9 +83,9 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
 
 
     def test_managers_are_shared_per_state_but_isolated_between_apps(self):
-        from units.dazu import get_dazu_manager
+        from units.dazu import DazuManager
         from units.history import get_history_manager
-        from units.push import get_push_manager
+        from units.push import PushManager
         from units.runner import get_app_runner
 
         app_one = neu.create_app()
@@ -104,14 +104,14 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(runner_one, get_app_runner(state_one))
         self.assertIsNot(runner_one, runner_two)
 
-        self.assertIs(runner_one.dazu_manager, get_dazu_manager(state_one))
+        self.assertIs(runner_one.dazu_manager, DazuManager.fuer(state_one))
         self.assertIs(runner_one.history_manager, get_history_manager(state_one))
-        self.assertIs(runner_one.push_manager, get_push_manager(state_one))
+        self.assertIs(runner_one.push_manager, PushManager.fuer(state_one))
         self.assertIs(runner_one.backup_manager.history_manager, runner_one.history_manager)
 
-        self.assertIsNot(get_dazu_manager(state_one), get_dazu_manager(state_two))
+        self.assertIsNot(get_dazu_manager(state_one), DazuManager.fuer(state_two))
         self.assertIsNot(get_history_manager(state_one), get_history_manager(state_two))
-        self.assertIsNot(get_push_manager(state_one), get_push_manager(state_two))
+        self.assertIsNot(get_push_manager(state_one), PushManager.fuer(state_two))
         self.assertIs(get_push_manager(state_one), get_push_manager(state_one))
 
 
