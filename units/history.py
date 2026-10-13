@@ -228,23 +228,3 @@ def rotate_logs():
 def lese_tageswerte0():
     """Kompatibilität für bestehende Aufrufer."""
     return TageshistorieManager.lese_tageswerte0()
-
-
-async def speichere_aktuell_csv(app_state, dateiname="aktuell.csv"):
-    """Kompatibilität für bestehende Aufrufer."""
-    await get_history_manager(app_state).speichere_aktuell_csv(dateiname)
-
-
-async def lade_aktuell_csv(app_state, dateiname="aktuell.csv"):
-    """Kompatibilität für bestehende Aufrufer."""
-    await get_history_manager(app_state).lade_aktuell_csv(dateiname)
-
-
-def speichere_aktuell_wert(app_state, geraet, wert):
-    """Kompatibilität für bestehende Aufrufer."""
-    get_history_manager(app_state).speichere_aktuell_wert(geraet, wert)
-
-
-def schreibe_in_roh(app_state, key, daten):
-    """Kompatibilität für bestehende Aufrufer."""
-    get_history_manager(app_state).schreibe_in_roh(key, daten)
