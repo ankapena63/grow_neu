@@ -2,7 +2,7 @@
 import logging
 import time
 
-from units.configuration import mache_session
+from units.configuration import SessionManager
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ class PushManager:
         if jetzt - letzte_zeit < pause:
             return
 
-        session = await mache_session(app_state, "session_push")
+        session = await SessionManager.fuer(app_state).erstelle("session_push")
         try:
             if await self.sende_ntfy(session, nachricht, prio):
                 app_state.letzte_push_zeiten[prio] = jetzt
