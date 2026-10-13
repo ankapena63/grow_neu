@@ -211,8 +211,3 @@ class LifecycleManager:
                     "Shutdown beendet, aber nicht alle Schritte "
                     "waren erfolgreich."
                 )
-
-
-def register_lifecycle(app: Quart) -> None:
-    """Kompatibilität für bestehende Aufrufer."""
-    LifecycleManager().register(app)
