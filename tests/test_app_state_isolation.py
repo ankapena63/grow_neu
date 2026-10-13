@@ -86,7 +86,7 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
         from units.dazu import DazuManager
         from units.history import HistoryManager
         from units.push import PushManager
-        from units.runner import get_app_runner
+        from units.runner import AppRunner
 
         app_one = neu.create_app()
         app_two = neu.create_app()
@@ -98,10 +98,10 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
         state_one.growatt = object()
         state_two.growatt = object()
 
-        runner_one = get_app_runner(state_one)
-        runner_two = get_app_runner(state_two)
+        runner_one = AppRunner.fuer(state_one)
+        runner_two = AppRunner.fuer(state_two)
 
-        self.assertIs(runner_one, get_app_runner(state_one))
+        self.assertIs(runner_one, AppRunner.fuer(state_one))
         self.assertIsNot(runner_one, runner_two)
 
         self.assertIs(runner_one.dazu_manager, DazuManager.fuer(state_one))
