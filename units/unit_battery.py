@@ -7,7 +7,7 @@ from units.configuration import (
     mache_session
 )
 from units.calculations import StatusManager, ZeitstempelManager
-from units.history import get_history_manager
+from units.history import HistoryManager
 from units.dazu import DazuManager
 from units.push import PushManager
 from units.state import AppState
@@ -90,7 +90,7 @@ class GrowattSessionManager:
                     return self.last_noah_data 
                 #self.akku_vom_token = noah
 
-                get_history_manager(self.app_state).schreibe_in_roh("akku_token",data)
+                HistoryManager.fuer(self.app_state).schreibe_in_roh("akku_token",data)
 
                 obj = noah[0]  # das erste Gerät
                 # Werte extrahieren
@@ -241,7 +241,7 @@ class GrowattSessionManager:
                 text = await response.text()
                 if response.status == 200 and "plantId" in text:
                     self.logged_in = True
-                    get_history_manager(self.app_state).schreibe_in_roh("akku_status",json.loads(text))
+                    HistoryManager.fuer(self.app_state).schreibe_in_roh("akku_status",json.loads(text))
                     logger.info("✅Growatt Login")
                 else:
                     self.logged_in = False
@@ -264,7 +264,7 @@ class GrowattSessionManager:
                     self.logged_in = False
                     return {}
                 result = await response.json()
-                get_history_manager(self.app_state).schreibe_in_roh("akku_login",result)
+                HistoryManager.fuer(self.app_state).schreibe_in_roh("akku_login",result)
                 
                 if "obj" not in result:
                     logger.error("[Growatt] ❌ Antwort ohne 'obj' %s", result)
