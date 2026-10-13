@@ -4,7 +4,7 @@ from .web_data import web_data_manager
 from quart import redirect, render_template, request
 from units.calculations import EnergiewerteManager
 from units.configuration import TagesdatenManager, SshManager, EinstellungenManager
-from units.runner import get_dazu_manager
+from units.dazu import get_dazu_manager
 from units.state import AppState
 import logging
 import time
