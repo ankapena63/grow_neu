@@ -88,9 +88,6 @@ class TuyaDoseManager:
     async def pruefe(self, zeit: float) -> None:
         """Prüft die Dose basierend auf dem definierten Takt-Intervall (wird draußen aufgerufen)."""
         takt = self.app_state.einstellungen.get("takt_dose", 300)
-        # Sicherstellen, dass das Attribut auf dem AppState existiert
-        if not hasattr(self.app_state, "last_dose_check"):
-            self.app_state.last_dose_check = 0.0
         if zeit - self.app_state.last_dose_check > takt:
             try:
                 await self.control_loop()
