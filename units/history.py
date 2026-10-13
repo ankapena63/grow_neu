@@ -210,21 +210,3 @@ class TageshistorieManager:
                 })
                 vorher = aktuelle
         return tageswerte
-
-
-async def speichere_tageswerte(werte: dict, dateiname: str = "tageswerte0.csv",
-                               feldreihenfolge: list = None):
-    """Kompatibilität für bestehende Aufrufer."""
-    return await TageshistorieManager.speichere_tageswerte(
-        werte, dateiname, feldreihenfolge
-    )
-
-
-def rotate_logs():
-    """Kompatibilität für bestehende Aufrufer."""
-    return TageshistorieManager.rotate_logs()
-
-
-def lese_tageswerte0():
-    """Kompatibilität für bestehende Aufrufer."""
-    return TageshistorieManager.lese_tageswerte0()
