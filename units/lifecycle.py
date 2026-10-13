@@ -127,7 +127,8 @@ class LifecycleManager:
 
                 logger.info("Starte Hintergrund-Task (einmalig).")
                 app_state.is_shutting_down = False
-                await SessionManager.fuer(app_state).erstelle( "session_push", timeout=10)
+                session_manager = SessionManager.fuer(app_state)
+                await session_manager.erstelle("session_push", timeout=10)
 
                 await app_state.growatt.init_session()
                 SonnenManager.astro_werte(app_state)
@@ -179,7 +180,8 @@ class LifecycleManager:
             shutdown_succeeded = True
 
             try:
-                await AppRunner.fuer(app_state).backup_manager.pruefe_48st(0)
+                runner = AppRunner.fuer(app_state)
+                await runner.backup_manager.pruefe_48st(0)
             except Exception:
                 shutdown_succeeded = False
                 logger.exception("Fehler beim Speichern der 48h-Daten.")
