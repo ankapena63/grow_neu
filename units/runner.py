@@ -37,13 +37,8 @@ class AppRunner:
             app_state, dazu_manager=self.dazu_manager
         )
 
-        # Die vorhandenen Geräteobjekte werden direkt übergeben.
-        self.geraete_manager = GeraeteManager(
-            app_state.growatt,
-            app_state.solax,
-            app_state.hms,
-            app_state.strom,
-        )
+        # Der Geräte-Manager steuert die Geräte desselben AppState.
+        self.geraete_manager = GeraeteManager(app_state)
 
     async def wiederholte_takt(self):
         app_state = self.app_state
