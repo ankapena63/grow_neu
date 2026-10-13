@@ -62,15 +62,18 @@ class SessionManager:
     async def schliesse_alle(self) -> bool:
         """Schließt alle vom Manager tatsächlich erstellten HTTP-Sessions."""
         erfolgreich = True
-        for name, session in self._sessions.items():
-            if session is None or session.closed:
-                continue
-            try:
-                logger.info("Schließe Session: %s", name)
-                await session.close()
-            except Exception:
-                erfolgreich = False
-                logger.exception("Fehler beim Schließen von %s", name)
+        # Die gleiche Sperre wie bei erstelle() verhindert, dass während
+        # des Shutdowns parallel eine Session angelegt wird.
+        async with self._lock:
+            for name, session in self._sessions.items():
+                if session is None or session.closed:
+                    continue
+                try:
+                    logger.info("Schließe Session: %s", name)
+                    await session.close()
+                except Exception:
+                    erfolgreich = False
+                    logger.exception("Fehler beim Schließen von %s", name)
         return erfolgreich
 
 
