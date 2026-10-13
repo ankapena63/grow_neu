@@ -35,8 +35,8 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
                 new_callable=AsyncMock,
                 return_value=session,
             ) as make_session,
-            patch("units.unit_strom.status_aktualisieren"),
-            patch("units.unit_strom.zeitstempel", return_value="now"),
+            patch("units.unit_strom.StatusManager.status_aktualisieren"),
+            patch("units.unit_strom.ZeitstempelManager.zeitstempel", return_value="now"),
         ):
             result = await client.abfrage_smart({}, "smart-device", takt=10)
 
@@ -66,8 +66,8 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
         service.abfrage_tasmota = AsyncMock(return_value={"Actuel": 60})
         service.abfrage_smart = AsyncMock()
         with (
-            patch("units.unit_strom.status_aktualisieren"),
-            patch("units.unit_strom.speichere_aktuell_wert") as save_value,
+            patch("units.unit_strom.StatusManager.status_aktualisieren"),
+            patch("units.unit_strom.get_history_manager") as get_history,
         ):
             await service.pruefe(20)
 
@@ -78,7 +78,7 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
         service.abfrage_smart.assert_not_awaited()
         self.assertEqual(state.alle_daten["strom"], {"Actuel": 60})
         self.assertEqual(state.start_strom, 20)
-        save_value.assert_called_once_with(state, "strom", 60)
+        get_history.return_value.speichere_aktuell_wert.assert_called_once_with("strom", 60)
 
     async def test_service_polls_smart_meter_when_tasmota_is_disabled(self):
         state = SimpleNamespace(
@@ -99,7 +99,7 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
         service.abfrage_tasmota = AsyncMock()
         service.abfrage_smart = AsyncMock(return_value={"Actuel": 40})
 
-        with patch("units.unit_strom.status_aktualisieren"):
+        with patch("units.unit_strom.StatusManager.status_aktualisieren"):
             await service.pruefe(15)
 
         service.abfrage_smart.assert_awaited_once_with(
@@ -126,7 +126,7 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
         service.abfrage_tasmota = AsyncMock()
         service.abfrage_smart = AsyncMock()
 
-        with patch("units.unit_strom.status_aktualisieren"):
+        with patch("units.unit_strom.StatusManager.status_aktualisieren"):
             await service.pruefe(15)
 
         service.abfrage_tasmota.assert_not_awaited()
