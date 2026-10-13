@@ -31,3 +31,13 @@ class DeviceFactory:
             zugang.get("token", ""),
             app_state=app_state,
         )
+
+    @staticmethod
+    async def erneuere_growatt(app_state: AppState) -> None:
+        """Schließt eine vorhandene Growatt-Session und startet sie neu."""
+        growatt = getattr(app_state, "growatt", None)
+        if growatt is not None and growatt.session:
+            await growatt.close()
+
+        DeviceFactory.initialisiere_growatt(app_state)
+        await app_state.growatt.init_session()
