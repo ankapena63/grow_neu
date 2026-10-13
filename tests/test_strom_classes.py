@@ -37,6 +37,7 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
             patch("units.unit_strom.StatusManager.status_aktualisieren"),
             patch("units.unit_strom.ZeitstempelManager.zeitstempel", return_value="now"),
         ):
+            client.session_manager = session_manager.return_value
             result = await client.abfrage_smart({}, "smart-device", takt=10)
 
         self.assertEqual(result, {"Actuel": 25, "takt": 10, "zeit_meine": "now"})
@@ -68,6 +69,7 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
             patch("units.unit_strom.StatusManager.status_aktualisieren"),
             patch("units.unit_strom.HistoryManager.fuer") as get_history,
         ):
+            service.history_manager = get_history.return_value
             await service.pruefe(20)
 
         service.abfrage_tasmota.assert_awaited_once_with(
