@@ -389,7 +389,7 @@ class GrowattSessionManager:
             await PushManager.fuer(self.app_state).sende_push(message, 600, 5)
         status_akku = status.get("status", 1)
         if status_akku != 1:
-            await get_push_manager(self.app_state).sende_push(f"Akku status: {status_akku}", 3600, 4)
+            await PushManager.fuer(self.app_state).sende_push(f"Akku status: {status_akku}", 3600, 4)
         return status
       except Exception as error:
         logger.exception("[Growatt] Fehler")
