@@ -13,6 +13,7 @@ class SessionManager:
 
     def __init__(self, app_state):
         self.app_state = app_state
+        self._sessions = {}
 
     @classmethod
     def fuer(cls, app_state):
@@ -50,21 +51,13 @@ class SessionManager:
             )
             setattr(app_state, name, session)
             logger.info("Neue Session erstellt: %s", name)
+        self._sessions[name] = session
         return session
 
     async def schliesse_alle(self) -> bool:
-        """Schließt alle vom Manager verwalteten HTTP-Sessions."""
+        """Schließt alle vom Manager tatsächlich erstellten HTTP-Sessions."""
         erfolgreich = True
-        for name in (
-            "session_push",
-            "session_hms",
-            "session_tasmota",
-            "session_solax_l",
-            "session_strom",
-            "session_solax_c",
-            "session_growatt",
-        ):
-            session = getattr(self.app_state, name, None)
+        for name, session in self._sessions.items():
             if session is None or session.closed:
                 continue
             try:
