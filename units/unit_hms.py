@@ -4,7 +4,7 @@ import logging
 import aiohttp
 from units.calculations import StatusManager, ZeitstempelManager
 from units.configuration import mache_session
-from units.history import get_history_manager
+from units.history import HistoryManager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class Hms:
                 ) as response:
                     response.raise_for_status()
                     data = await response.json()
-                    get_history_manager(app_state).schreibe_in_roh("hms", data)
+                    HistoryManager.fuer(app_state).schreibe_in_roh("hms", data)
                     total = data.get("total", {})
                     inverters = data.get("inverters", [])
                     inverter = inverters[0] if inverters else {}
@@ -153,7 +153,7 @@ class Hms:
             app_state.alle_daten["hms"] = await self.abfrage(app_state.alle_daten.get("hms", {}),takt)
             app_state.start_hms = zeit
             if app_state.einstellungen.get("aktuell_aktiv", True):
-                get_history_manager(app_state).speichere_aktuell_wert(
+                HistoryManager.fuer(app_state).speichere_aktuell_wert(
                     "hms",
                     app_state.alle_daten["hms"].get("aktuell", 0),
                 )
