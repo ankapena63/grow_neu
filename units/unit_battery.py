@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 class GrowattSessionManager:
     def __init__(self, username, password, device_sn, token, *, app_state):
         self.app_state = app_state
+        self.session_manager = SessionManager.fuer(app_state)
         # Gemeinsame Manager einmal übernehmen statt bei jedem API-Abruf
         # erneut den zuständigen Manager über AppState nachzuschlagen.
         self.history_manager = HistoryManager.fuer(app_state)
@@ -219,7 +220,9 @@ class GrowattSessionManager:
         }
     
     async def init_session(self):
-        self.session = await SessionManager.fuer(self.app_state).erstelle( "session_growatt", timeout=10)
+        self.session = await self.session_manager.erstelle(
+            "session_growatt", timeout=10
+        )
 
     async def login(self):
         await self.init_session()
