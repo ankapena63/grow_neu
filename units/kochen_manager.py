@@ -18,29 +18,32 @@ class KochenManager:
         self.app_state = app_state
         self.dazu_manager = dazu_manager
 
+    async def _beende_kochen(self, meldung: str) -> None:
+        """Beendet Kochen und berechnet die erforderliche Leistung neu."""
+        self.app_state.kochen = False
+        self.app_state.kochen_zeit = 0.0
+        await self.dazu_manager.rechne_dazu()
+        logger.info(meldung)
+
     async def pruefe_kochen(self, zeit: float) -> None:
+        """Prüft die Kochdauer, den Mindest-SOC und die Nachtregel."""
         app_state = self.app_state
-        soc = app_state.soc
         verbleibend = app_state.kochen_end - zeit
 
         if (
-            soc < app_state.einstellungen.get("kochen_soc_min", 30)
+            app_state.soc < app_state.einstellungen.get("kochen_soc_min", 30)
             or verbleibend <= 0
         ):
-            app_state.kochen = False
-            app_state.kochen_zeit = 0.0
-            await self.dazu_manager.rechne_dazu()
-            logger.info("KOCHEN AUS: SOC zu niedrig oder _Zeit abgelaufen")
+            await self._beende_kochen(
+                "KOCHEN AUS: SOC zu niedrig oder Zeit abgelaufen"
+            )
             return
 
         if (
             app_state.nachtzeit
             and app_state.einstellungen.get("nacht_nur_0_schalter", False)
         ):
-            logger.info("KOCHEN AUS:Nachts nur 0 Einp.")
-            app_state.kochen = False
-            app_state.kochen_zeit = 0.0
-            await self.dazu_manager.rechne_dazu()
+            await self._beende_kochen("KOCHEN AUS: Nachts nur 0 Einspeisung")
             return
 
         app_state.kochen_zeit = round(verbleibend / 60, 2)
