@@ -105,7 +105,7 @@ class AppState:
         self.start_solax_l: float = jetzt
         self.start_strom: float = jetzt
         self.start_dazu_senden: float = jetzt
-        self.takte: dict[str, Any] = {}
+        self.takte: dict[str, int | float] = {}
         self.benutzer_activ: bool = False
         self.start_hms0: int = 10
 
