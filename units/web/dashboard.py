@@ -130,10 +130,6 @@ class DashboardManager:
 dashboard_manager = DashboardManager()
 
 
-def get_web_daten(app_state: AppState) -> dict:
-    """Kompatibilität für bestehende Importe."""
-    return web_data_manager.get_web_daten(app_state)
-
 
 @routes.route("/tageswerte")
 async def tageswerte():
