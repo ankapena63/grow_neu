@@ -52,6 +52,28 @@ class SessionManager:
             logger.info("Neue Session erstellt: %s", name)
         return session
 
+    async def schliesse_alle(self) -> bool:
+        """Schließt alle vom Manager verwalteten HTTP-Sessions."""
+        erfolgreich = True
+        for name in (
+            "session_push",
+            "session_hms",
+            "session_tasmota",
+            "session_solax_l",
+            "session_strom",
+            "session_solax_c",
+            "session_growatt",
+        ):
+            session = getattr(self.app_state, name, None)
+            if session is None or session.closed:
+                continue
+            try:
+                logger.info("Schließe Session: %s", name)
+                await session.close()
+            except Exception:
+                erfolgreich = False
+                logger.exception("Fehler beim Schließen von %s", name)
+        return erfolgreich
 
 
 class TagesdatenManager:
