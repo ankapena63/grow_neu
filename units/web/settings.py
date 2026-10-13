@@ -153,12 +153,8 @@ class SettingsManager:
                     state.zugang[key] = value
             await EinstellungenManager.speichere_zugang(state, state.zugang)
             
-    # Alte Session schließen, falls schon existiert
-            if hasattr(state, "growatt") and state.growatt.session:
-                await state.growatt.close()
-    # Growatt-Session neu erzeugen
-            DeviceFactory.initialisiere_growatt(app_state)
-            await app_state.growatt.init_session()  # Session öffnen          
+            # Vorhandene Session sicher schließen und Growatt neu starten.
+            await DeviceFactory.erneuere_growatt(app_state)
             return redirect("/zugang")
     
         return await render_template(
