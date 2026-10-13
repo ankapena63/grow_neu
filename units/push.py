@@ -64,3 +64,13 @@ class PushManager:
                 app_state.letzte_push_zeiten[prio] = jetzt
         except Exception:
             logger.exception("❌ Push-Verbindung fehlgeschlagen")
+
+
+
+def get_push_manager(app_state) -> PushManager:
+    """Liefert den dauerhaft verwendeten PushManager dieses AppState."""
+    manager = getattr(app_state, "_push_manager", None)
+    if manager is None:
+        manager = PushManager(app_state)
+        app_state._push_manager = manager
+    return manager
