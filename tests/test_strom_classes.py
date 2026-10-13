@@ -67,7 +67,7 @@ class StromClassTests(unittest.IsolatedAsyncioTestCase):
         service.abfrage_smart = AsyncMock()
         with (
             patch("units.unit_strom.StatusManager.status_aktualisieren"),
-            patch("units.unit_strom.get_history_manager") as get_history,
+            patch("units.unit_strom.HistoryManager.fuer") as get_history,
         ):
             await service.pruefe(20)
 
