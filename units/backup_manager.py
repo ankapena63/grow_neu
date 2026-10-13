@@ -16,7 +16,11 @@ class BackupManager:
         history_manager: HistoryManager | None = None,
     ):
         self.app_state = app_state
-        self.history_manager = history_manager or get_history_manager(app_state)
+        self.history_manager = (
+            history_manager
+            if history_manager is not None
+            else get_history_manager(app_state)
+        )
 
     async def pruefe_48st(self, zeit: float) -> None:
         app_state = self.app_state
