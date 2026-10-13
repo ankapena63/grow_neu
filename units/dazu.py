@@ -14,6 +14,16 @@ class DazuManager:
     def __init__(self, app_state: AppState):
         self.app_state = app_state
 
+    @classmethod
+    def fuer(cls, app_state):
+        """Liefert den gemeinsamen Manager dieses AppState."""
+        manager = getattr(app_state, "_dazu_manager", None)
+        if manager is None:
+            manager = cls(app_state)
+            app_state._dazu_manager = manager
+        return manager
+
+
     async def sende_dazu(self, wert):
         app_state = self.app_state
         soc = app_state.soc
@@ -130,13 +140,3 @@ class DazuManager:
             dazu += int(einst.get("dazu_sanft", 0))
 
         await self.sende_dazu(dazu)
-
-
-
-def get_dazu_manager(app_state: AppState) -> DazuManager:
-    """Liefert den dauerhaft verwendeten DazuManager dieses AppState."""
-    manager = getattr(app_state, "_dazu_manager", None)
-    if manager is None:
-        manager = DazuManager(app_state)
-        app_state._dazu_manager = manager
-    return manager
