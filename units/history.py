@@ -16,6 +16,15 @@ class HistoryManager:
     def __init__(self, app_state):
         self.app_state = app_state
 
+    @classmethod
+    def fuer(cls, app_state):
+        """Liefert den gemeinsamen HistoryManager dieses AppState."""
+        manager = getattr(app_state, "_history_manager", None)
+        if manager is None:
+            manager = cls(app_state)
+            app_state._history_manager = manager
+        return manager
+
     async def speichere_aktuell_csv(self, dateiname="aktuell.csv"):
         pfad = DATA_DIR / dateiname
         app_state = self.app_state
@@ -123,12 +132,8 @@ class HistoryManager:
 
 
 def get_history_manager(app_state):
-    """Liefert den dauerhaft verwendeten HistoryManager dieses AppState."""
-    manager = getattr(app_state, "_history_manager", None)
-    if manager is None:
-        manager = HistoryManager(app_state)
-        app_state._history_manager = manager
-    return manager
+    """Kompatibler Einstiegspunkt; neue Aufrufer nutzen HistoryManager.fuer."""
+    return HistoryManager.fuer(app_state)
 
 
 class TageshistorieManager:
