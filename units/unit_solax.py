@@ -15,6 +15,8 @@ class Solax:
     
     def __init__(self, app_state: AppState):
         self.app_state = app_state
+        self.session_manager = SessionManager.fuer(app_state)
+        self.history_manager = HistoryManager.fuer(app_state)
 
     async def abfrage_cloud(
         self,
@@ -24,7 +26,7 @@ class Solax:
         wartezeit: int = 5,
     ):
         app_state = self.app_state
-        session = await SessionManager.fuer(app_state).erstelle( "session_solax_c")
+        session = await self.session_manager.erstelle( "session_solax_c")
         url = app_state.zugang.get("solax_c_url")
         params = {
             "tokenId": app_state.zugang.get("solax_c_tokenId"),
@@ -41,7 +43,7 @@ class Solax:
                     result = await response.json()
 
                     if result.get("success") and "result" in result:
-                        HistoryManager.fuer(app_state).schreibe_in_roh("solax_c", result)
+                        self.history_manager.schreibe_in_roh("solax_c", result)
                         data = result["result"]
                         normalized = {
                             "heute": float(data.get("yieldtoday", 0.0)),
@@ -93,7 +95,7 @@ class Solax:
         basis_wartezeit: int = 2,
     ) -> dict:
         app_state = self.app_state
-        session = await SessionManager.fuer(app_state).erstelle( "session_solax_l")
+        session = await self.session_manager.erstelle( "session_solax_l")
         url = app_state.zugang.get("solax_l_url")
         payload = "optType=ReadRealTimeData&pwd=" + str(app_state.zugang.get("solax_c_sn", ""))
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -111,7 +113,7 @@ class Solax:
                         if len(data) < 17:
                             logger.error("[Solax Local] Daten unvollständig (Länge %s)",len(data))
                             continue
-                        HistoryManager.fuer(app_state).schreibe_in_roh("solax_l", json.loads(text))
+                        self.history_manager.schreibe_in_roh("solax_l", json.loads(text))
                         logger.info("Solax L✅ %s Sek V:%s", takt, versuch + 1)
                         aktuell = int(data[5]) if len(data) > 5 else -1
                         app_state.solax_l_mittelwert = int( round(MittelwertManager.mittelwert_get( aktuell, app_state.solax_l_werte,  ), 0, ))
@@ -124,7 +126,7 @@ class Solax:
                             "zeit_meine": ZeitstempelManager.zeitstempel(),
                         }
                         if app_state.einstellungen.get("aktuell_aktiv", True):
-                            HistoryManager.fuer(app_state).speichere_aktuell_wert("solax", aktuell, )
+                            self.history_manager.speichere_aktuell_wert("solax", aktuell, )
                         StatusManager.status_aktualisieren(app_state, "solax_l", takt)
                         app_state.solax_local = result
                         return result
