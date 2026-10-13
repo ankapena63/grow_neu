@@ -212,19 +212,6 @@ class LifecycleManager:
                 )
 
 
-# Kompatibilität für bisherige Aufrufer
-def _configure_logging(app_state: AppState) -> None:
-    LifecycleManager().configure_logging(app_state)
-
-
-def _load_configuration(app_state: AppState) -> None:
-    LifecycleManager().load_configuration(app_state)
-
-
-async def _close_network_resources(app_state: AppState) -> bool:
-    return await LifecycleManager().close_network_resources(app_state)
-
-
 def register_lifecycle(app: Quart) -> None:
     """Kompatibilität für bestehende Aufrufer."""
     LifecycleManager().register(app)
