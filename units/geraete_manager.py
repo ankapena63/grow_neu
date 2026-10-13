@@ -10,10 +10,14 @@ class GeraeteManager:
         self.app_state = app_state
 
     async def pruefe_geraete(self, zeit: float) -> None:
-        # Geräte werden direkt aus dem gemeinsamen Zustand gelesen.
-        # Reihenfolge beibehalten: Growatt, Solax, HMS, Strom.
+        # Ein gemeinsamer Ablauf hält Reihenfolge und Fehlerverhalten stabil.
+        # Die Geräte werden nacheinander geprüft, nicht parallel.
         app_state = self.app_state
-        await app_state.growatt.pruefe(zeit)
-        await app_state.solax.pruefe(zeit)
-        await app_state.hms.pruefe(zeit)
-        await app_state.strom.pruefe(zeit)
+        geraete = (
+            app_state.growatt,
+            app_state.solax,
+            app_state.hms,
+            app_state.strom,
+        )
+        for geraet in geraete:
+            await geraet.pruefe(zeit)
