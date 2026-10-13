@@ -261,7 +261,3 @@ class TageswerteManager:
         logger.info("Start neuerTag. Tagesstartwerte zurückgesetzt:")
         TageshistorieManager.rotate_logs()
 
-
-def get_tageswerte_manager(app_state: AppState) -> TageswerteManager:
-    """Kompatibler Einstiegspunkt; neue Aufrufer nutzen TageswerteManager.fuer."""
-    return TageswerteManager.fuer(app_state)
