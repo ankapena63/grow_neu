@@ -16,13 +16,13 @@ class HmsPowerControlTests(unittest.IsolatedAsyncioTestCase):
                 "lese_config",
                 new=AsyncMock(return_value={"enabled": True}),
             ) as read_config,
-            patch("units.unit_hms.mache_session") as make_session,
+            patch("units.unit_hms.SessionManager.fuer", return_value=SimpleNamespace(erstelle=AsyncMock())) as session_manager,
         ):
             result = await limiter.setze_powerlimiter(True)
 
         self.assertTrue(result)
         read_config.assert_awaited_once_with()
-        make_session.assert_not_awaited()
+        session_manager.return_value.erstelle.assert_not_awaited()
 
     async def test_refuses_to_switch_inverter_when_not_reachable(self):
         app_state = SimpleNamespace(
@@ -36,7 +36,7 @@ class HmsPowerControlTests(unittest.IsolatedAsyncioTestCase):
         )
         limiter = Hms(app_state)
 
-        with patch("units.unit_hms.mache_session") as make_session:
+        with patch("units.unit_hms.SessionManager.fuer", return_value=SimpleNamespace(erstelle=AsyncMock())) as session_manager:
             result = await limiter.schalte_wr(True)
 
         self.assertFalse(result)
