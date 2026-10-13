@@ -1,4 +1,5 @@
 from .config import DATA_DIR
+import asyncio
 import aiohttp
 import csv
 import json
@@ -14,6 +15,7 @@ class SessionManager:
     def __init__(self, app_state):
         self.app_state = app_state
         self._sessions = {}
+        self._lock = asyncio.Lock()
 
     @classmethod
     def fuer(cls, app_state):
@@ -28,31 +30,34 @@ class SessionManager:
         """
         Gibt die benannte Session zurück oder erstellt sie bei Bedarf neu.
         """
-        app_state = self.app_state
-        session = getattr(app_state, name, None)
-        if session is None or session.closed:
-            connector = aiohttp.TCPConnector(
-                limit=20,
-                keepalive_timeout=60,
-                limit_per_host=10,
-                ttl_dns_cache=300,
-                enable_cleanup_closed=True,
-            )
-            session = aiohttp.ClientSession(
-                connector=connector,
-                auth=auth,
-                headers=headers,
-                timeout=aiohttp.ClientTimeout(
-                    total=timeout,
-                    connect=5,
-                    sock_connect=5,
-                    sock_read=5,
-                ),
-            )
-            setattr(app_state, name, session)
-            logger.info("Neue Session erstellt: %s", name)
-        self._sessions[name] = session
-        return session
+        # Gleichzeitige Geräteabfragen dürfen dieselbe Session nicht
+        # mehrfach parallel erstellen.
+        async with self._lock:
+            app_state = self.app_state
+            session = getattr(app_state, name, None)
+            if session is None or session.closed:
+                connector = aiohttp.TCPConnector(
+                    limit=20,
+                    keepalive_timeout=60,
+                    limit_per_host=10,
+                    ttl_dns_cache=300,
+                    enable_cleanup_closed=True,
+                )
+                session = aiohttp.ClientSession(
+                    connector=connector,
+                    auth=auth,
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(
+                        total=timeout,
+                        connect=5,
+                        sock_connect=5,
+                        sock_read=5,
+                    ),
+                )
+                setattr(app_state, name, session)
+                logger.info("Neue Session erstellt: %s", name)
+            self._sessions[name] = session
+            return session
 
     async def schliesse_alle(self) -> bool:
         """Schließt alle vom Manager tatsächlich erstellten HTTP-Sessions."""
