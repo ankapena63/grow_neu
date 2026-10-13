@@ -54,16 +54,6 @@ async def sende_push(
     await get_push_manager(app_state).sende_push(nachricht, pause, prio)
 
 
-def get_backup_manager(app_state: AppState) -> BackupManager:
-    """Liefert den dauerhaft verwendeten BackupManager dieses AppState."""
-    manager = getattr(app_state, "_backup_manager", None)
-    if manager is None:
-        manager = BackupManager(app_state)
-        app_state._backup_manager = manager
-    return manager
-
-
-
 
 def get_app_runner(app_state: AppState) -> "AppRunner":
     """Liefert den dauerhaft verwendeten Runner für diesen AppState."""
