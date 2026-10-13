@@ -12,6 +12,7 @@ class PushManager:
 
     def __init__(self, app_state):
         self.app_state = app_state
+        self.session_manager = SessionManager.fuer(app_state)
 
     @classmethod
     def fuer(cls, app_state):
@@ -68,7 +69,7 @@ class PushManager:
         if jetzt - letzte_zeit < pause:
             return
 
-        session = await SessionManager.fuer(app_state).erstelle( "session_push")
+        session = await self.session_manager.erstelle("session_push")
         try:
             if await self.sende_ntfy(session, nachricht, prio):
                 app_state.letzte_push_zeiten[prio] = jetzt
