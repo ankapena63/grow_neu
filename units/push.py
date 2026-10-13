@@ -62,9 +62,6 @@ class PushManager:
             return
 
         jetzt = time.time()
-        if not hasattr(app_state, "letzte_push_zeiten"):
-            app_state.letzte_push_zeiten = {}
-
         letzte_zeit = app_state.letzte_push_zeiten.get(prio, 0)
         if jetzt - letzte_zeit < pause:
             return
