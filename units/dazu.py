@@ -130,3 +130,13 @@ class DazuManager:
             dazu += int(einst.get("dazu_sanft", 0))
 
         await self.sende_dazu(dazu)
+
+
+
+def get_dazu_manager(app_state: AppState) -> DazuManager:
+    """Liefert den dauerhaft verwendeten DazuManager dieses AppState."""
+    manager = getattr(app_state, "_dazu_manager", None)
+    if manager is None:
+        manager = DazuManager(app_state)
+        app_state._dazu_manager = manager
+    return manager
