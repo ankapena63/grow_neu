@@ -54,13 +54,13 @@ class NotificationClientTests(unittest.IsolatedAsyncioTestCase):
         manager = PushManager.fuer(app_state)
         notification_sender = AsyncMock(return_value=True)
         with (
-            patch("units.push.mache_session", new_callable=AsyncMock) as make_session,
+            patch("units.push.SessionManager.fuer", return_value=SimpleNamespace(erstelle=AsyncMock())) as session_manager,
             patch.object(manager, "sende_ntfy", new=notification_sender),
             patch("units.push.time.time", return_value=1000),
         ):
             await manager.sende_push("Test", pause=600, prio=4)
             await manager.sende_push("Test", pause=600, prio=4)
-        make_session.assert_awaited_once_with(app_state, "session_push")
+        session_manager.return_value.erstelle.assert_awaited_once_with("session_push")
         notification_sender.assert_awaited_once()
         self.assertEqual(app_state.letzte_push_zeiten[4], 1000)
 
