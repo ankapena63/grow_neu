@@ -113,7 +113,7 @@ class AppState:
         self.last_dose_check: float = 0.0
         self.dose_mode: str = "auto"
         self.dose_laeuft: bool = False
-        self.dose_relay_state: bool = False
+        self.dose_relay_state: bool | None = False
         self.dose_watt: float = 0.0
         self.dose_device: DoseDevice | None = None
         self._dose_manager: TuyaDoseManager | None = None
