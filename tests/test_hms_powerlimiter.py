@@ -40,4 +40,4 @@ class HmsPowerControlTests(unittest.IsolatedAsyncioTestCase):
             result = await limiter.schalte_wr(True)
 
         self.assertFalse(result)
-        make_session.assert_not_awaited()
+        session_manager.return_value.erstelle.assert_not_awaited()
