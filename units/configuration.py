@@ -89,10 +89,6 @@ class TagesdatenManager:
         return daten
 
 
-def load_tageswerte(name="tageswerte0.csv"):
-    """Kompatibilität für bestehende Aufrufer."""
-    return TagesdatenManager.laden(name)
-
 class EinstellungenManager:
     """Kapselt Laden und Speichern von Einstellungen und Zugangsdaten."""
 
