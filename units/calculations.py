@@ -19,9 +19,6 @@ class ZeitstempelManager:
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-def zeitstempel():
-    """Kompatibilität für bestehende Aufrufer."""
-    return ZeitstempelManager.zeitstempel()
 
 class MittelwertManager:
     """Kapselt die laufende Mittelwertberechnung."""
@@ -80,9 +77,6 @@ class SonnenManager:
             logger.exception("Nachtfenster konnte nicht berechnet werden")
 
 
-def astro_werte(app_state):
-    """Kompatibilität für bestehende Aufrufer."""
-    return SonnenManager.astro_werte(app_state)
 
 
 def get_nachtzeten(app_state: AppState):
