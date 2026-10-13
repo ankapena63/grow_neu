@@ -100,7 +100,8 @@ class LifecycleManager:
                 cleanup_succeeded = False
                 logger.exception("Growatt schließen fehlgeschlagen.")
 
-        if not await SessionManager.fuer(app_state).schliesse_alle():
+        session_manager = SessionManager.fuer(app_state)
+        if not await session_manager.schliesse_alle():
             cleanup_succeeded = False
 
         return cleanup_succeeded
