@@ -25,11 +25,12 @@ class AppState:
     # Der Zustand speichert das Gerät typsicher ab, ohne dass state.py echten Code importiert
     #dose_device: Optional[DoseDevice] = None # ist unten
     def __init__(self):
-        self.version = "13-10-2026"
-        self.save_lock = asyncio.Lock()
+        self.version: str = "13-10-2026"
+        self.save_lock: asyncio.Lock = asyncio.Lock()
 
         # Gemeinsame Manager werden pro AppState genau einmal angelegt.
-        # Any vermeidet Import-Zyklen zwischen state.py und den Manager-Modulen.
+        # Typen werden nur unter TYPE_CHECKING importiert, damit keine
+        # Laufzeit-Importzyklen zwischen state.py und den Managern entstehen.
         self._app_runner: AppRunner | None = None
         self._history_manager: HistoryManager | None = None
         self._tageswerte_manager: TageswerteManager | None = None
@@ -128,11 +129,11 @@ class AppState:
         self.akku_sanft_zeit: bool = False
         self.dazu_intervall: float = 0.0
 
-        self.sonnenaufgang = "07:12:43"
-        self.sonnenuntergang = "19:47:22"
-        self.tageslange = "12:34:39"
-        self.startnacht = "22:07"
-        self.endnacht = "08:07"
+        self.sonnenaufgang: str = "07:12:43"
+        self.sonnenuntergang: str = "19:47:22"
+        self.tageslange: str = "12:34:39"
+        self.startnacht: str = "22:07"
+        self.endnacht: str = "08:07"
         self.nachtzeit: bool = False
 
         self.dazu_sanft_soc: float = 0.0
