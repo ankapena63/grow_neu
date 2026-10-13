@@ -6,7 +6,7 @@ import aiohttp
 from aiohttp import ClientTimeout
 from units.calculations import MittelwertManager, StatusManager, ZeitstempelManager
 from units.configuration import mache_session
-from units.history import get_history_manager
+from units.history import HistoryManager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class Solax:
                     result = await response.json()
 
                     if result.get("success") and "result" in result:
-                        get_history_manager(app_state).schreibe_in_roh("solax_c", result)
+                        HistoryManager.fuer(app_state).schreibe_in_roh("solax_c", result)
                         data = result["result"]
                         normalized = {
                             "heute": float(data.get("yieldtoday", 0.0)),
@@ -111,7 +111,7 @@ class Solax:
                         if len(data) < 17:
                             logger.error("[Solax Local] Daten unvollständig (Länge %s)",len(data))
                             continue
-                        get_history_manager(app_state).schreibe_in_roh("solax_l", json.loads(text))
+                        HistoryManager.fuer(app_state).schreibe_in_roh("solax_l", json.loads(text))
                         logger.info("Solax L✅ %s Sek V:%s", takt, versuch + 1)
                         aktuell = int(data[5]) if len(data) > 5 else -1
                         app_state.solax_l_mittelwert = int( round(MittelwertManager.mittelwert_get( aktuell, app_state.solax_l_werte,  ), 0, ))
@@ -124,7 +124,7 @@ class Solax:
                             "zeit_meine": ZeitstempelManager.zeitstempel(),
                         }
                         if app_state.einstellungen.get("aktuell_aktiv", True):
-                            get_history_manager(app_state).speichere_aktuell_wert("solax", aktuell, )
+                            HistoryManager.fuer(app_state).speichere_aktuell_wert("solax", aktuell, )
                         StatusManager.status_aktualisieren(app_state, "solax_l", takt)
                         app_state.solax_local = result
                         return result
