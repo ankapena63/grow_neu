@@ -9,6 +9,7 @@ from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
 from units.calculations import SonnenManager
 from units.configuration import EinstellungenManager, SessionManager
 from units.runner import AppRunner
+from units.history import HistoryManager
 from units.device_factory import DeviceFactory
 from units.logg import LogManager
 from units.state import AppState
@@ -128,9 +129,9 @@ class LifecycleManager:
                 SonnenManager.astro_werte(app_state)
                 SonnenManager.get_nachtzeten(app_state)
 
-                # Der Runner besitzt den gemeinsamen HistoryManager.
+                # Historie unabhängig vom Hintergrund-Runner laden.
+                await HistoryManager.fuer(app_state).lade_aktuell_csv()
                 runner = AppRunner.fuer(app_state)
-                await runner.history_manager.lade_aktuell_csv()
 
                 app_state.aktuell_letztes_speichern = time.monotonic()
 
@@ -174,8 +175,7 @@ class LifecycleManager:
             shutdown_succeeded = True
 
             try:
-                runner = AppRunner.fuer(app_state)
-                await runner.history_manager.pruefe_48st(0)
+                await HistoryManager.fuer(app_state).pruefe_48st(0)
             except Exception:
                 shutdown_succeeded = False
                 logger.exception("Fehler beim Speichern der 48h-Daten.")
