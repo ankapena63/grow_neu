@@ -4,6 +4,7 @@ import logging
 import time
 
 from units.backup_manager import BackupManager
+from units.history import get_history_manager
 from units.calculations import get_tageswerte_manager
 from units.dazu import DazuManager
 from units.kochen_manager import KochenManager
@@ -78,8 +79,10 @@ class AppRunner:
         self.app_state = app_state
 
         self.tageswerte_manager = get_tageswerte_manager(app_state)
+        self.history_manager = get_history_manager(app_state)
         self.zeit_manager = ZeitManager(app_state)
-        self.backup_manager = get_backup_manager(app_state)
+        self.backup_manager = BackupManager(app_state, self.history_manager)
+        app_state._backup_manager = self.backup_manager
         self.dazu_manager = get_dazu_manager(app_state)
         self.kochen_manager = KochenManager(
             app_state, dazu_manager=self.dazu_manager
