@@ -9,7 +9,7 @@ from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
 from units.calculations import SonnenManager
 from units.configuration import EinstellungenManager, SessionManager
 from units.runner import AppRunner
-from units.unit_battery import GrowattSessionManager
+from units.device_factory import DeviceFactory
 from units.logg import LogManager
 from units.state import AppState
 
@@ -69,13 +69,7 @@ class LifecycleManager:
         for key, default in STANDARD_ZUGANG.items():
             app_state.zugang.setdefault(key, default)
 
-        app_state.growatt = GrowattSessionManager(
-            app_state.zugang.get("username", ""),
-            app_state.zugang.get("password", ""),
-            app_state.zugang.get("deviceSn", ""),
-            app_state.zugang.get("token", ""),
-            app_state=app_state,
-        )
+        DeviceFactory.initialisiere_growatt(app_state)
 
     async def close_network_resources(
         self, app_state: AppState
