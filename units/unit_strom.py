@@ -2,7 +2,7 @@ import asyncio
 import logging
 import aiohttp
 from units.calculations import StatusManager, ZeitstempelManager
-from units.configuration import SessionManager
+from units.configuration import mache_session
 from units.history import get_history_manager
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class Strom:
         ip_haupt = app_state.zugang.get("ip_haupt")
         url_end = app_state.zugang.get("url_tasmota")
         url = f"{ip_haupt}{ip}{url_end}"
-        session = await SessionManager.fuer(app_state).erstelle("session_tasmota")
+        session = await mache_session(app_state, "session_tasmota")
         fehler = None
         try:
             async with session.get(url, timeout=5) as response:
@@ -78,7 +78,7 @@ class Strom:
         basis_wartezeit: int = 2,
     ) -> dict:
         app_state = self.app_state
-        session = await SessionManager.fuer(app_state).erstelle("session_strom")
+        session = await mache_session(app_state, "session_strom")
         url = f"{app_state.zugang.get('ip_haupt')}{ip_smart}/smartdaten"
         for versuch in range(versuche):
             try:
@@ -116,7 +116,7 @@ class Strom:
         timeout_sek: int = 5,
     ) -> dict:
         app_state = self.app_state
-        session = await SessionManager.fuer(app_state).erstelle("session_strom")
+        session = await mache_session(app_state, "session_strom")
         lan_ip = app_state.zugang["ip_tasmota"]
         soc = app_state.soc
         ppv = app_state.alle_daten.get("akku", {}).get("ppv", 0) or 0
@@ -167,7 +167,7 @@ class Strom:
         timeout_sek: int = 5,
     ) -> dict:
         app_state = self.app_state
-        session = await SessionManager.fuer(app_state).erstelle("session_strom")
+        session = await mache_session(app_state, "session_strom")
         lan_ip = app_state.zugang["ip_smart"]
         url = (
             f"{app_state.zugang.get('ip_haupt')}{lan_ip}"
