@@ -303,8 +303,3 @@ def get_tageswerte_manager(app_state: AppState) -> TageswerteManager:
         manager = TageswerteManager(app_state)
         app_state._tageswerte_manager = manager
     return manager
-
-
-async def reset_heute_werte(app_state: AppState):
-    """Kompatibilität für bestehende Aufrufer."""
-    await get_tageswerte_manager(app_state).reset_heute_werte()
