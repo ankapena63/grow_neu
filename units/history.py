@@ -131,11 +131,6 @@ class HistoryManager:
             app_state.roh[key].update({"server_antwort": daten})
 
 
-def get_history_manager(app_state):
-    """Kompatibler Einstiegspunkt; neue Aufrufer nutzen HistoryManager.fuer."""
-    return HistoryManager.fuer(app_state)
-
-
 class TageshistorieManager:
     """Kapselt CSV-Tageshistorie und Logrotation."""
 
