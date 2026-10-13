@@ -24,10 +24,6 @@ def get_dazu_manager(app_state: AppState) -> DazuManager:
     return manager
 
 
-async def sende_dazu(app_state: AppState, wert):
-    """Kompatibilität für bisherige Aufrufer."""
-    manager = get_dazu_manager(app_state)
-    await manager.sende_dazu(wert)
 
 
 async def rechne_dazu(app_state: AppState):
@@ -83,10 +79,6 @@ def get_backup_manager(app_state: AppState) -> BackupManager:
     return manager
 
 
-async def pruefe_48st(app_state: AppState, zeit: float) -> None:
-    """Kompatibilität für bisherige Aufrufer."""
-    manager = get_backup_manager(app_state)
-    await manager.pruefe_48st(zeit)
 
 
 def get_app_runner(app_state: AppState) -> "AppRunner":
@@ -145,8 +137,3 @@ class AppRunner:
 
         app_state.erste_abfrage = False
 
-
-async def wiederholte_takt(app_state: AppState):
-    """Übergang für bestehende Aufrufer."""
-    runner = get_app_runner(app_state)
-    await runner.wiederholte_takt()
