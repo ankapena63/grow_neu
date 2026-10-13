@@ -2,7 +2,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
-from units.push import PushManager, get_push_manager
+from units.push import PushManager
 
 
 class FakeResponse:
@@ -51,7 +51,7 @@ class NotificationClientTests(unittest.IsolatedAsyncioTestCase):
             einstellungen={"nachricht_app": True},
             letzte_push_zeiten={},
         )
-        manager = get_push_manager(app_state)
+        manager = PushManager.fuer(app_state)
         notification_sender = AsyncMock(return_value=True)
         with (
             patch("units.push.mache_session", new_callable=AsyncMock) as make_session,
