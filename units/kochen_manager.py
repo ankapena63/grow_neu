@@ -18,9 +18,6 @@ class KochenManager:
         self.app_state = app_state
         self.dazu_manager = dazu_manager
 
-    async def _rechne_dazu(self) -> None:
-        await self.dazu_manager.rechne_dazu()
-
     async def pruefe_kochen(self, zeit: float) -> None:
         app_state = self.app_state
         soc = app_state.soc
@@ -32,7 +29,7 @@ class KochenManager:
         ):
             app_state.kochen = False
             app_state.kochen_zeit = 0.0
-            await self._rechne_dazu()
+            await self.dazu_manager.rechne_dazu()
             logger.info("KOCHEN AUS: SOC zu niedrig oder _Zeit abgelaufen")
             return
 
@@ -43,7 +40,7 @@ class KochenManager:
             logger.info("KOCHEN AUS:Nachts nur 0 Einp.")
             app_state.kochen = False
             app_state.kochen_zeit = 0.0
-            await self._rechne_dazu()
+            await self.dazu_manager.rechne_dazu()
             return
 
         app_state.kochen_zeit = round(verbleibend / 60, 2)
