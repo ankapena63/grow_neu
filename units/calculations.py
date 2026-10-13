@@ -131,11 +131,6 @@ def get_heute_werte(daten, einst):
     return EnergiewerteManager.get_heute_werte(daten, einst)
 
 
-def get_jahres_werte(daten, einst):
-    """Kompatibilität für bestehende Aufrufer."""
-    return EnergiewerteManager.get_jahres_werte(daten, einst)
-
-
 class StatusManager:
     """Kapselt Status- und Verbrauchsberechnungen."""
 
