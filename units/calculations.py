@@ -206,11 +206,6 @@ def gereate_status(status_html):
     return StatusManager.gereate_status(status_html)
 
 
-def haus_verbrauch_get(app_state):
-    """Kompatibilität für bestehende Aufrufer."""
-    return StatusManager.haus_verbrauch_get(app_state)
-
-
 class TageswerteManager:
     """Verwaltet Tages-, Monats- und Jahreswechsel für einen AppState."""
 
