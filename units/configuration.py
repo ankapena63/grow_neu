@@ -150,25 +150,6 @@ class EinstellungenManager:
         return alte_einstellungen
 
 
-async def speichere_einstellungen(app_state, daten):
-    """Kompatibilität für bestehende Aufrufer."""
-    return await EinstellungenManager.speichere_einstellungen(app_state, daten)
-
-
-def lade_einstellungen(alte_einstellungen):
-    """Kompatibilität für bestehende Aufrufer."""
-    return EinstellungenManager.lade_einstellungen(alte_einstellungen)
-
-
-async def speichere_zugang(app_state, daten):
-    """Kompatibilität für bestehende Aufrufer."""
-    return await EinstellungenManager.speichere_zugang(app_state, daten)
-
-
-def lade_zugang(alte_einstellungen):
-    """Kompatibilität für bestehende Aufrufer."""
-    return EinstellungenManager.lade_zugang(alte_einstellungen)
-
 class SshManager:
     """Kapselt das Starten, Stoppen und Prüfen des SSH-Servers."""
 
@@ -198,17 +179,3 @@ class SshManager:
             # Windows oder kein pgrep vorhanden
             return app_state.einstellungen.get("server_sshd", False)
 
-
-def start_sshd(app_state):
-    """Kompatibilität für bestehende Aufrufer."""
-    return SshManager.start(app_state)
-
-
-def stop_sshd(app_state):
-    """Kompatibilität für bestehende Aufrufer."""
-    return SshManager.stop(app_state)
-
-
-def run_sshd(app_state):
-    """Kompatibilität für bestehende Aufrufer."""
-    return SshManager.laeuft(app_state)
