@@ -18,8 +18,17 @@ class AppState:
     # Der Zustand speichert das Gerät typsicher ab, ohne dass state.py echten Code importiert
     #dose_device: Optional[DoseDevice] = None # ist unten
     def __init__(self):
-        self.version = "10-10-2026"
+        self.version = "13-10-2026"
         self.save_lock = asyncio.Lock()
+
+        # Gemeinsame Manager werden pro AppState genau einmal angelegt.
+        # Any vermeidet Import-Zyklen zwischen state.py und den Manager-Modulen.
+        self._app_runner: Any = None
+        self._history_manager: Any = None
+        self._tageswerte_manager: Any = None
+        self._dazu_manager: Any = None
+        self._push_manager: Any = None
+        self._session_manager: Any = None
         self.alle_daten: dict[str, dict[str, Any]] = {
             "akku": {},
             "hms": {},
