@@ -10,7 +10,7 @@ from units.calculations import SonnenManager
 from units.configuration import EinstellungenManager, mache_session
 from units.runner import get_app_runner
 from units.unit_battery import GrowattSessionManager
-from units.logg import LogManager, setup_logging
+from units.logg import LogManager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class LifecycleManager:
         )
         log_level = LogManager.LEVELS[app_state.log_level]
 
-        setup_logging(log_level)
+        LogManager.setup(log_level)
 
         logging.getLogger("tinytuya").setLevel(logging.WARNING)
         logging.getLogger("asyncio").setLevel(logging.ERROR)
