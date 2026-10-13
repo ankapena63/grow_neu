@@ -127,14 +127,6 @@ class GrowattSessionManager:
                 }
                 StatusManager.status_aktualisieren(self.app_state, "akku_token", takt)
                 self.last_noah_data = werte
-                if (self.app_state.dose_mode == "auto"
-                    and not self.app_state.dose_laeuft):
-                    manager = getattr(self.app_state, "_dose_manager", None)
-                    if manager is None:
-                        logger.warning("[Dose in Growatt] Manager ist nicht initialisiert")
-                    else:
-                        await manager.pruefe(time.monotonic())
-
                 return werte     
             else:
                logger.error("Fehler von Growatt: %s (Code: %s)",
