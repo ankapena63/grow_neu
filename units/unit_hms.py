@@ -3,7 +3,7 @@ import json
 import logging
 import aiohttp
 from units.calculations import StatusManager, ZeitstempelManager
-from units.configuration import mache_session
+from units.configuration import SessionManager
 from units.history import HistoryManager
 from units.state import AppState
 
@@ -30,7 +30,7 @@ class Hms:
             app_state.zugang.get("hms_name"),
             app_state.zugang.get("hms_pas"),
         )
-        session = await mache_session(app_state, "session_hms", auth=auth)
+        session = await SessionManager.fuer(app_state).erstelle( "session_hms", auth=auth)
         for versuch in range(versuche):
             try:
                 async with session.get(
@@ -93,7 +93,7 @@ class Hms:
                 "limit_type": 0,
                 "limit_value": limit_watt,
             }
-            session = await mache_session(app_state, 
+            session = await SessionManager.fuer(app_state).erstelle( 
                 "session_hms",
                 auth=aiohttp.BasicAuth(
                     app_state.zugang.get("hms_name"),
@@ -195,7 +195,7 @@ class Hms:
                 app_state.zugang.get("hms_name"),
                 app_state.zugang.get("hms_pas")
             )
-            session = await mache_session(app_state, 
+            session = await SessionManager.fuer(app_state).erstelle( 
                 "session_hms",
                 auth=auth,
             )
@@ -237,7 +237,7 @@ class Hms:
                 app_state.zugang.get("hms_name"),
                 app_state.zugang.get("hms_pas"),
             )
-            session = await mache_session(app_state, 
+            session = await SessionManager.fuer(app_state).erstelle( 
                 "session_hms",
                 auth=auth,
             )
@@ -272,7 +272,7 @@ class Hms:
                 app_state.zugang.get("hms_name"),
                 app_state.zugang.get("hms_pas"),
             )
-            session = await mache_session(app_state, 
+            session = await SessionManager.fuer(app_state).erstelle( 
                 "session_hms",
                 auth=auth,
             )
@@ -326,7 +326,7 @@ class Hms:
                 app_state.zugang.get("hms_name"),
                 app_state.zugang.get("hms_pas"),
             )
-            session = await mache_session(app_state, 
+            session = await SessionManager.fuer(app_state).erstelle( 
                 "session_hms",
                 auth=auth,
             )
