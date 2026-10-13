@@ -63,10 +63,9 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
         hms = Hms(state)
         with (
             patch(
-                "units.unit_hms.mache_session",
-                new_callable=AsyncMock,
-                return_value=session,
-            ) as make_session,
+                "units.unit_hms.SessionManager.fuer",
+                return_value=SimpleNamespace(erstelle=AsyncMock(return_value=session)),
+            ) as session_manager,
             patch("units.unit_hms.HistoryManager.fuer") as get_history,
             patch("units.unit_hms.StatusManager.status_aktualisieren") as update_status,
             patch("units.unit_hms.ZeitstempelManager.zeitstempel", return_value="now"),
@@ -91,7 +90,7 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
             session.request[0],
             "http://192.168.1.44/api/livedata/status/inverters",
         )
-        make_session.assert_awaited_once()
+        session_manager.return_value.erstelle.assert_awaited_once()
         get_history.return_value.schreibe_in_roh.assert_called_once_with("hms", response_data)
         update_status.assert_called_once_with(state, "hms", 30)
 
@@ -110,10 +109,9 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
         hms = Hms(state)
 
         with patch(
-            "units.unit_hms.mache_session",
-            new_callable=AsyncMock,
-            return_value=session,
-        ) as make_session:
+            "units.unit_hms.SessionManager.fuer",
+            return_value=SimpleNamespace(erstelle=AsyncMock(return_value=session)),
+        ) as session_manager:
             result = await hms.setze_limit(100)
 
         self.assertTrue(result)
