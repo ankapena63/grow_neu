@@ -2,7 +2,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
-from units.runner import sende_ntfy, sende_push
+from units.push import PushManager, get_push_manager
 
 
 class FakeResponse:
@@ -33,28 +33,17 @@ class FakeSession:
 class NotificationClientTests(unittest.IsolatedAsyncioTestCase):
     async def test_ntfy_client_sends_expected_payload_and_headers(self):
         session = FakeSession(FakeResponse(200))
-
-        result = await sende_ntfy(session, "Akku warm", 5)
-
+        result = await PushManager.sende_ntfy(session, "Akku warm", 5)
         self.assertTrue(result)
-        self.assertEqual(
-            session.request,
-            (
-                "https://ntfy.sh/SolaxHmsGrowattvvv",
-                b"Akku warm",
-                {
-                    "Priority": "5",
-                    "Title": "Solar-Monitor",
-                    "Tags": "warning",
-                },
-            ),
-        )
+        self.assertEqual(session.request, (
+            "https://ntfy.sh/SolaxHmsGrowattvvv",
+            b"Akku warm",
+            {"Priority": "5", "Title": "Solar-Monitor", "Tags": "warning"},
+        ))
 
     async def test_ntfy_client_reports_non_success_status(self):
         session = FakeSession(FakeResponse(503, "unavailable"))
-
-        result = await sende_ntfy(session, "Test", 3)
-
+        result = await PushManager.sende_ntfy(session, "Test", 3)
         self.assertFalse(result)
 
     async def test_push_service_preserves_enabled_and_throttle_rules(self):
@@ -62,22 +51,19 @@ class NotificationClientTests(unittest.IsolatedAsyncioTestCase):
             einstellungen={"nachricht_app": True},
             letzte_push_zeiten={},
         )
+        manager = get_push_manager(app_state)
         notification_sender = AsyncMock(return_value=True)
-
         with (
-            patch(
-                "units.runner.mache_session",
-                new_callable=AsyncMock,
-            ) as make_session,
-            patch(
-                "units.runner.sende_ntfy",
-                new=notification_sender,
-            ),
-            patch("units.runner.time.time", return_value=1000),
+            patch("units.push.mache_session", new_callable=AsyncMock) as make_session,
+            patch.object(manager, "sende_ntfy", new=notification_sender),
+            patch("units.push.time.time", return_value=1000),
         ):
-            await sende_push(app_state, "Test", pause=600, prio=4)
-            await sende_push(app_state, "Test", pause=600, prio=4)
-
+            await manager.sende_push("Test", pause=600, prio=4)
+            await manager.sende_push("Test", pause=600, prio=4)
         make_session.assert_awaited_once_with(app_state, "session_push")
         notification_sender.assert_awaited_once()
         self.assertEqual(app_state.letzte_push_zeiten[4], 1000)
+
+
+if __name__ == "__main__":
+    unittest.main()
