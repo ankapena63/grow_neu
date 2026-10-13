@@ -50,7 +50,7 @@ class SolaxDeviceTests(unittest.IsolatedAsyncioTestCase):
                 new_callable=AsyncMock,
                 return_value=session,
             ) as make_session,
-            patch("units.unit_solax.get_history_manager") as get_history,
+            patch("units.unit_solax.HistoryManager.fuer") as get_history,
             patch("units.unit_solax.StatusManager.status_aktualisieren"),
             patch("units.unit_solax.ZeitstempelManager.zeitstempel", return_value="now"),
         ):
@@ -104,7 +104,7 @@ class SolaxDeviceTests(unittest.IsolatedAsyncioTestCase):
                 new_callable=AsyncMock,
                 return_value=session,
             ),
-            patch("units.unit_solax.get_history_manager") as get_history,
+            patch("units.unit_solax.HistoryManager.fuer") as get_history,
             patch("units.unit_solax.MittelwertManager.mittelwert_get", return_value=25),
             patch("units.unit_solax.StatusManager.status_aktualisieren"),
             patch("units.unit_solax.ZeitstempelManager.zeitstempel", return_value="now"),
