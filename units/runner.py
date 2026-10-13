@@ -16,16 +16,16 @@ from units.state import AppState
 logger = logging.getLogger(__name__)
 
 
-def get_app_runner(app_state: AppState) -> "AppRunner":
-    """Liefert den dauerhaft verwendeten Runner für diesen AppState."""
-    runner = getattr(app_state, "_app_runner", None)
-    if runner is None:
-        runner = AppRunner(app_state)
-        app_state._app_runner = runner
-    return runner
-
-
 class AppRunner:
+    @classmethod
+    def fuer(cls, app_state: AppState) -> "AppRunner":
+        """Liefert den dauerhaft verwendeten Runner dieses AppState."""
+        runner = app_state._app_runner
+        if runner is None:
+            runner = cls(app_state)
+            app_state._app_runner = runner
+        return runner
+
     def __init__(self, app_state: AppState):
         self.app_state = app_state
 
