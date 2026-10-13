@@ -6,7 +6,7 @@ from units.configuration import EinstellungenManager
 from units.web.web_data import web_data_manager
 from units.unit_battery import GrowattSessionManager
 from units.calculations import SonnenManager
-from units.runner import get_app_runner
+from units.runner import AppRunner
 from units.state import AppState
 import time
 import logging
