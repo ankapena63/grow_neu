@@ -7,7 +7,6 @@ from units.backup_manager import BackupManager
 from units.history import HistoryManager
 from units.calculations import TageswerteManager
 from units.dazu import DazuManager
-from units.push import PushManager
 from units.kochen_manager import KochenManager
 from units.geraete_manager import GeraeteManager
 from units.zeit_manager import ZeitManager
@@ -34,7 +33,6 @@ class AppRunner:
         self.zeit_manager = ZeitManager(app_state)
         self.backup_manager = BackupManager(app_state, self.history_manager)
         self.dazu_manager = DazuManager.fuer(app_state)
-        self.push_manager = PushManager.fuer(app_state)
         self.kochen_manager = KochenManager(
             app_state, dazu_manager=self.dazu_manager
         )
