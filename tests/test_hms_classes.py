@@ -67,9 +67,9 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
                 new_callable=AsyncMock,
                 return_value=session,
             ) as make_session,
-            patch("units.unit_hms.schreibe_in_roh") as save_raw,
-            patch("units.unit_hms.status_aktualisieren") as update_status,
-            patch("units.unit_hms.zeitstempel", return_value="now"),
+            patch("units.unit_hms.get_history_manager") as get_history,
+            patch("units.unit_hms.StatusManager.status_aktualisieren") as update_status,
+            patch("units.unit_hms.ZeitstempelManager.zeitstempel", return_value="now"),
         ):
             result = await hms.abfrage({"aktuell": 10}, 30)
 
@@ -92,7 +92,7 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
             "http://192.168.1.44/api/livedata/status/inverters",
         )
         make_session.assert_awaited_once()
-        save_raw.assert_called_once_with(state, "hms", response_data)
+        get_history.return_value.schreibe_in_roh.assert_called_once_with("hms", response_data)
         update_status.assert_called_once_with(state, "hms", 30)
 
     async def test_setze_limit_posts_and_updates_state(self):
@@ -140,8 +140,8 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
         state.hms = service
         service.abfrage = AsyncMock(return_value={"aktuell": 80})
         with (
-            patch("units.unit_hms.status_aktualisieren"),
-            patch("units.unit_hms.speichere_aktuell_wert") as save_value,
+            patch("units.unit_hms.StatusManager.status_aktualisieren"),
+            patch("units.unit_hms.get_history_manager") as get_history,
         ):
             await service.pruefe(20)
 
@@ -151,7 +151,7 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(state.alle_daten["hms"], {"aktuell": 80})
         self.assertEqual(state.start_hms, 20)
-        save_value.assert_called_once_with(state, "hms", 80)
+        get_history.return_value.speichere_aktuell_wert.assert_called_once_with("hms", 80)
 
     async def test_service_skips_poll_when_not_due(self):
         state = SimpleNamespace(
@@ -169,7 +169,7 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
         state.hms = service
         service.abfrage = AsyncMock()
 
-        with patch("units.unit_hms.status_aktualisieren"):
+        with patch("units.unit_hms.StatusManager.status_aktualisieren"):
             await service.pruefe(14)
 
         service.abfrage.assert_not_awaited()
