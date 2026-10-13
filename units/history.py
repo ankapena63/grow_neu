@@ -25,6 +25,24 @@ class HistoryManager:
             app_state._history_manager = manager
         return manager
 
+    async def pruefe_48st(self, zeit: float) -> None:
+        """Speichert die 48-Stunden-Daten nach Zeitplan oder beim Shutdown."""
+        app_state = self.app_state
+        if not app_state.einstellungen.get("aktuell_aktiv", True):
+            return
+
+        if zeit == 0 or zeit - app_state.aktuell_letztes_speichern >= app_state.takt_48_datei:
+            try:
+                logger.info(
+                    "💾 [Backup] Speichere 2 stündliches Aktuell-Daten-Backup..."
+                )
+                await self.speichere_aktuell_csv()
+            except Exception:
+                logger.exception("❌ Fehler beim Backup-CSV-Speichern")
+            finally:
+                if zeit != 0:
+                    app_state.aktuell_letztes_speichern = zeit
+
     async def speichere_aktuell_csv(self, dateiname="aktuell.csv"):
         pfad = DATA_DIR / dateiname
         app_state = self.app_state
