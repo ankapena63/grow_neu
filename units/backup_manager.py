@@ -1,7 +1,7 @@
 """Verwaltung der Sicherung der letzten 48 Stunden."""
 import logging
 
-from units.history import get_history_manager
+from units.history import HistoryManager, get_history_manager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -10,8 +10,13 @@ logger = logging.getLogger(__name__)
 class BackupManager:
     """Speichert die aktuellen Energiedaten regelmäßig in aktuell.csv."""
 
-    def __init__(self, app_state: AppState):
+    def __init__(
+        self,
+        app_state: AppState,
+        history_manager: HistoryManager | None = None,
+    ):
         self.app_state = app_state
+        self.history_manager = history_manager or get_history_manager(app_state)
 
     async def pruefe_48st(self, zeit: float) -> None:
         app_state = self.app_state
@@ -24,9 +29,9 @@ class BackupManager:
                 logger.info(
                     "💾 [Backup] Speichere 2 stündliches Aktuell-Daten-Backup..."
                 )
-                await get_history_manager(app_state).speichere_aktuell_csv()
+                await self.history_manager.speichere_aktuell_csv()
             except Exception:
-                logger.error("❌ Fehler beim Backup-CSV-Speichern")
+                logger.exception("❌ Fehler beim Backup-CSV-Speichern")
             finally:
                 if zeit != 0:
                     app_state.aktuell_letztes_speichern = zeit
