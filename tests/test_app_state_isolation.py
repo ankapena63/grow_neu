@@ -85,6 +85,7 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
     def test_managers_are_shared_per_state_but_isolated_between_apps(self):
         from units.dazu import DazuManager
         from units.history import HistoryManager
+        from units.push import PushManager
         from units.runner import AppRunner
 
         app_one = neu.create_app()
