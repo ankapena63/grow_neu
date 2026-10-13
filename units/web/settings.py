@@ -58,7 +58,7 @@ class SettingsManager:
                         state.einstellungen[key] = status
                 # Alles dauerhaft in die Datei schreiben
                 await EinstellungenManager.speichere_einstellungen(state, state.einstellungen)
-                await get_app_runner(_app_state()).dazu_manager.rechne_dazu()     #  auch mit smart sinchton           
+                await AppRunner.fuer(_app_state()).dazu_manager.rechne_dazu()     #  auch mit smart sinchton           
                 return jsonify({"success": True,
                                 "nacht_nur_0_schalter": state.einstellungen.get('nacht_nur_0_schalter', False)})       
             return jsonify({"success": False, "error": "Keine Daten empfangen"}), 400
@@ -267,7 +267,7 @@ class SettingsManager:
            return jsonify({"success": False, "message": f"Ungültige Eingabe bei Akku-Parametern: {e}"})
     
         await EinstellungenManager.speichere_einstellungen(state, state.einstellungen)
-        await get_app_runner(_app_state()).dazu_manager.rechne_dazu()     #  auch mit smart sinchton
+        await AppRunner.fuer(_app_state()).dazu_manager.rechne_dazu()     #  auch mit smart sinchton
     
         # JSON zurückgeben, damit der Browser die Toasts anzeigen kann
         return jsonify({
