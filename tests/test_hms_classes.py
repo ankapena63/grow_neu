@@ -120,7 +120,7 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
             session.request[0],
             "http://192.168.1.44/api/limit/config",
         )
-        make_session.assert_awaited_once()
+        session_manager.return_value.erstelle.assert_awaited_once()
 
     async def test_service_polls_when_due_and_records_current_value(self):
         state = SimpleNamespace(
