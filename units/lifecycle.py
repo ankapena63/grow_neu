@@ -7,7 +7,7 @@ from quart import Quart
 
 from units.config import STANDARD_EINSTELLUNGEN, STANDARD_ZUGANG
 from units.calculations import SonnenManager
-from units.configuration import EinstellungenManager, mache_session
+from units.configuration import EinstellungenManager, SessionManager
 from units.runner import get_app_runner
 from units.unit_battery import GrowattSessionManager
 from units.logg import LogManager
@@ -142,7 +142,7 @@ class LifecycleManager:
 
                 logger.info("Starte Hintergrund-Task (einmalig).")
                 app_state.is_shutting_down = False
-                await mache_session(app_state, "session_push", timeout=10)
+                await SessionManager.fuer(app_state).erstelle( "session_push", timeout=10)
 
                 await app_state.growatt.init_session()
                 SonnenManager.astro_werte(app_state)
