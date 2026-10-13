@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 class Strom:
     def __init__(self, app_state):
         self.app_state = app_state
+        self.session_manager = SessionManager.fuer(app_state)
+        self.history_manager = HistoryManager.fuer(app_state)
 
     async def abfrage_tasmota(
         self,
@@ -21,13 +23,13 @@ class Strom:
         ip_haupt = app_state.zugang.get("ip_haupt")
         url_end = app_state.zugang.get("url_tasmota")
         url = f"{ip_haupt}{ip}{url_end}"
-        session = await SessionManager.fuer(app_state).erstelle( "session_tasmota")
+        session = await self.session_manager.erstelle( "session_tasmota")
         fehler = None
         try:
             async with session.get(url, timeout=5) as response:
                 response.raise_for_status()
                 json_data = await response.json()
-                HistoryManager.fuer(app_state).schreibe_in_roh("tasmota", json_data)
+                self.history_manager.schreibe_in_roh("tasmota", json_data)
                 status_sns = json_data.get("StatusSNS", {})
                 smart_meter = status_sns.get("SM", {})
                 if not smart_meter:
@@ -78,7 +80,7 @@ class Strom:
         basis_wartezeit: int = 2,
     ) -> dict:
         app_state = self.app_state
-        session = await SessionManager.fuer(app_state).erstelle( "session_strom")
+        session = await self.session_manager.erstelle( "session_strom")
         url = f"{app_state.zugang.get('ip_haupt')}{ip_smart}/smartdaten"
         for versuch in range(versuche):
             try:
@@ -116,7 +118,7 @@ class Strom:
         timeout_sek: int = 5,
     ) -> dict:
         app_state = self.app_state
-        session = await SessionManager.fuer(app_state).erstelle( "session_strom")
+        session = await self.session_manager.erstelle( "session_strom")
         lan_ip = app_state.zugang["ip_tasmota"]
         soc = app_state.soc
         ppv = app_state.alle_daten.get("akku", {}).get("ppv", 0) or 0
@@ -167,7 +169,7 @@ class Strom:
         timeout_sek: int = 5,
     ) -> dict:
         app_state = self.app_state
-        session = await SessionManager.fuer(app_state).erstelle( "session_strom")
+        session = await self.session_manager.erstelle( "session_strom")
         lan_ip = app_state.zugang["ip_smart"]
         url = (
             f"{app_state.zugang.get('ip_haupt')}{lan_ip}"
@@ -237,7 +239,7 @@ class Strom:
                     takt)
             app_state.alle_daten["strom"] = strom
             if app_state.einstellungen.get("aktuell_aktiv", True):
-                HistoryManager.fuer(app_state).speichere_aktuell_wert("strom",strom.get("Actuel", 0),)
+                self.history_manager.speichere_aktuell_wert("strom",strom.get("Actuel", 0),)
         except Exception:
             logger.exception("[Fehler] ❌ Stromabfrage fehlgeschlagen")
         finally:
