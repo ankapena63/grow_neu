@@ -32,10 +32,6 @@ class MittelwertManager:
         return sum(werte) / len(werte)
 
 
-def mittelwert_get(wert, werte):
-    """Kompatibilität für bestehende Aufrufer."""
-    return MittelwertManager.mittelwert_get(wert, werte)
-
 class SonnenManager:
     """Kapselt Sonnenaufgang, Sonnenuntergang und das Nachtfenster."""
 
@@ -176,14 +172,6 @@ class StatusManager:
         return round(solax + hms + strom)
 
 
-def status_aktualisieren(app_state, geraet, takt, zeit: bool = True):
-    """Kompatibilität für bestehende Aufrufer."""
-    StatusManager.status_aktualisieren(app_state, geraet, takt, zeit)
-
-
-def gereate_status(status_html):
-    """Kompatibilität für bestehende Aufrufer."""
-    return StatusManager.gereate_status(status_html)
 
 
 class TageswerteManager:
