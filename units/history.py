@@ -16,17 +16,110 @@ class HistoryManager:
     def __init__(self, app_state):
         self.app_state = app_state
 
-    def speichere_aktuell_wert(self, geraet, wert):
-        speichere_aktuell_wert(self.app_state, geraet, wert)
-
-    def schreibe_in_roh(self, key, daten):
-        schreibe_in_roh(self.app_state, key, daten)
-
     async def speichere_aktuell_csv(self, dateiname="aktuell.csv"):
-        await speichere_aktuell_csv(self.app_state, dateiname)
+        pfad = DATA_DIR / dateiname
+        app_state = self.app_state
+        try:
+            with pfad.open("w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(["geraet", "zeit", "wert"])
+                for geraet, werte in app_state.aktuell_werte.items():
+                    for zeit, wert in werte:
+                        if wert is None or zeit is None:
+                            continue
+                        writer.writerow([
+                            geraet,
+                            datetime.fromtimestamp(zeit).strftime("%d.%m.%y %H:%M:%S"),
+                            wert,
+                        ])
+            logger.info("💾 aktuell.csv gespeichert")
+        except Exception:
+            logger.exception("⚠️ Fehler beim Speichern von aktuell.csv")
 
     async def lade_aktuell_csv(self, dateiname="aktuell.csv"):
-        await lade_aktuell_csv(self.app_state, dateiname)
+        pfad = DATA_DIR / dateiname
+        app_state = self.app_state
+        if not pfad.is_file():
+            logger.error("ℹ️ aktuell.csv nicht vorhanden")
+            return
+        for geraet in app_state.aktuell_werte:
+            app_state.aktuell_werte[geraet].clear()
+        grenze = time.time() - (48 * 60 * 60)
+        try:
+            with pfad.open("r", newline="", encoding="utf-8") as csvfile:
+                reader = csv.DictReader(csvfile)
+                for zeile in reader:
+                    geraet = zeile.get("geraet")
+                    if geraet not in app_state.aktuell_werte:
+                        continue
+                    try:
+                        zeit = datetime.strptime(
+                            zeile["zeit"], "%d.%m.%y %H:%M:%S"
+                        ).timestamp()
+                        wert = float(zeile["wert"])
+                    except (ValueError, TypeError, KeyError):
+                        continue
+                    if zeit < grenze:
+                        continue
+                    app_state.aktuell_werte[geraet].append((zeit, wert))
+                    if zeit > app_state.aktuell_csv_letzter_zeitpunkt[geraet]:
+                        app_state.aktuell_csv_letzter_zeitpunkt[geraet] = zeit
+            logger.info("📂 Aktuell-Daten geladen")
+        except Exception as ex:
+            logger.error(f"⚠️ Fehler beim Laden von aktuell.csv: {ex}")
+
+    def speichere_aktuell_wert(self, geraet, wert):
+        app_state = self.app_state
+        if geraet not in app_state.aktuell_werte or wert is None:
+            return
+        jetzt = time.time()
+        daten = app_state.aktuell_werte[geraet]
+        if isinstance(daten, list):
+            daten = deque(daten)
+            app_state.aktuell_werte[geraet] = daten
+        if not daten:
+            daten.append((jetzt, wert))
+            return
+        schleichen = daten[-1][1] is None
+        if schleichen:
+            if len(daten) > 1 and daten[-2][1] is not None:
+                basis_zeitpunkt, basis_wert = daten[-2]
+            else:
+                daten.pop()
+                schleichen = False
+                basis_zeitpunkt, basis_wert = daten[-1]
+        else:
+            basis_zeitpunkt, basis_wert = daten[-1]
+        unterschied = abs(wert - basis_wert)
+        grenze = max(abs(basis_wert) * 0.05, 10)
+        if unterschied < grenze:
+            if not schleichen:
+                daten.append((jetzt, wert))
+                daten.append((jetzt, None))
+            else:
+                daten[-2] = (jetzt, wert)
+        else:
+            if schleichen:
+                daten[-1] = (jetzt, wert)
+            else:
+                daten.append((jetzt, wert))
+        grenze_zeit = jetzt - (48 * 60 * 60)
+        while daten:
+            zeit, _ = daten[0]
+            if zeit is None or zeit < grenze_zeit:
+                daten.popleft()
+            else:
+                break
+
+    def schreibe_in_roh(self, key, daten):
+        app_state = self.app_state
+        if key not in app_state.roh or not isinstance(app_state.roh[key], dict):
+            app_state.roh[key] = {}
+        app_state.roh[key].clear()
+        if isinstance(daten, dict):
+            app_state.roh[key].update(daten)
+        else:
+            app_state.roh[key].update({"server_antwort": daten})
 
 
 def get_history_manager(app_state):
@@ -138,99 +231,20 @@ def lese_tageswerte0():
 
 
 async def speichere_aktuell_csv(app_state, dateiname="aktuell.csv"):
-    pfad = DATA_DIR / dateiname
-    try:
-        with pfad.open("w", newline="", encoding="utf-8") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(["geraet", "zeit", "wert"])
-            for geraet, werte in app_state.aktuell_werte.items():
-                for zeit, wert in werte:
-                    if wert is None or zeit is None:
-                        continue
-                    writer.writerow([geraet, datetime.fromtimestamp(zeit).strftime("%d.%m.%y %H:%M:%S"), wert])
-        logger.info("💾 aktuell.csv gespeichert")
-    except Exception:
-        logger.exception("⚠️ Fehler beim Speichern von aktuell.csv")
+    """Kompatibilität für bestehende Aufrufer."""
+    await get_history_manager(app_state).speichere_aktuell_csv(dateiname)
 
 
 async def lade_aktuell_csv(app_state, dateiname="aktuell.csv"):
-    pfad = DATA_DIR / dateiname
-    if not pfad.is_file():
-        logger.error("ℹ️ aktuell.csv nicht vorhanden")
-        return
-    for geraet in app_state.aktuell_werte:
-        app_state.aktuell_werte[geraet].clear()
-    grenze = time.time() - (48 * 60 * 60)
-    try:
-        with pfad.open("r", newline="", encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for zeile in reader:
-                geraet = zeile.get("geraet")
-                if geraet not in app_state.aktuell_werte:
-                    continue
-                try:
-                    zeit = datetime.strptime(zeile["zeit"], "%d.%m.%y %H:%M:%S").timestamp()
-                    wert = float(zeile["wert"])
-                except (ValueError, TypeError, KeyError):
-                    continue
-                if zeit < grenze:
-                    continue
-                app_state.aktuell_werte[geraet].append((zeit, wert))
-                if zeit > app_state.aktuell_csv_letzter_zeitpunkt[geraet]:
-                    app_state.aktuell_csv_letzter_zeitpunkt[geraet] = zeit
-        logger.info("📂 Aktuell-Daten geladen")
-    except Exception as ex:
-        logger.error(f"⚠️ Fehler beim Laden von aktuell.csv: {ex}")
+    """Kompatibilität für bestehende Aufrufer."""
+    await get_history_manager(app_state).lade_aktuell_csv(dateiname)
 
 
 def speichere_aktuell_wert(app_state, geraet, wert):
-    if geraet not in app_state.aktuell_werte or wert is None:
-        return
-    jetzt = time.time()
-    daten = app_state.aktuell_werte[geraet]
-    if isinstance(daten, list):
-        daten = deque(daten)
-        app_state.aktuell_werte[geraet] = daten
-    if not daten:
-        daten.append((jetzt, wert))
-        return
-    schleichen = daten[-1][1] is None
-    if schleichen:
-        if len(daten) > 1 and daten[-2][1] is not None:
-            basis_zeitpunkt, basis_wert = daten[-2]
-        else:
-            daten.pop()
-            schleichen = False
-            basis_zeitpunkt, basis_wert = daten[-1]
-    else:
-        basis_zeitpunkt, basis_wert = daten[-1]
-    unterschied = abs(wert - basis_wert)
-    grenze = max(abs(basis_wert) * 0.05, 10)
-    if unterschied < grenze:
-        if not schleichen:
-            daten.append((jetzt, wert))
-            daten.append((jetzt, None))
-        else:
-            daten[-2] = (jetzt, wert)
-    else:
-        if schleichen:
-            daten[-1] = (jetzt, wert)
-        else:
-            daten.append((jetzt, wert))
-    grenze_zeit = jetzt - (48 * 60 * 60)
-    while daten:
-        zeit, _ = daten[0]
-        if zeit is None or zeit < grenze_zeit:
-            daten.popleft()
-        else:
-            break
+    """Kompatibilität für bestehende Aufrufer."""
+    get_history_manager(app_state).speichere_aktuell_wert(geraet, wert)
 
 
 def schreibe_in_roh(app_state, key, daten):
-    if key not in app_state.roh or not isinstance(app_state.roh[key], dict):
-        app_state.roh[key] = {}
-    app_state.roh[key].clear()
-    if isinstance(daten, dict):
-        app_state.roh[key].update(daten)
-    else:
-        app_state.roh[key].update({"server_antwort": daten})
+    """Kompatibilität für bestehende Aufrufer."""
+    get_history_manager(app_state).schreibe_in_roh(key, daten)
