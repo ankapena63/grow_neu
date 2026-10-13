@@ -181,7 +181,7 @@ class LifecycleManager:
 
             try:
                 runner = AppRunner.fuer(app_state)
-                await runner.backup_manager.pruefe_48st(0)
+                await runner.history_manager.pruefe_48st(0)
             except Exception:
                 shutdown_succeeded = False
                 logger.exception("Fehler beim Speichern der 48h-Daten.")
