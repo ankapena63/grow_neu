@@ -6,7 +6,7 @@ import time
 from units.backup_manager import BackupManager
 from units.history import get_history_manager
 from units.calculations import get_tageswerte_manager
-from units.dazu import DazuManager
+from units.dazu import get_dazu_manager
 from units.kochen_manager import KochenManager
 from units.geraete_manager import GeraeteManager
 from units.zeit_manager import ZeitManager
@@ -14,23 +14,6 @@ from units.push import PushManager
 from units.state import AppState
 
 logger = logging.getLogger(__name__)
-
-
-def get_dazu_manager(app_state: AppState) -> DazuManager:
-    """Liefert den dauerhaft verwendeten DazuManager dieses AppState."""
-    manager = getattr(app_state, "_dazu_manager", None)
-    if manager is None:
-        manager = DazuManager(app_state)
-        app_state._dazu_manager = manager
-    return manager
-
-
-
-
-async def rechne_dazu(app_state: AppState):
-    """Kompatibilität für bisherige Aufrufer."""
-    manager = get_dazu_manager(app_state)
-    await manager.rechne_dazu()
 
 
 async def sende_ntfy(session, nachricht: str, prio: int) -> bool:
