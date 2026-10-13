@@ -180,6 +180,15 @@ class TageswerteManager:
     def __init__(self, app_state: AppState):
         self.app_state = app_state
 
+    @classmethod
+    def fuer(cls, app_state: AppState) -> "TageswerteManager":
+        """Liefert den gemeinsamen TageswerteManager dieses AppState."""
+        manager = getattr(app_state, "_tageswerte_manager", None)
+        if manager is None:
+            manager = cls(app_state)
+            app_state._tageswerte_manager = manager
+        return manager
+
     async def reset_heute_werte(self) -> None:
         app_state = self.app_state
         letzter_reset = app_state.einstellungen.get("tag_0", 0)
@@ -254,9 +263,5 @@ class TageswerteManager:
 
 
 def get_tageswerte_manager(app_state: AppState) -> TageswerteManager:
-    """Liefert den dauerhaft verwendeten TageswerteManager dieses AppState."""
-    manager = getattr(app_state, "_tageswerte_manager", None)
-    if manager is None:
-        manager = TageswerteManager(app_state)
-        app_state._tageswerte_manager = manager
-    return manager
+    """Kompatibler Einstiegspunkt; neue Aufrufer nutzen TageswerteManager.fuer."""
+    return TageswerteManager.fuer(app_state)
