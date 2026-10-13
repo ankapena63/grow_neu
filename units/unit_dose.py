@@ -7,7 +7,7 @@ import tinytuya
 from quart import Blueprint, current_app, request
 from units.configuration import EinstellungenManager
 from units.calculations import StatusManager, ZeitstempelManager
-from units.history import get_history_manager
+from units.history import HistoryManager
 
 if TYPE_CHECKING:
     from units.state import AppState
@@ -103,7 +103,7 @@ class TuyaDoseManager:
         """Ruft den aktuellen Status der Dose ab und aktualisiert den AppState."""
         try:
             data = await self._async_status()
-            get_history_manager(self.app_state).schreibe_in_roh("dose", data)
+            HistoryManager.fuer(self.app_state).schreibe_in_roh("dose", data)
 
             if not data or "dps" not in data:
                 logger.error("Dose nicht erreichbar")
