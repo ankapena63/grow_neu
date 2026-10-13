@@ -106,6 +106,7 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNot(get_dazu_manager(state_one), get_dazu_manager(state_two))
         self.assertIsNot(get_history_manager(state_one), get_history_manager(state_two))
         self.assertIsNot(get_push_manager(state_one), get_push_manager(state_two))
+        self.assertIs(get_push_manager(state_one), get_push_manager(state_one))
 
 
 if __name__ == "__main__":
