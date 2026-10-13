@@ -1,7 +1,7 @@
 """Gemeinsame Web-Daten für Dashboard, Einstellungen und API."""
 
 
-from units.calculations import haus_verbrauch_get
+from units.calculations import StatusManager
 from units.state import AppState
 
 
@@ -11,7 +11,7 @@ class WebDataManager:
     def get_web_daten(self, app_state: AppState) -> dict:
         return {
             "dazu": app_state.dazu,
-            "haus_verbrauch": haus_verbrauch_get(app_state),
+            "haus_verbrauch": StatusManager.haus_verbrauch_get(app_state),
             "stunden_bis_nacht": app_state.stunden_bis_nacht,
             "brauche_watt": app_state.brauche_watt,
             "pro_stunde": app_state.pro_stunde,
