@@ -46,10 +46,9 @@ class SolaxDeviceTests(unittest.IsolatedAsyncioTestCase):
 
         with (
             patch(
-                "units.unit_solax.mache_session",
-                new_callable=AsyncMock,
-                return_value=session,
-            ) as make_session,
+                "units.unit_solax.SessionManager.fuer",
+                return_value=SimpleNamespace(erstelle=AsyncMock(return_value=session)),
+            ) as session_manager,
             patch("units.unit_solax.HistoryManager.fuer") as get_history,
             patch("units.unit_solax.StatusManager.status_aktualisieren"),
             patch("units.unit_solax.ZeitstempelManager.zeitstempel", return_value="now"),
@@ -79,7 +78,7 @@ class SolaxDeviceTests(unittest.IsolatedAsyncioTestCase):
             "https://solax.example/api",
         )
         self.assertEqual(session.request[1], {"tokenId": "token", "sn": "serial"})
-        make_session.assert_awaited_once_with(state, "session_solax_c")
+        session_manager.return_value.erstelle.assert_awaited_once_with("session_solax_c")
 
     async def test_local_query_uses_serial_as_password_and_handles_disconnect(self):
         class FakeSession:
@@ -100,9 +99,8 @@ class SolaxDeviceTests(unittest.IsolatedAsyncioTestCase):
 
         with (
             patch(
-                "units.unit_solax.mache_session",
-                new_callable=AsyncMock,
-                return_value=session,
+                "units.unit_solax.SessionManager.fuer",
+                return_value=SimpleNamespace(erstelle=AsyncMock(return_value=session)),
             ),
             patch("units.unit_solax.HistoryManager.fuer") as get_history,
             patch("units.unit_solax.MittelwertManager.mittelwert_get", return_value=25),
