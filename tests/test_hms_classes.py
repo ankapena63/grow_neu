@@ -67,7 +67,7 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
                 new_callable=AsyncMock,
                 return_value=session,
             ) as make_session,
-            patch("units.unit_hms.get_history_manager") as get_history,
+            patch("units.unit_hms.HistoryManager.fuer") as get_history,
             patch("units.unit_hms.StatusManager.status_aktualisieren") as update_status,
             patch("units.unit_hms.ZeitstempelManager.zeitstempel", return_value="now"),
         ):
@@ -141,7 +141,7 @@ class HmsClassTests(unittest.IsolatedAsyncioTestCase):
         service.abfrage = AsyncMock(return_value={"aktuell": 80})
         with (
             patch("units.unit_hms.StatusManager.status_aktualisieren"),
-            patch("units.unit_hms.get_history_manager") as get_history,
+            patch("units.unit_hms.HistoryManager.fuer") as get_history,
         ):
             await service.pruefe(20)
 
