@@ -23,7 +23,3 @@ class DeviceFactory:
         # Genau eine Smart Dose für den vorhandenen AppState.
         app_state._dose_manager = TuyaDoseManager(app_state)
 
-
-def initialisiere_geraete(app_state: AppState) -> None:
-    """Kompatibilität für bestehende Aufrufer."""
-    DeviceFactory.initialisiere_geraete(app_state)
