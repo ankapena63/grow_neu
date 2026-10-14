@@ -16,6 +16,7 @@ class SessionManager:
         self.app_state = app_state
         self._sessions = {}
         self._lock = asyncio.Lock()
+        self._closed = False
 
     @classmethod
     def fuer(cls, app_state):
@@ -33,6 +34,11 @@ class SessionManager:
         # Gleichzeitige Geräteabfragen dürfen dieselbe Session nicht
         # mehrfach parallel erstellen.
         async with self._lock:
+            if self._closed:
+                raise RuntimeError(
+                    "HTTP-Sessions können nach dem Shutdown "
+                    "nicht erneut erstellt werden."
+                )
             app_state = self.app_state
             session = getattr(app_state, name, None)
             if session is None or session.closed:
@@ -65,6 +71,8 @@ class SessionManager:
         # Die gleiche Sperre wie bei erstelle() verhindert, dass während
         # des Shutdowns parallel eine Session angelegt wird.
         async with self._lock:
+            # Ab jetzt darf kein paralleler Aufruf neue Sessions anlegen.
+            self._closed = True
             for name, session in self._sessions.items():
                 if session is None or session.closed:
                     continue
