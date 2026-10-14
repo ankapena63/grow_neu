@@ -167,6 +167,50 @@ class GeraeteManagerTests(unittest.IsolatedAsyncioTestCase):
 
 
 class RunnerResilienceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_time_manager_errors_do_not_skip_device_polling(self):
+        from units.runner import AppRunner
+
+        class AsyncStep:
+            async def reset_heute_werte(self):
+                pass
+
+        class BrokenTimeStep:
+            def aktualisiere_zeitstatus(self, *args):
+                raise RuntimeError("Zeitstatus-Testfehler")
+
+            def pruefe_dazu_intervall(self, *args):
+                raise RuntimeError("Intervall-Testfehler")
+
+        class HistoryStep:
+            async def pruefe_48st(self, zeit):
+                pass
+
+        class DeviceSteps:
+            def __init__(self):
+                self.dose_checked = False
+                self.devices_checked = False
+
+            async def pruefe_dose(self, zeit):
+                self.dose_checked = True
+
+            async def pruefe_geraete(self, zeit):
+                self.devices_checked = True
+
+        app = neu.create_app()
+        state = app.extensions["app_state"]
+        runner = AppRunner.fuer(state)
+        runner.tageswerte_manager = AsyncStep()
+        runner.zeit_manager = BrokenTimeStep()
+        runner.history_manager = HistoryStep()
+        devices = DeviceSteps()
+        runner.geraete_manager = devices
+
+        await runner.wiederholte_takt()
+
+        self.assertTrue(devices.dose_checked)
+        self.assertTrue(devices.devices_checked)
+        self.assertFalse(state.erste_abfrage)
+
     async def test_history_and_cooking_errors_do_not_skip_device_polling(self):
         from units.runner import AppRunner
 
