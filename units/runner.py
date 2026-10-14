@@ -48,10 +48,23 @@ class AppRunner:
         jetzt = datetime.now()
         zeit_jetzt = time.monotonic()
 
-        self.zeit_manager.aktualisiere_zeitstatus(
-            jetzt, zeit_jetzt
-        )
-        self.zeit_manager.pruefe_dazu_intervall(zeit_jetzt)
+        # Fehler in Zeit-/Intervallverwaltung dürfen Live-Geräteabfragen
+        # nicht überspringen. Beide Schritte werden unabhängig behandelt.
+        try:
+            self.zeit_manager.aktualisiere_zeitstatus(
+                jetzt, zeit_jetzt
+            )
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "[Runner] Zeitstatus konnte nicht aktualisiert werden."
+            )
+
+        try:
+            self.zeit_manager.pruefe_dazu_intervall(zeit_jetzt)
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "[Runner] Zusatzleistungs-Intervall konnte nicht geprüft werden."
+            )
 
         try:
             await self.history_manager.pruefe_48st(zeit_jetzt)
