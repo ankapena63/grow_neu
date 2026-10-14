@@ -151,6 +151,32 @@ class GeraeteManagerTests(unittest.IsolatedAsyncioTestCase):
 
 
 
+    async def test_uninitialized_device_does_not_skip_other_devices(self):
+        from units.geraete_manager import GeraeteManager
+
+        class FakeDevice:
+            def __init__(self):
+                self.calls = []
+
+            async def pruefe(self, zeit):
+                self.calls.append(zeit)
+
+        app = neu.create_app()
+        state = app.extensions["app_state"]
+        growatt = FakeDevice()
+        hms = FakeDevice()
+        strom = FakeDevice()
+        state.growatt = growatt
+        state.solax = None
+        state.hms = hms
+        state.strom = strom
+
+        await GeraeteManager(state).pruefe_geraete(321.0)
+
+        self.assertEqual(growatt.calls, [321.0])
+        self.assertEqual(hms.calls, [321.0])
+        self.assertEqual(strom.calls, [321.0])
+
     async def test_dose_failure_is_contained_by_device_manager(self):
         from units.geraete_manager import GeraeteManager
 
