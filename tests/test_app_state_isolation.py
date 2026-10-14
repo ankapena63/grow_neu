@@ -324,6 +324,33 @@ class LifecycleCleanupTests(unittest.IsolatedAsyncioTestCase):
         await manager.oeffne()
         self.assertFalse(manager._closed)
 
+    async def test_reopening_session_manager_keeps_existing_sessions_tracked(self):
+        from units.configuration import SessionManager
+
+        class FakeSession:
+            def __init__(self):
+                self.closed = False
+                self.close_calls = 0
+
+            async def close(self):
+                self.close_calls += 1
+                self.closed = True
+
+        app = neu.create_app()
+        state = app.extensions["app_state"]
+        manager = SessionManager.fuer(state)
+        session = FakeSession()
+        manager._sessions["session_test"] = session
+
+        await manager.oeffne()
+
+        # Ein erneutes Öffnen darf registrierte Sessions nicht aus der
+        # Verwaltung entfernen; der nächste Shutdown muss sie schließen.
+        self.assertIs(manager._sessions["session_test"], session)
+        self.assertTrue(await manager.schliesse_alle())
+        self.assertTrue(session.closed)
+        self.assertEqual(session.close_calls, 1)
+
     async def test_growatt_and_sessions_are_closed_even_if_dose_shutdown_fails(self):
         from units.lifecycle import LifecycleManager
         from units.configuration import SessionManager
