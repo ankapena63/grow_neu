@@ -31,14 +31,21 @@ class GeraeteManager:
         """Prüft die übrigen Energiegeräte nacheinander."""
         app_state = self.app_state
         geraete = (
-            ("Growatt", app_state.growatt),
-            ("Solax", app_state.solax),
-            ("HMS", app_state.hms),
-            ("Strom", app_state.strom),
+            ("Growatt", getattr(app_state, "growatt", None)),
+            ("Solax", getattr(app_state, "solax", None)),
+            ("HMS", getattr(app_state, "hms", None)),
+            ("Strom", getattr(app_state, "strom", None)),
         )
-        # Ein ausgefallenes Gerät darf die Abfragen der anderen Geräte
-        # in diesem Takt nicht verhindern.
+        # Ein noch nicht initialisiertes oder ausgefallenes Gerät darf
+        # die Abfragen der anderen Geräte nicht verhindern.
         for name, geraet in geraete:
+            if geraet is None:
+                logger.warning(
+                    "[Geräte] %s ist noch nicht initialisiert; "
+                    "Abfrage wird übersprungen.",
+                    name,
+                )
+                continue
             try:
                 await geraet.pruefe(zeit)
             except Exception:
