@@ -16,6 +16,7 @@ class ApplicationManager:
 
     def __init__(self):
         self.app = None
+        self.lifecycle_manager = LifecycleManager()
 
     def create_app(self):
         """Erstellt und initialisiert die Quart-Anwendung."""
@@ -38,7 +39,7 @@ class ApplicationManager:
         app.register_blueprint(routes)
         app.register_blueprint(dose_bp)
 
-        LifecycleManager().register(app)
+        self.lifecycle_manager.register(app)
 
         self.app = app
         return app
