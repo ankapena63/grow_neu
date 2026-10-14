@@ -166,7 +166,7 @@ class GeraeteManagerTests(unittest.IsolatedAsyncioTestCase):
 
 
 class RunnerResilienceTests(unittest.IsolatedAsyncioTestCase):
-    async def test_cooking_error_does_not_skip_device_polling(self):
+    async def test_history_and_cooking_errors_do_not_skip_device_polling(self):
         from units.runner import AppRunner
 
         class AsyncStep:
@@ -182,6 +182,10 @@ class RunnerResilienceTests(unittest.IsolatedAsyncioTestCase):
 
             def pruefe_dazu_intervall(self, *args):
                 pass
+
+        class BrokenHistory:
+            async def pruefe_48st(self, zeit):
+                raise RuntimeError("Testfehler Historie")
 
         class BrokenCooking:
             async def pruefe_kochen(self, zeit):
@@ -203,7 +207,7 @@ class RunnerResilienceTests(unittest.IsolatedAsyncioTestCase):
         state.kochen = True
         runner = AppRunner.fuer(state)
         runner.tageswerte_manager = AsyncStep()
-        runner.history_manager = AsyncStep()
+        runner.history_manager = BrokenHistory()
         runner.zeit_manager = ZeitStep()
         runner.kochen_manager = BrokenCooking()
         device_steps = DeviceSteps()
