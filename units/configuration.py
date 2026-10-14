@@ -31,7 +31,8 @@ class SessionManager:
         """Aktiviert den Manager für einen neuen App-Lebenszyklus."""
         async with self._lock:
             self._closed = False
-            self._sessions.clear()
+            # Bereits registrierte Sessions bleiben nach einem erneuten Öffnen
+            # nachverfolgbar, damit sie beim nächsten Shutdown geschlossen werden.
 
     async def erstelle(self, name, *, auth=None, headers=None, timeout=10):
         """
