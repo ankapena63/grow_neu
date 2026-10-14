@@ -27,6 +27,12 @@ class SessionManager:
             app_state._session_manager = manager
         return manager
 
+    async def oeffne(self) -> None:
+        """Aktiviert den Manager für einen neuen App-Lebenszyklus."""
+        async with self._lock:
+            self._closed = False
+            self._sessions.clear()
+
     async def erstelle(self, name, *, auth=None, headers=None, timeout=10):
         """
         Gibt die benannte Session zurück oder erstellt sie bei Bedarf neu.
