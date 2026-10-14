@@ -133,6 +133,7 @@ class LifecycleManager:
                 logger.info("Starte Hintergrund-Task (einmalig).")
                 app_state.is_shutting_down = False
                 session_manager = SessionManager.fuer(app_state)
+                await session_manager.oeffne()
                 await session_manager.erstelle("session_push", timeout=10)
 
                 await app_state.growatt.init_session()
