@@ -15,7 +15,7 @@ class GeraeteManager:
 
     async def pruefe_dose(self, zeit: float) -> None:
         """Prüft die vorhandene Dose, sofern sie initialisiert ist."""
-        manager = self.app_state._dose_manager
+        manager = getattr(self.app_state, "_dose_manager", None)
         if manager is None:
             logger.warning("[Dose] Manager ist nicht initialisiert")
             return
