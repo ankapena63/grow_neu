@@ -220,5 +220,49 @@ class RunnerResilienceTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(state.erste_abfrage)
 
 
+
+class LifecycleCleanupTests(unittest.IsolatedAsyncioTestCase):
+    async def test_growatt_and_sessions_are_closed_even_if_dose_shutdown_fails(self):
+        from units.lifecycle import LifecycleManager
+        from units.configuration import SessionManager
+
+        class BrokenDose:
+            async def shutdown(self):
+                raise RuntimeError("Dose shutdown error")
+
+        class FakeGrowatt:
+            def __init__(self):
+                self.closed = False
+
+            async def close(self):
+                self.closed = True
+
+        class FakeSessions:
+            def __init__(self):
+                self.closed = False
+
+            async def schliesse_alle(self):
+                self.closed = True
+                return True
+
+        app = neu.create_app()
+        state = app.extensions["app_state"]
+        growatt = FakeGrowatt()
+        sessions = FakeSessions()
+        state._dose_manager = BrokenDose()
+        state.growatt = growatt
+
+        original_fuer = SessionManager.fuer
+        try:
+            SessionManager.fuer = classmethod(lambda cls, app_state: sessions)
+            result = await LifecycleManager().close_network_resources(state)
+        finally:
+            SessionManager.fuer = original_fuer
+
+        self.assertFalse(result)
+        self.assertTrue(growatt.closed)
+        self.assertTrue(sessions.closed)
+
+
 if __name__ == "__main__":
     unittest.main()
