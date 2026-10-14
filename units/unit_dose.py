@@ -26,6 +26,7 @@ class TuyaDoseManager:
 
     def __init__(self, app_state: AppState) -> None:
         self.app_state = app_state
+        self.history_manager = HistoryManager.fuer(app_state)
 
     def _create_dose_device(self) -> DoseDevice:
         """Erstellt den tinytuya-Client mit Protokoll-Typ."""
@@ -100,7 +101,7 @@ class TuyaDoseManager:
         """Ruft den aktuellen Status der Dose ab und aktualisiert den AppState."""
         try:
             data = await self._async_status()
-            HistoryManager.fuer(self.app_state).schreibe_in_roh("dose", data)
+            self.history_manager.schreibe_in_roh("dose", data)
 
             if not data or "dps" not in data:
                 logger.error("Dose nicht erreichbar")
