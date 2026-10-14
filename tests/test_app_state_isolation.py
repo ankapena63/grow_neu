@@ -149,5 +149,69 @@ class GeraeteManagerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(strom.calls, [123.0])
 
 
+
+    async def test_dose_failure_is_contained_by_device_manager(self):
+        from units.geraete_manager import GeraeteManager
+
+        class BrokenDoseManager:
+            async def pruefe(self, zeit):
+                raise RuntimeError("Dose offline")
+
+        app = neu.create_app()
+        state = app.extensions["app_state"]
+        state._dose_manager = BrokenDoseManager()
+
+        # Der Fehler darf nicht aus dem Geräte-Manager herauslaufen.
+        await GeraeteManager(state).pruefe_dose(123.0)
+
+
+class RunnerResilienceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_cooking_error_does_not_skip_device_polling(self):
+        from units.runner import AppRunner
+
+        class AsyncStep:
+            async def run(self, *args):
+                return None
+
+        class ZeitStep:
+            def aktualisiere_zeitstatus(self, *args):
+                pass
+
+            def pruefe_dazu_intervall(self, *args):
+                pass
+
+        class BrokenCooking:
+            async def pruefe_kochen(self, zeit):
+                raise RuntimeError("Testfehler Kochsteuerung")
+
+        class DeviceSteps:
+            def __init__(self):
+                self.dose_checked = False
+                self.devices_checked = False
+
+            async def pruefe_dose(self, zeit):
+                self.dose_checked = True
+
+            async def pruefe_geraete(self, zeit):
+                self.devices_checked = True
+
+        app = neu.create_app()
+        state = app.extensions["app_state"]
+        state.kochen = True
+        runner = AppRunner.fuer(state)
+        runner.tageswerte_manager = AsyncStep()
+        runner.history_manager = AsyncStep()
+        runner.zeit_manager = ZeitStep()
+        runner.kochen_manager = BrokenCooking()
+        device_steps = DeviceSteps()
+        runner.geraete_manager = device_steps
+
+        await runner.wiederholte_takt()
+
+        self.assertTrue(device_steps.dose_checked)
+        self.assertTrue(device_steps.devices_checked)
+        self.assertFalse(state.erste_abfrage)
+
+
 if __name__ == "__main__":
     unittest.main()
