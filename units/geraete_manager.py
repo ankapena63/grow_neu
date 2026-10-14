@@ -19,7 +19,13 @@ class GeraeteManager:
         if manager is None:
             logger.warning("[Dose] Manager ist nicht initialisiert")
             return
-        await manager.pruefe(zeit)
+        try:
+            await manager.pruefe(zeit)
+        except Exception:
+            logger.exception(
+                "[Dose] Prüfung fehlgeschlagen; "
+                "die übrigen Abläufe werden fortgesetzt."
+            )
 
     async def pruefe_geraete(self, zeit: float) -> None:
         """Prüft die übrigen Energiegeräte nacheinander."""
