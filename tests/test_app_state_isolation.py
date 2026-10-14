@@ -321,6 +321,9 @@ class LifecycleCleanupTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(session.closed)
         self.assertEqual(session.close_calls, 1)
 
+        await manager.oeffne()
+        self.assertFalse(manager._closed)
+
     async def test_growatt_and_sessions_are_closed_even_if_dose_shutdown_fails(self):
         from units.lifecycle import LifecycleManager
         from units.configuration import SessionManager
