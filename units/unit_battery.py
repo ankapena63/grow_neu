@@ -362,9 +362,9 @@ class GrowattSessionManager:
       try:
         if self.app_state.einstellungen.get("abfrage_growatt", False):
             status2, status1 = await asyncio.gather(
-                self.app_state.growatt.get_status(takt),
-                self.app_state.growatt.run_with_lock(
-                    self.app_state.growatt.get_noah_queryLastData,
+                self.get_status(takt),
+                self.run_with_lock(
+                    self.get_noah_queryLastData,
                     takt,
                     cooldown=60,
                 ),
@@ -376,7 +376,7 @@ class GrowattSessionManager:
             else:
                 status = status1
         else:
-            status = await self.app_state.growatt.get_iobroker() or {}
+            status = await self.get_iobroker() or {}
             status["zeit_meine"] = ZeitstempelManager.zeitstempel()
 
         temp1 = status.get("battery1Temp", 0)
