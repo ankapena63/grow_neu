@@ -25,10 +25,19 @@ class GeraeteManager:
         """Prüft die übrigen Energiegeräte nacheinander."""
         app_state = self.app_state
         geraete = (
-            app_state.growatt,
-            app_state.solax,
-            app_state.hms,
-            app_state.strom,
+            ("Growatt", app_state.growatt),
+            ("Solax", app_state.solax),
+            ("HMS", app_state.hms),
+            ("Strom", app_state.strom),
         )
-        for geraet in geraete:
-            await geraet.pruefe(zeit)
+        # Ein ausgefallenes Gerät darf die Abfragen der anderen Geräte
+        # in diesem Takt nicht verhindern.
+        for name, geraet in geraete:
+            try:
+                await geraet.pruefe(zeit)
+            except Exception:
+                logger.exception(
+                    "[Geräte] Prüfung von %s fehlgeschlagen; "
+                    "die übrigen Geräte werden weiter geprüft.",
+                    name,
+                )
