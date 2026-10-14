@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 import neu
 
@@ -252,12 +253,8 @@ class LifecycleCleanupTests(unittest.IsolatedAsyncioTestCase):
         state._dose_manager = BrokenDose()
         state.growatt = growatt
 
-        original_fuer = SessionManager.fuer
-        try:
-            SessionManager.fuer = classmethod(lambda cls, app_state: sessions)
+        with patch.object(SessionManager, "fuer", return_value=sessions):
             result = await LifecycleManager().close_network_resources(state)
-        finally:
-            SessionManager.fuer = original_fuer
 
         self.assertFalse(result)
         self.assertTrue(growatt.closed)
