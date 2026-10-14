@@ -38,7 +38,12 @@ class AppRunner:
     async def wiederholte_takt(self):
         app_state = self.app_state
 
-        await self.tageswerte_manager.reset_heute_werte()
+        try:
+            await self.tageswerte_manager.reset_heute_werte()
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "[Runner] Tageswerte konnten nicht zurückgesetzt werden."
+            )
 
         jetzt = datetime.now()
         zeit_jetzt = time.monotonic()
@@ -48,7 +53,14 @@ class AppRunner:
         )
         self.zeit_manager.pruefe_dazu_intervall(zeit_jetzt)
 
-        await self.history_manager.pruefe_48st(zeit_jetzt)
+        try:
+            await self.history_manager.pruefe_48st(zeit_jetzt)
+        except Exception:
+            # Ein Problem mit der CSV-Historie darf die Live-Abfragen
+            # nicht stoppen.
+            logging.getLogger(__name__).exception(
+                "[Runner] 48-Stunden-Historie konnte nicht gespeichert werden."
+            )
 
         await self.geraete_manager.pruefe_dose(zeit_jetzt)
 
