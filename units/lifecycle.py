@@ -155,11 +155,29 @@ class LifecycleManager:
                                     "[Hintergrundfehler_init]"
                                 )
 
-                            await asyncio.sleep(
-                                app_state.einstellungen.get(
-                                    "intervall_takt", 5
+                            # Ungültige oder versehentlich sehr kleine
+                            # Konfigurationen dürfen keine enge Endlosschleife
+                            # erzeugen oder den Hintergrund-Task beenden.
+                            try:
+                                intervall = float(
+                                    app_state.einstellungen.get(
+                                        "intervall_takt", 5
+                                    )
                                 )
-                            )
+                            except (TypeError, ValueError):
+                                intervall = 5.0
+
+                            if not 0.1 <= intervall <= 3600:
+                                logger.warning(
+                                    "Ungültiges intervall_takt=%r; "
+                                    "verwende 5 Sekunden.",
+                                    app_state.einstellungen.get(
+                                        "intervall_takt"
+                                    ),
+                                )
+                                intervall = 5.0
+
+                            await asyncio.sleep(intervall)
 
                 app.add_background_task(safe_background_task)
                 logger.info(
