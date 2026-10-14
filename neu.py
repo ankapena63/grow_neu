@@ -99,10 +99,5 @@ def create_app():
 app = create_app()
 
 
-async def run_server() -> None:
-    """Kompatibilität für den bisherigen Programmstart."""
-    await application_manager.run_server()
-
-
 if __name__ == "__main__":
-    asyncio.run(run_server())
+    asyncio.run(application_manager.run_server())
