@@ -147,7 +147,14 @@ class LifecycleManager:
 
                 async def safe_background_task() -> None:
                     async with app.app_context():
-                        while not app_state.is_shutting_down:
+                        shutdown_event = app.extensions.get("server_shutdown_event")
+                        while (
+                            not app_state.is_shutting_down
+                            and not (
+                                shutdown_event is not None
+                                and shutdown_event.is_set()
+                            )
+                        ):
                             try:
                                 await runner.wiederholte_takt()
                             except Exception:
@@ -176,7 +183,6 @@ class LifecycleManager:
                                 intervall = 5.0
 
                             # Beim Shutdown nicht bis zum Ende eines langen Takts warten.
-                            shutdown_event = app.extensions.get("server_shutdown_event")
                             if shutdown_event is None:
                                 await asyncio.sleep(intervall)
                             else:
