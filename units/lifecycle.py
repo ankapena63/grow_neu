@@ -75,29 +75,39 @@ class LifecycleManager:
     async def close_network_resources(
         self, app_state: AppState
     ) -> bool:
-        """Schließt Netzwerkverbindungen beim Herunterfahren."""
+        """Schließt alle Netzwerkressourcen auch bei Teilfehlern."""
         cleanup_succeeded = True
 
+        # Jede Ressource wird unabhängig geschlossen. Ein Fehler an der
+        # Dose darf weder Growatt noch die gemeinsamen HTTP-Sessions offenlassen.
         manager = getattr(app_state, "_dose_manager", None)
         if manager is not None:
-            if not await manager.shutdown():
+            try:
+                if not await manager.shutdown():
+                    cleanup_succeeded = False
+                    logger.warning(
+                        "Dose konnte beim Shutdown nicht sicher "
+                        "ausgeschaltet werden."
+                    )
+            except Exception:
                 cleanup_succeeded = False
-                logger.warning(
-                    "Dose konnte beim Shutdown nicht sicher "
-                    "ausgeschaltet werden."
-                )
+                logger.exception("Dose-Shutdown fehlgeschlagen.")
 
         growatt = getattr(app_state, "growatt", None)
-        if growatt:
+        if growatt is not None:
             try:
                 await growatt.close()
             except Exception:
                 cleanup_succeeded = False
                 logger.exception("Growatt schließen fehlgeschlagen.")
 
-        session_manager = SessionManager.fuer(app_state)
-        if not await session_manager.schliesse_alle():
+        try:
+            session_manager = SessionManager.fuer(app_state)
+            if not await session_manager.schliesse_alle():
+                cleanup_succeeded = False
+        except Exception:
             cleanup_succeeded = False
+            logger.exception("HTTP-Sessions schließen fehlgeschlagen.")
 
         return cleanup_succeeded
 
