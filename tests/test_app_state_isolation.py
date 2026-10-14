@@ -114,5 +114,40 @@ class DoseDeviceIsolationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(PushManager.fuer(state_one), PushManager.fuer(state_one))
 
 
+
+class GeraeteManagerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_one_device_failure_does_not_skip_the_other_devices(self):
+        from units.geraete_manager import GeraeteManager
+
+        class FakeDevice:
+            def __init__(self, name, fail=False):
+                self.name = name
+                self.fail = fail
+                self.calls = []
+
+            async def pruefe(self, zeit):
+                self.calls.append(zeit)
+                if self.fail:
+                    raise RuntimeError(f"{self.name} offline")
+
+        app = neu.create_app()
+        state = app.extensions["app_state"]
+        growatt = FakeDevice("Growatt", fail=True)
+        solax = FakeDevice("Solax")
+        hms = FakeDevice("HMS")
+        strom = FakeDevice("Strom")
+        state.growatt = growatt
+        state.solax = solax
+        state.hms = hms
+        state.strom = strom
+
+        await GeraeteManager(state).pruefe_geraete(123.0)
+
+        self.assertEqual(growatt.calls, [123.0])
+        self.assertEqual(solax.calls, [123.0])
+        self.assertEqual(hms.calls, [123.0])
+        self.assertEqual(strom.calls, [123.0])
+
+
 if __name__ == "__main__":
     unittest.main()
