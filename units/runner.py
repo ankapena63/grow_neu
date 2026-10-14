@@ -1,5 +1,6 @@
 """Central scheduler for device polling and application control."""
 from datetime import datetime
+import logging
 import time
 
 from units.history import HistoryManager
@@ -57,7 +58,6 @@ class AppRunner:
             except Exception:
                 # Ein Fehler in der Kochsteuerung darf die Geräteabfragen
                 # dieses Takts nicht überspringen.
-                import logging
                 logging.getLogger(__name__).exception(
                     "[Runner] Kochprüfung fehlgeschlagen."
                 )
