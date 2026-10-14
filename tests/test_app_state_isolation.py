@@ -170,7 +170,10 @@ class RunnerResilienceTests(unittest.IsolatedAsyncioTestCase):
         from units.runner import AppRunner
 
         class AsyncStep:
-            async def run(self, *args):
+            async def reset_heute_werte(self):
+                return None
+
+            async def pruefe_48st(self, zeit):
                 return None
 
         class ZeitStep:
