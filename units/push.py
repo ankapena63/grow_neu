@@ -66,8 +66,10 @@ class PushManager:
         if jetzt - letzte_zeit < pause:
             return
 
-        session = await self.session_manager.erstelle("session_push")
         try:
+            # Auch die Session-Erstellung kann beim Shutdown oder bei
+            # Netzwerkproblemen fehlschlagen.
+            session = await self.session_manager.erstelle("session_push")
             if await self.sende_ntfy(session, nachricht, prio):
                 app_state.letzte_push_zeiten[prio] = jetzt
         except Exception:
