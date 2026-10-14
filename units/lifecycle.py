@@ -175,7 +175,18 @@ class LifecycleManager:
                                 )
                                 intervall = 5.0
 
-                            await asyncio.sleep(intervall)
+                            # Beim Shutdown nicht bis zum Ende eines langen Takts warten.
+                            shutdown_event = app.extensions.get("server_shutdown_event")
+                            if shutdown_event is None:
+                                await asyncio.sleep(intervall)
+                            else:
+                                try:
+                                    await asyncio.wait_for(
+                                        shutdown_event.wait(),
+                                        timeout=intervall,
+                                    )
+                                except asyncio.TimeoutError:
+                                    pass
 
                 app.add_background_task(safe_background_task)
                 logger.info(
