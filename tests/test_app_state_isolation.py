@@ -293,6 +293,34 @@ class RunnerResilienceTests(unittest.IsolatedAsyncioTestCase):
 
 
 class LifecycleCleanupTests(unittest.IsolatedAsyncioTestCase):
+    async def test_session_manager_rejects_new_sessions_after_shutdown(self):
+        from unittest.mock import patch
+        from units.configuration import SessionManager
+
+        class FakeSession:
+            def __init__(self):
+                self.closed = False
+                self.close_calls = 0
+
+            async def close(self):
+                self.close_calls += 1
+                self.closed = True
+
+        app = neu.create_app()
+        state = app.extensions["app_state"]
+        manager = SessionManager.fuer(state)
+        session = FakeSession()
+        manager._sessions["session_test"] = session
+
+        with patch("units.configuration.aiohttp.ClientSession") as create_session:
+            self.assertTrue(await manager.schliesse_alle())
+            with self.assertRaisesRegex(RuntimeError, "nach dem Shutdown"):
+                await manager.erstelle("session_neu")
+            create_session.assert_not_called()
+
+        self.assertTrue(session.closed)
+        self.assertEqual(session.close_calls, 1)
+
     async def test_growatt_and_sessions_are_closed_even_if_dose_shutdown_fails(self):
         from units.lifecycle import LifecycleManager
         from units.configuration import SessionManager
