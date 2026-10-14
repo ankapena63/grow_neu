@@ -147,13 +147,11 @@ class LifecycleManager:
 
                 async def safe_background_task() -> None:
                     async with app.app_context():
-                        while True:
+                        while not app_state.is_shutting_down:
                             try:
                                 await runner.wiederholte_takt()
                             except Exception:
-                                logger.exception(
-                                    "[Hintergrundfehler_init]"
-                                )
+                                logger.exception("[Hintergrundfehler_init]")
 
                             # Ungültige oder versehentlich sehr kleine
                             # Konfigurationen dürfen keine enge Endlosschleife
