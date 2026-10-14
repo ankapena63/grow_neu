@@ -52,7 +52,15 @@ class AppRunner:
         await self.geraete_manager.pruefe_dose(zeit_jetzt)
 
         if app_state.kochen:
-            await self.kochen_manager.pruefe_kochen(zeit_jetzt)
+            try:
+                await self.kochen_manager.pruefe_kochen(zeit_jetzt)
+            except Exception:
+                # Ein Fehler in der Kochsteuerung darf die Geräteabfragen
+                # dieses Takts nicht überspringen.
+                import logging
+                logging.getLogger(__name__).exception(
+                    "[Runner] Kochprüfung fehlgeschlagen."
+                )
 
         await self.geraete_manager.pruefe_geraete(zeit_jetzt)
 
