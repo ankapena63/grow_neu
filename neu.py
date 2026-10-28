@@ -3,7 +3,6 @@ import os
 import signal
 
 from quart import Quart
-
 from units.web import routes
 from units.lifecycle import LifecycleManager
 from units.state import AppState
